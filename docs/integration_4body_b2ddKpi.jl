@@ -22,19 +22,18 @@ using HadronicLineshapes
 using StaticArrays
 using ThreeBodyDecays: VertexFunction, RecouplingLS
 
+format_instruction(inst) = string(nameof(typeof(inst)), "(", join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), ", "), ")")
+
 # ## 1. Event four-vectors
 #
-# The final-state line order is chosen to match the `InstructionalDecayTrees.jl`
-# angle notebook:
+# The final-state particle labels are chosen to match the
+# `InstructionalDecayTrees.jl` angle notebook:
 #
 # ```text
-# line 1: D⁰
-# line 2: π⁺
-# line 3: D⁻
-# line 4: K⁺
-# line 5: Dₓ⁺ = D⁰π⁺
-# line 6: ψ(4040) = Dₓ⁺D⁻
-# line 7: B⁺
+# 1: D⁰
+# 2: π⁺
+# 3: D⁻
+# 4: K⁺
 # ```
 
 pDminus = FourVector(0.8634762475578601, -0.2273640501540901, 0.5897962254778486; E = 2.1542368373711818)
@@ -73,51 +72,79 @@ topology = DecayTopology((((1, 2), 3), 4))
 
 @assert has_canonical_line_order(topology)
 @assert bracket(topology) == "(((1,2),3),4)"
-@assert vertex_lines(topology, 1) == (7, 6, 4)
-@assert vertex_lines(topology, 2) == (6, 5, 3)
-@assert vertex_lines(topology, 3) == (5, 1, 2)
-
 # ## 3. Static system information
 #
-# The static system stores line spins and fixed external/root masses. Internal
-# line masses are not static; they are supplied by the event kinematics.
+# The static system stores only external/root spins and fixed external/root
+# masses. Internal spins belong to the propagator specs below, and internal
+# masses are supplied by the event kinematics.
 #
-# We use pseudoscalar external particles, a vector `ψ(4040)`, and a vector `Dₓ`.
-# Spins are represented as doubled integers.
+# We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins are
+# represented as doubled integers.
 
 two_js = (
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
-    2, # Dₓ⁺
-    2, # ψ(4040)
     0, # B⁺
 )
 
-final_masses2 = mass.(objs) .^ 2
-system = CascadeSystem(two_js, final_masses2; root_mass2 = mass(P_B)^2)
+masses2 = (mass.(objs) .^ 2..., mass(P_B)^2)
+system = CascadeSystem(two_js, masses2);
 
 # ## 4. Runtime kinematic input from the topology
 #
-# `CascadeKinematics` is the completed graph-indexed input point:
+# `CascadeKinematics` is the completed input point from which the package can
+# route local invariants and angles by topology address.
 #
-# - `line_masses2[line]`
-# - `vertex_angles[vertex]`
+# The angle programs are generated directly from the topology. It is useful to
+# look at them explicitly: each entry is the sequence of frame changes and one
+# final `MeasureCosThetaPhi(...)` instruction for one binary decay in the
+# cascade.
 #
-# The angle programs are generated directly from the topology. For this chain,
-# the third vertex is `Dₓ⁺ → D⁰π⁺`, so it matches the cross-check angle in the
-# input event.
+# In helicity convention:
+#
+# - `ToHelicityFrame((...))` boosts to the rest frame of the addressed subsystem
+# - the final `MeasureCosThetaPhi(...)` returns the local helicity angles
+#   `(cosθ, ϕ)` for the first child of that binary decay
+#
+# The initial configuration of four-vectors is assumed to be already aligned so
+# that the subsequent helicity-angle measurements are performed in the desired
+# convention.
+#
+# After that, `cascade_kinematics(...)` evaluates the generated programs on the
+# event four-vectors and assembles the full kinematic input object.
+#
+# Here we inspect the local decay `(1,2)`, which corresponds to
+# `Dₓ⁺ → D⁰π⁺` and matches the cross-check angle in the input event.
 
 programs = helicity_angle_programs(topology)
+
+for (label, program) in (
+    ("(((1,2),3),4)", programs[1]),
+    ("((1,2),3)", programs[2]),
+    ("(1,2)", programs[3]),
+)
+    println("program for ", label)
+    foreach(step -> println("  ", format_instruction(step)), program)
+end
+
 x = cascade_kinematics(topology, system, objs)
 
-@assert isapprox(x.vertex_angles[3].cosθ, reference_cosθ_D_in_Dx; atol = 2e-10)
-@assert isapprox(x.vertex_angles[3].ϕ, reference_ϕ_D_in_Dx; atol = 2e-10)
+root_angles = vertex_angles(topology, x, (((1, 2), 3), 4))
+psi_angles = vertex_angles(topology, x, ((1, 2), 3))
+Dx_angles = vertex_angles(topology, x, (1, 2))
 
-@assert x.line_masses2[5] ≈ mass(P_Dx)^2
-@assert x.line_masses2[6] ≈ mass(P_psi)^2
-@assert vertex_masses2(topology, x, 1) == (x.line_masses2[7], x.line_masses2[6], x.line_masses2[4])
+println("angles for (((1,2),3),4): cosθ = ", root_angles.cosθ, ", ϕ = ", root_angles.ϕ)
+println("angles for ((1,2),3): cosθ = ", psi_angles.cosθ, ", ϕ = ", psi_angles.ϕ)
+println("angles for (1,2): cosθ = ", Dx_angles.cosθ, ", ϕ = ", Dx_angles.ϕ)
+
+@assert isapprox(Dx_angles.cosθ, reference_cosθ_D_in_Dx; atol = 2e-10)
+@assert isapprox(Dx_angles.ϕ, reference_ϕ_D_in_Dx; atol = 2e-10)
+
+@assert line_invariant(topology, x, (1, 2)) ≈ mass(P_Dx)^2
+@assert line_invariant(topology, x, ((1, 2), 3)) ≈ mass(P_psi)^2
+@assert vertex_masses2(topology, x, (((1, 2), 3), 4)) == (mass(P_B)^2, mass(P_psi)^2, mass(pKplus)^2)
 
 # ## 5. Static payloads: vertices and propagators
 #
@@ -129,62 +156,63 @@ x = cascade_kinematics(topology, system, objs)
 # "Psi(4040)_width": 0.08
 # ```
 #
+# The left side of each pair is a bracket address, so no user-facing model input
+# depends on internal line or vertex numbering. The constructor resolves these
+# addresses once and stores typed `SVector`s internally.
+#
+# For curiosity, the topology is internally compiled into a flat connectivity
+# matrix: rows are particle/state lines, columns are binary decay vertices, `-1`
+# marks the incoming parent line, and `+1` marks the two outgoing child lines.
+# This is the canonical graph representation from which routing and evaluation
+# order are derived.
+
+connectivity = Matrix(relation(topology))
+#
 # Vertices are `ThreeBodyDecays.VertexFunction` objects. In this minimal example
-# we choose LS recouplings compatible with the static line spins above.
+# we choose LS recouplings compatible with the spin assignments below.
 
 vertices = (
-    VertexFunction(RecouplingLS((2, 2))), # B⁺ -> ψ K
-    VertexFunction(RecouplingLS((0, 2))), # ψ -> Dₓ D
-    VertexFunction(RecouplingLS((2, 0))), # Dₓ -> D⁰ π
+    (((1, 2), 3), 4) => VertexFunction(RecouplingLS((2, 2))), # B⁺ -> ψ K
+    ((1, 2), 3) => VertexFunction(RecouplingLS((0, 2))),      # ψ -> Dₓ D
+    (1, 2) => VertexFunction(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
 )
 
 propagators = (
-    ConstantLineshape(1.0 + 0.0im),      # Dₓ⁺ line, kept non-resonant here
-    BreitWigner(4.039, 0.08),            # ψ(4040) line
+    (1, 2) => (two_j = 2, lineshape = ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => (two_j = 2, lineshape = BreitWigner(4.039, 0.08)),
 )
 
-propagating_line_ids = (5, 6)
-
-chain = DecayChain(topology, propagators, vertices, propagating_line_ids)
+chain = DecayChain(topology; propagators, vertices);
 
 # ## 6. General amplitude evaluation
 #
-# The package-level `amplitude` method shows the intended internal contract:
+# The package-level `amplitude` method now performs the internal-helicity sum,
+# so the user only provides external helicities in the order `(1,2,3,4,0)`.
 #
-# - topology chooses `(parent, child1, child2)`
+# In formula form,
+#
+# $$
+# \mathcal{A}(\lambda_1,\lambda_2,\lambda_3,\lambda_4,\lambda_0)
+# = \sum_{\lambda_{12},\lambda_{123}}
+# \prod_v D_v^*\,V_v \prod_r P_r.
+# $$
+#
+# The routing contract is:
+#
+# - topology chooses the local parent/children at each binary decay
 # - `CascadeKinematics` supplies three local masses squared
-# - `two_λs` supplies local helicities by line id
-# - `CascadeSystem` supplies local spins by line id
+# - `external_two_λs` supplies only final and initial helicities
+# - `CascadeSystem` and `DecayChain` supply local external/internal spins
 # - Julia dispatch selects vertex and propagator computations
 
-function helicity_config(two_λψ, two_λDx)
-    return (
-        0,       # D⁰
-        0,       # π⁺
-        0,       # D⁻
-        0,       # K⁺
-        two_λDx,
-        two_λψ,
-        0,       # B⁺
-    )
-end
-
-two_spin1_helicities = -2:2:2
-
-amplitude_terms = [
-    amplitude(chain, system, x, helicity_config(two_λψ, two_λDx))
-    for two_λψ in two_spin1_helicities,
-        two_λDx in two_spin1_helicities
-]
-
-A = sum(amplitude_terms)
+external_two_λs = (0, 0, 0, 0, 0)
+A = amplitude(chain, system, x, external_two_λs)
 
 # ## 7. Numerical result
 
-println("line_masses2 = ", x.line_masses2)
-println("vertex_angles = ", x.vertex_angles)
-println("ψ(4040) BW at m²(DₓD) = ", chain.propagators[2](x.line_masses2[6]))
-println("amplitude terms = ", amplitude_terms)
+println("m²(1,2) = ", line_invariant(topology, x, (1, 2)))
+println("m²((1,2),3) = ", line_invariant(topology, x, ((1, 2), 3)))
+println("angles at (1,2) = ", vertex_angles(topology, x, (1, 2)))
 println("summed amplitude = ", A)
 
 @assert isfinite(real(A))

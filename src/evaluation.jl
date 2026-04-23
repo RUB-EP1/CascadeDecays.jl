@@ -43,14 +43,6 @@ function helicity_angle_program(topology::DecayTopology, target_vertex::Integer)
     program = Any[ToHelicityFrame(_indices_for_line(topology, rootline(topology)))]
 
     current_vertex = _root_vertex(topology)
-    root_children = child_lines(topology, current_vertex)
-    push!(
-        program,
-        PlaneAlign(
-            _neg_indices(_indices_for_line(topology, root_children[2])),
-            _indices_for_line(topology, root_children[1]),
-        ),
-    )
 
     while true
         parent = incoming_line(topology, current_vertex)
@@ -119,7 +111,7 @@ end
 function routed_vertex_amplitude(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics, two_λs, vertex::Integer)
     masses2 = vertex_masses2(chain, x, vertex)
     helicities = vertex_helicities(chain, two_λs, vertex)
-    spins = vertex_spins(chain.topology, system, vertex)
+    spins = vertex_spins(chain, system, vertex)
     angles = vertex_angles(x, vertex)
     return routed_vertex_amplitude(chain.vertices[vertex], masses2, helicities, spins, angles)
 end
@@ -130,14 +122,45 @@ function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
     end
 end
 
-"""
-    amplitude(chain, system, x, two_λs)
+function _helicity_axis(two_j::Integer)
+    return (-Int(two_j)):2:Int(two_j)
+end
 
-Route graph-indexed masses, angles, spins, and helicities to static vertex and
-propagator payloads and return the product for one complete helicity assignment.
+function _full_helicity_assignment(chain::DecayChain, external_two_λs, internal_two_λs)
+    external_tuple = Tuple(Int(two_λ) for two_λ in external_two_λs)
+    length(external_tuple) == nfinal(chain) + 1 ||
+        throw(ArgumentError("external_two_λs must be given as `(finals..., root)`"))
+    internal_tuple = Tuple(Int(two_λ) for two_λ in internal_two_λs)
+    length(internal_tuple) == length(propagating_lines(chain)) ||
+        throw(ArgumentError("internal helicity assignment does not match the number of internal lines"))
+    values = MVector{nlines(chain),Int}(undef)
+    for (i, line) in pairs(finallines(chain))
+        values[line] = external_tuple[i]
+    end
+    for (i, line) in pairs(propagating_lines(chain))
+        values[line] = internal_tuple[i]
+    end
+    values[rootline(chain)] = external_tuple[end]
+    return SVector(values)
+end
+
+function _internal_helicity_assignments(chain::DecayChain)
+    axes = Tuple(_helicity_axis(two_j) for two_j in chain.propagator_two_js)
+    isempty(axes) && return ((),)
+    return Iterators.product(axes...)
+end
+
 """
-function amplitude(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics, two_λs)
-    V = prod(v -> routed_vertex_amplitude(chain, system, x, two_λs, v), 1:nvertices(chain))
+    amplitude(chain, system, x, external_two_λs)
+
+Route masses, angles, and spins through the cascade and sum over all internal
+helicity assignments. `external_two_λs` is supplied as `(finals..., root)`.
+"""
+function amplitude(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics, external_two_λs)
     P = routed_propagator_product(chain, x)
-    return V * P
+    return sum(_internal_helicity_assignments(chain)) do internal_two_λs
+        two_λs = _full_helicity_assignment(chain, external_two_λs, internal_two_λs)
+        V = prod(v -> routed_vertex_amplitude(chain, system, x, two_λs, v), 1:nvertices(chain))
+        V * P
+    end
 end

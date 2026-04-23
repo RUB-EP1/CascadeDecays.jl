@@ -61,11 +61,17 @@ function line_invariant(x::CascadeKinematics, line::Integer)
     return x.line_masses2[line]
 end
 
+line_invariant(topology::DecayTopology, x::CascadeKinematics, address) =
+    line_invariant(x, line_for(topology, address))
+
 function vertex_masses2(topology::DecayTopology, x::CascadeKinematics, vertex::Integer)
     _check_kinematics(topology, x)
     l0, l1, l2 = vertex_lines(topology, vertex)
     return (x.line_masses2[l0], x.line_masses2[l1], x.line_masses2[l2])
 end
+
+vertex_masses2(topology::DecayTopology, x::CascadeKinematics, address) =
+    vertex_masses2(topology, x, vertex_for(topology, address))
 
 function vertex_helicities(topology::DecayTopology, two_λs, vertex::Integer)
     l0, l1, l2 = vertex_lines(topology, vertex)
@@ -74,13 +80,17 @@ function vertex_helicities(topology::DecayTopology, two_λs, vertex::Integer)
     return (two_λs[l0], two_λs[l1], two_λs[l2])
 end
 
-function vertex_spins(topology::DecayTopology, system::CascadeSystem, vertex::Integer)
-    _check_system(topology, system)
+function vertex_spins(topology::DecayTopology, two_js, vertex::Integer)
+    length(two_js) == nlines(topology) ||
+        throw(ArgumentError("two_js must have one entry per topology line"))
     l0, l1, l2 = vertex_lines(topology, vertex)
-    return (system.two_js[l0], system.two_js[l1], system.two_js[l2])
+    return (two_js[l0], two_js[l1], two_js[l2])
 end
 
 function vertex_angles(x::CascadeKinematics, vertex::Integer)
     _require_kinematic_vertex(x, vertex)
     return x.vertex_angles[vertex]
 end
+
+vertex_angles(topology::DecayTopology, x::CascadeKinematics, address) =
+    vertex_angles(x, vertex_for(topology, address))

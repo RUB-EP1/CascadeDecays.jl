@@ -80,6 +80,11 @@ function _collect_vertices_preorder!(vertices, tree)
     return vertices
 end
 
+function _address_final_labels(address)
+    labels = _collect_final_labels!(Int[], address)
+    return Tuple(labels)
+end
+
 """
     DecayTopology(bracket)
 
@@ -241,20 +246,58 @@ function validate_topology(topology::DecayTopology)
     return true
 end
 
-function final_descendants(topology::DecayTopology, line::Integer)
+function _final_descendants_unordered(topology::DecayTopology, line::Integer)
     _require_line(topology, line)
     vertex = consumed_by(topology, line)
     vertex === nothing && return [Int(line)]
     result = Int[]
     for child in outgoing_lines(topology, vertex)
-        append!(result, final_descendants(topology, child))
+        append!(result, _final_descendants_unordered(topology, child))
     end
     return result
 end
 
+"""
+    line_for(topology, address)
+
+Resolve a bracket address such as `(1, 2)` or `((1, 2), 3)` to the internal
+line id used by the flat topology. The root address resolves to `rootline`.
+"""
+function line_for(topology::DecayTopology, address)
+    labels = _address_final_labels(address)
+    for line in _line_range(topology)
+        Tuple(final_descendants(topology, line)) == labels && return Int(line)
+    end
+    throw(ArgumentError("address $address does not correspond to a line in this topology"))
+end
+
+"""
+    vertex_for(topology, address)
+
+Resolve the parent bracket address of a binary decay to the vertex id. For
+example, `(1, 2)` resolves to the vertex `(1,2) -> 1,2`.
+"""
+function vertex_for(topology::DecayTopology, address)
+    line = line_for(topology, address)
+    vertex = consumed_by(topology, line)
+    vertex === nothing && throw(ArgumentError("address $address does not correspond to a decay vertex"))
+    return vertex
+end
+
 function _ordered_children(topology::DecayTopology, vertex::Int)
     children = outgoing_lines(topology, vertex)
-    return sort(children; by = line -> minimum(final_descendants(topology, line)))
+    return sort(children; by = line -> minimum(_final_descendants_unordered(topology, line)))
+end
+
+function final_descendants(topology::DecayTopology, line::Integer)
+    _require_line(topology, line)
+    vertex = consumed_by(topology, line)
+    vertex === nothing && return [Int(line)]
+    result = Int[]
+    for child in child_lines(topology, vertex)
+        append!(result, final_descendants(topology, child))
+    end
+    return result
 end
 
 """
