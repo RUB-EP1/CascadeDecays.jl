@@ -4,9 +4,17 @@ authors = ["Mikhail Mikhasenko"]
 version = "0.1.0-DEV"
 
 [deps]
+FourVectors = "b122eb78-8380-428a-b8c8-584a022ae8b6"
+HadronicLineshapes = "49c9d978-1f9d-4e96-a984-0a9783c0b9bf"
+InstructionalDecayTrees = "1d606af4-d0f8-4ff7-bc8d-eb3f657b7647"
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+FourVectors = "0.3.1"
+HadronicLineshapes = "0.4.2"
+InstructionalDecayTrees = "0.2.0"
+Literate = "2.21.0"
 StaticArrays = "1"
 julia = "1.10"
 
