@@ -1,9 +1,6 @@
-name = "CascadeDecays"
-uuid = "fffe189e-c188-4e56-b22b-870ae3b23d6b"
-authors = ["Mikhail Mikhasenko"]
-version = "0.1.0-DEV"
-
 [deps]
+CascadeDecays = "fffe189e-c188-4e56-b22b-870ae3b23d6b"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FourVectors = "b122eb78-8380-428a-b8c8-584a022ae8b6"
 HadronicLineshapes = "49c9d978-1f9d-4e96-a984-0a9783c0b9bf"
 InstructionalDecayTrees = "1d606af4-d0f8-4ff7-bc8d-eb3f657b7647"
@@ -12,20 +9,9 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
+CascadeDecays = {path = ".."}
 FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
 InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
 
 [compat]
-FourVectors = "0.3.1"
-HadronicLineshapes = "0.4.2"
-InstructionalDecayTrees = "0.2.0"
-Literate = "2.21.0"
-StaticArrays = "1"
-ThreeBodyDecays = "0.14.0"
-julia = "1.11"
-
-[extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[targets]
-test = ["Test"]
+Documenter = "1"

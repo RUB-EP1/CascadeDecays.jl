@@ -191,11 +191,11 @@ chain = DecayChain(topology; propagators, vertices);
 #
 # In formula form,
 #
-# $$
+# ```math
 # \mathcal{A}(\lambda_1,\lambda_2,\lambda_3,\lambda_4,\lambda_0)
 # = \sum_{\lambda_{12},\lambda_{123}}
 # \prod_v D_v^*\,V_v \prod_r P_r.
-# $$
+# ```
 #
 # The routing contract is:
 #
