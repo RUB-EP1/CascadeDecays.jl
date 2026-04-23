@@ -8,8 +8,8 @@ struct DecayChain{
     Nf,
     Np,
     Nv,
-    P<:AbstractLineshape,
-    V<:AbstractVertex,
+    P,
+    V,
     T<:DecayTopology,
 }
     topology::T
@@ -23,7 +23,7 @@ function DecayChain(
     propagators::SVector{Np,P},
     vertices::SVector{Nv,V},
     propagating_lines::SVector{Np,Int},
-) where {Np,Nv,P<:AbstractLineshape,V<:AbstractVertex}
+) where {Np,Nv,P,V}
     Nv == nvertices(topology) ||
         throw(ArgumentError("number of vertices must match topology"))
     all(line -> isinternalline(topology, line), propagating_lines) ||

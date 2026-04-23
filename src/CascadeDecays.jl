@@ -1,6 +1,9 @@
 module CascadeDecays
 
 using StaticArrays
+using FourVectors
+using InstructionalDecayTrees
+using ThreeBodyDecays
 
 export AbstractLineshape, AbstractVertex
 export ConstantLineshape
@@ -15,6 +18,8 @@ export isrootline, isfinalline, isinternalline
 export has_canonical_line_order, line_masses2
 export vertex_masses2, vertex_helicities, vertex_spins, vertex_angles
 export line_invariant
+export helicity_angle_program, helicity_angle_programs, cascade_kinematics
+export routed_vertex_amplitude, routed_propagator_product, amplitude
 export bracket, validate_topology
 
 include("interfaces.jl")
@@ -22,5 +27,6 @@ include("topology.jl")
 include("system.jl")
 include("kinematics.jl")
 include("chain.jl")
+include("evaluation.jl")
 
 end

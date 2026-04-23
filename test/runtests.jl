@@ -1,4 +1,5 @@
 using CascadeDecays
+using FourVectors
 using StaticArrays
 using Test
 
@@ -212,4 +213,56 @@ end
         internal_masses2 = (1.2, 2.3),
         vertex_angles = ((θ = 0.1, ϕ = 0.2), (cosθ = 0.3, ϕ = 0.4), (cosθ = 0.5, ϕ = 0.6)),
     )
+end
+
+@testset "Bracket topology constructor" begin
+    topology = DecayTopology((((1, 2), 3), 4))
+    relation = [
+        0 0 1
+        0 0 1
+        0 1 0
+        1 0 0
+        0 1 -1
+        1 -1 0
+        -1 0 0
+    ]
+
+    @test CascadeDecays.relation(topology) == SMatrix{7,3,Int,21}(relation)
+    @test rootline(topology) == 7
+    @test finallines(topology) == SVector(1, 2, 3, 4)
+    @test internal_lines(topology) == [5, 6]
+    @test vertex_lines(topology, 1) == (7, 6, 4)
+    @test vertex_lines(topology, 2) == (6, 5, 3)
+    @test vertex_lines(topology, 3) == (5, 1, 2)
+    @test bracket(topology) == "(((1,2),3),4)"
+
+    @test_throws ArgumentError DecayTopology(((1, 3), 4))
+    @test_throws ArgumentError DecayTopology((1, (2, (3, 3))))
+    @test_throws ArgumentError DecayTopology((1, 2, 3))
+end
+
+@testset "Topology-generated kinematics" begin
+    topology = DecayTopology((((1, 2), 3), 4))
+
+    pDminus = FourVector(0.8634762475578601, -0.2273640501540901, 0.5897962254778486; E = 2.1542368373711818)
+    pD0 = FourVector(-0.41098561980779524, 0.4602903155362023, 0.1331926788204417; E = 1.9687832721903593)
+    pKplus = FourVector(-0.4483316412801869, -0.23415599517164887, -0.7305348220308255; E = 1.0164784292725653)
+    piplus = FourVector(-0.004158986333048991, 0.0012297296374225927, 0.00754591768614862; E = 0.13984149613322175)
+    objs = (pD0, piplus, pDminus, pKplus)
+
+    system = CascadeSystem(
+        (0, 0, 0, 0, 2, 2, 0),
+        mass.(objs) .^ 2;
+        root_mass2 = mass(sum(objs))^2,
+    )
+    programs = helicity_angle_programs(topology)
+    x = cascade_kinematics(topology, system, objs)
+
+    @test length(programs) == 3
+    @test length.(programs) == (3, 4, 5)
+    @test x.line_masses2[5] ≈ mass(pD0 + piplus)^2
+    @test x.line_masses2[6] ≈ mass(pD0 + piplus + pDminus)^2
+    @test x.line_masses2[7] ≈ mass(sum(objs))^2
+    @test isapprox(x.vertex_angles[3].cosθ, 0.8746538492596707; atol = 2e-10)
+    @test isapprox(x.vertex_angles[3].ϕ, -2.84901364039537; atol = 2e-10)
 end

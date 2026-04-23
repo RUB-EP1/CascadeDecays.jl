@@ -42,6 +42,75 @@ function DecayTopology(
     return DecayTopology(static_relation, root, final_lines; validate)
 end
 
+_bracket_leaf(x::Integer) = Int(x)
+_bracket_leaf(x) = throw(ArgumentError("bracket leaves must be integer final-state labels, got $x"))
+
+function _collect_final_labels!(labels::Vector{Int}, tree)
+    if tree isa Integer
+        push!(labels, Int(tree))
+    elseif tree isa Tuple && length(tree) == 2
+        _collect_final_labels!(labels, tree[1])
+        _collect_final_labels!(labels, tree[2])
+    else
+        throw(ArgumentError("topology bracket must be a binary nested tuple of integer leaves"))
+    end
+    return labels
+end
+
+function _assign_lines!(line_for_node::Dict{Any,Int}, next_internal::Base.RefValue{Int}, tree)
+    if tree isa Integer
+        line_for_node[tree] = _bracket_leaf(tree)
+        return line_for_node[tree]
+    end
+    tree isa Tuple && length(tree) == 2 ||
+        throw(ArgumentError("topology bracket must be a binary nested tuple of integer leaves"))
+    _assign_lines!(line_for_node, next_internal, tree[1])
+    _assign_lines!(line_for_node, next_internal, tree[2])
+    line = next_internal[]
+    next_internal[] += 1
+    line_for_node[tree] = line
+    return line
+end
+
+function _collect_vertices_preorder!(vertices, tree)
+    tree isa Tuple && length(tree) == 2 || return vertices
+    push!(vertices, tree)
+    _collect_vertices_preorder!(vertices, tree[1])
+    _collect_vertices_preorder!(vertices, tree[2])
+    return vertices
+end
+
+"""
+    DecayTopology(bracket)
+
+Construct a flat line-vertex incidence topology from binary bracket notation,
+for example `DecayTopology((((1, 2), 3), 4))`.
+
+The generated convention is final-state lines first, internal lines next in
+postorder, and the root/mother line last. Vertex columns are root-first.
+"""
+function DecayTopology(tree::Tuple)
+    final_labels = sort!(_collect_final_labels!(Int[], tree))
+    final_labels == collect(1:length(final_labels)) ||
+        throw(ArgumentError("bracket leaves must be the consecutive final labels 1:n"))
+    nfinal = length(final_labels)
+    nvertices = nfinal - 1
+    nlines = nfinal + nvertices
+    line_for_node = Dict{Any,Int}()
+    _assign_lines!(line_for_node, Ref(nfinal + 1), tree)
+    vertices = _collect_vertices_preorder!(Any[], tree)
+    relation = zeros(Int, nlines, nvertices)
+    for (vertex, node) in pairs(vertices)
+        parent = line_for_node[node]
+        child1 = line_for_node[node[1]]
+        child2 = line_for_node[node[2]]
+        relation[parent, vertex] = -1
+        relation[child1, vertex] = 1
+        relation[child2, vertex] = 1
+    end
+    return DecayTopology(relation; root = nlines, finals = Tuple(1:nfinal))
+end
+
 relation(topology::DecayTopology) = topology.relation
 rootline(topology::DecayTopology) = topology.root
 finallines(topology::DecayTopology) = topology.finals
