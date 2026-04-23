@@ -42,6 +42,10 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
     propagator_tuple = Tuple(propagators)
     vertex_tuple = Tuple(vertices)
     line_tuple = Tuple(Int(line) for line in propagating_lines)
+    length(propagator_tuple) == length(line_tuple) ||
+        throw(ArgumentError("propagators and propagating_lines must have the same length"))
+    length(vertex_tuple) == nvertices(topology) ||
+        throw(ArgumentError("number of vertices must match topology"))
     return DecayChain(
         topology,
         SVector{length(propagator_tuple)}(propagator_tuple),
@@ -59,3 +63,10 @@ nfinal(::DecayChain{Nf}) where {Nf} = Nf
 internal_lines(chain::DecayChain) = internal_lines(chain.topology)
 propagating_lines(chain::DecayChain) = chain.propagating_lines
 bracket(chain::DecayChain; labels = nothing) = bracket(chain.topology; labels)
+vertex_lines(chain::DecayChain, vertex::Integer) = vertex_lines(chain.topology, vertex)
+child_lines(chain::DecayChain, vertex::Integer) = child_lines(chain.topology, vertex)
+final_descendants(chain::DecayChain, line::Integer) = final_descendants(chain.topology, line)
+vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex::Integer) =
+    vertex_masses2(chain.topology, x, vertex)
+vertex_helicities(chain::DecayChain, two_λs, vertex::Integer) =
+    vertex_helicities(chain.topology, two_λs, vertex)

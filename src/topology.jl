@@ -53,11 +53,15 @@ _line_range(topology::DecayTopology) = Base.OneTo(nlines(topology))
 _vertex_range(topology::DecayTopology) = Base.OneTo(nvertices(topology))
 _allunique(xs) = length(unique(xs)) == length(xs)
 
-incoming_lines(topology::DecayTopology, vertex::Integer) =
-    [line for line in _line_range(topology) if relation(topology)[line, vertex] == -1]
+function incoming_lines(topology::DecayTopology, vertex::Integer)
+    _require_vertex(topology, vertex)
+    return [line for line in _line_range(topology) if relation(topology)[line, vertex] == -1]
+end
 
-outgoing_lines(topology::DecayTopology, vertex::Integer) =
-    [line for line in _line_range(topology) if relation(topology)[line, vertex] == 1]
+function outgoing_lines(topology::DecayTopology, vertex::Integer)
+    _require_vertex(topology, vertex)
+    return [line for line in _line_range(topology) if relation(topology)[line, vertex] == 1]
+end
 
 function incoming_line(topology::DecayTopology, vertex::Integer)
     lines = incoming_lines(topology, vertex)
@@ -66,11 +70,13 @@ function incoming_line(topology::DecayTopology, vertex::Integer)
 end
 
 function produced_by(topology::DecayTopology, line::Integer)
+    _require_line(topology, line)
     vertices = [vertex for vertex in _vertex_range(topology) if relation(topology)[line, vertex] == 1]
     return isempty(vertices) ? nothing : only(vertices)
 end
 
 function consumed_by(topology::DecayTopology, line::Integer)
+    _require_line(topology, line)
     vertices = [vertex for vertex in _vertex_range(topology) if relation(topology)[line, vertex] == -1]
     return isempty(vertices) ? nothing : only(vertices)
 end
@@ -82,6 +88,11 @@ isinternalline(topology::DecayTopology, line::Integer) =
 
 internal_lines(topology::DecayTopology) =
     [line for line in _line_range(topology) if isinternalline(topology, line)]
+
+has_canonical_line_order(topology::DecayTopology) =
+    Tuple(finallines(topology)) == Tuple(1:nfinal(topology)) &&
+    internal_lines(topology) == collect((nfinal(topology) + 1):(nlines(topology) - 1)) &&
+    rootline(topology) == nlines(topology)
 
 function _require_line(topology::DecayTopology, line::Integer)
     line in _line_range(topology) || throw(ArgumentError("line $line is outside 1:$(nlines(topology))"))
@@ -161,19 +172,45 @@ function validate_topology(topology::DecayTopology)
     return true
 end
 
-function _final_descendants(topology::DecayTopology, line::Int)
+function final_descendants(topology::DecayTopology, line::Integer)
+    _require_line(topology, line)
     vertex = consumed_by(topology, line)
-    vertex === nothing && return [line]
+    vertex === nothing && return [Int(line)]
     result = Int[]
     for child in outgoing_lines(topology, vertex)
-        append!(result, _final_descendants(topology, child))
+        append!(result, final_descendants(topology, child))
     end
     return result
 end
 
 function _ordered_children(topology::DecayTopology, vertex::Int)
     children = outgoing_lines(topology, vertex)
-    return sort(children; by = line -> minimum(_final_descendants(topology, line)))
+    return sort(children; by = line -> minimum(final_descendants(topology, line)))
+end
+
+"""
+    child_lines(topology, vertex)
+
+Return the two outgoing lines of `vertex` in canonical child order. This is the
+ordered pair that should be used for local two-body arguments.
+"""
+function child_lines(topology::DecayTopology, vertex::Integer)
+    _require_vertex(topology, vertex)
+    return _ordered_children(topology, Int(vertex))
+end
+
+"""
+    vertex_lines(topology, vertex)
+
+Return `(parent, child1, child2)` for a binary vertex. The children are ordered
+canonically by their final-state descendants.
+"""
+function vertex_lines(topology::DecayTopology, vertex::Integer)
+    parent = incoming_line(topology, vertex)
+    children = child_lines(topology, vertex)
+    length(children) == 2 ||
+        throw(ArgumentError("vertex $vertex does not have exactly two outgoing lines"))
+    return (parent, children[1], children[2])
 end
 
 function _line_label(line::Int, labels)
@@ -184,7 +221,7 @@ end
 function _bracket_for_line(topology::DecayTopology, line::Int, labels)
     vertex = consumed_by(topology, line)
     vertex === nothing && return _line_label(line, labels)
-    pieces = [_bracket_for_line(topology, child, labels) for child in _ordered_children(topology, vertex)]
+    pieces = [_bracket_for_line(topology, child, labels) for child in child_lines(topology, vertex)]
     return "(" * join(pieces, ",") * ")"
 end
 

@@ -14,5 +14,7 @@ Files:
 - `03-relation-map-guidelines.md`: detailed rules for the line-vertex incidence map
 - `04-prototype-notes.md`: mapping from the prototype code to the future package
 - `05-open-design-questions.md`: unresolved issues and recommended decisions
+- `06-kinematics-from-instructional-decay-trees.md`: how runtime masses, angles, and Wigner rotations should be provided
+- `07-amplitude-argument-routing.md`: how static vertices and propagators receive dynamic masses, helicities, and angles
 
 These notes are meant to be the local project memory for the first implementation phase.

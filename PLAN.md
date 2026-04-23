@@ -85,8 +85,18 @@ Deliverables:
 - derived internal line invariants
 - local decay angles per vertex
 - frame-transport data needed for Wigner rotations
+- optional adapter to `InstructionalDecayTrees.jl` for computing these quantities from four-vectors
 
 This phase is where the intermediate-mass issue is resolved correctly.
+
+Recommended direction:
+
+- keep the static `DecayChain` free of event-dependent masses and angles
+- derive line invariant masses from final-state descendants
+- derive vertex `(cosθ, ϕ)` values through generated instruction programs
+- derive Wigner rotations through tracked instruction-path comparisons
+- use helicity convention only in the first implementation
+- make the `InstructionalDecayTrees.jl` bridge optional at first because it depends on unregistered four-vector tooling
 
 ## Phase 5: Cascade evaluator
 
@@ -94,11 +104,19 @@ Goal: automate what the current `SimpleCascade` prototype does by hand.
 
 Deliverables:
 
+- static overall kinematics/system object for fixed masses, spins, and line metadata
+- graph-indexed amplitude input for dynamic line masses, vertex angles, and helicities
 - graph-driven local-amplitude evaluation
 - propagator insertion along internal lines
 - summation over internal helicities
 - deterministic contraction order
 - optional caching of repeated local factors
+
+The evaluator should use the topology/relation map to route local arguments:
+three mass-squared values and helicities to vertices, and one invariant
+mass-squared value to propagators. Static overall kinematics supplies fixed
+masses and spins; the runtime input supplies dynamic invariants and angles.
+Actual vertex and propagator computations should be selected by Julia dispatch.
 
 The first supported case should be connected binary trees only.
 
