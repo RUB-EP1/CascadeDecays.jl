@@ -11,6 +11,10 @@ Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
+[sources]
+FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
+InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
+
 [compat]
 FourVectors = "0.3.1"
 HadronicLineshapes = "0.4.2"
@@ -18,7 +22,7 @@ InstructionalDecayTrees = "0.2.0"
 Literate = "2.21.0"
 StaticArrays = "1"
 ThreeBodyDecays = "0.14.0"
-julia = "1.10"
+julia = "1.11"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
