@@ -1,0 +1,17 @@
+[deps]
+CascadeDecays = "fffe189e-c188-4e56-b22b-870ae3b23d6b"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+FourVectors = "b122eb78-8380-428a-b8c8-584a022ae8b6"
+HadronicLineshapes = "49c9d978-1f9d-4e96-a984-0a9783c0b9bf"
+InstructionalDecayTrees = "1d606af4-d0f8-4ff7-bc8d-eb3f657b7647"
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
+
+[sources]
+CascadeDecays = {path = ".."}
+FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
+InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
+
+[compat]
+Documenter = "1"
