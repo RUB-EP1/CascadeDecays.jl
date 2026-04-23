@@ -1,0 +1,197 @@
+"""
+    DecayTopology(relation; root, finals)
+
+Flat line-vertex incidence graph for a connected binary cascade tree.
+
+Rows of `relation` are lines and columns are vertices. The sign convention is:
+
+- `-1`: line enters a vertex
+- `+1`: line leaves a vertex
+- `0`: line is unrelated to the vertex
+
+The root/mother line is included explicitly. Final-state lines are listed in
+`finals`.
+"""
+struct DecayTopology{Nl,Nv,Nf,T<:Integer,L}
+    relation::SMatrix{Nl,Nv,T,L}
+    root::Int
+    finals::SVector{Nf,Int}
+end
+
+function DecayTopology(
+    relation::SMatrix{Nl,Nv,T,L},
+    root::Integer,
+    finals::SVector{Nf,Int};
+    validate::Bool = true,
+) where {Nl,Nv,Nf,T<:Integer,L}
+    topology = DecayTopology{Nl,Nv,Nf,T,L}(relation, Int(root), finals)
+    validate && validate_topology(topology)
+    return topology
+end
+
+function DecayTopology(
+    relation::AbstractMatrix{T};
+    root::Integer,
+    finals,
+    validate::Bool = true,
+) where {T<:Integer}
+    Nl, Nv = size(relation)
+    final_tuple = Tuple(Int(line) for line in finals)
+    final_lines = SVector{length(final_tuple),Int}(final_tuple)
+    static_relation = SMatrix{Nl,Nv,T,Nl * Nv}(relation)
+    return DecayTopology(static_relation, root, final_lines; validate)
+end
+
+relation(topology::DecayTopology) = topology.relation
+rootline(topology::DecayTopology) = topology.root
+finallines(topology::DecayTopology) = topology.finals
+nlines(::DecayTopology{Nl}) where {Nl} = Nl
+nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv
+nfinal(::DecayTopology{Nl,Nv,Nf}) where {Nl,Nv,Nf} = Nf
+
+_line_range(topology::DecayTopology) = Base.OneTo(nlines(topology))
+_vertex_range(topology::DecayTopology) = Base.OneTo(nvertices(topology))
+_allunique(xs) = length(unique(xs)) == length(xs)
+
+incoming_lines(topology::DecayTopology, vertex::Integer) =
+    [line for line in _line_range(topology) if relation(topology)[line, vertex] == -1]
+
+outgoing_lines(topology::DecayTopology, vertex::Integer) =
+    [line for line in _line_range(topology) if relation(topology)[line, vertex] == 1]
+
+function incoming_line(topology::DecayTopology, vertex::Integer)
+    lines = incoming_lines(topology, vertex)
+    length(lines) == 1 || throw(ArgumentError("vertex $vertex does not have exactly one incoming line"))
+    return only(lines)
+end
+
+function produced_by(topology::DecayTopology, line::Integer)
+    vertices = [vertex for vertex in _vertex_range(topology) if relation(topology)[line, vertex] == 1]
+    return isempty(vertices) ? nothing : only(vertices)
+end
+
+function consumed_by(topology::DecayTopology, line::Integer)
+    vertices = [vertex for vertex in _vertex_range(topology) if relation(topology)[line, vertex] == -1]
+    return isempty(vertices) ? nothing : only(vertices)
+end
+
+isrootline(topology::DecayTopology, line::Integer) = line == rootline(topology)
+isfinalline(topology::DecayTopology, line::Integer) = line in finallines(topology)
+isinternalline(topology::DecayTopology, line::Integer) =
+    !isrootline(topology, line) && !isfinalline(topology, line)
+
+internal_lines(topology::DecayTopology) =
+    [line for line in _line_range(topology) if isinternalline(topology, line)]
+
+function _require_line(topology::DecayTopology, line::Integer)
+    line in _line_range(topology) || throw(ArgumentError("line $line is outside 1:$(nlines(topology))"))
+    return nothing
+end
+
+function _require_vertex(topology::DecayTopology, vertex::Integer)
+    vertex in _vertex_range(topology) ||
+        throw(ArgumentError("vertex $vertex is outside 1:$(nvertices(topology))"))
+    return nothing
+end
+
+function _visit_lines!(seen::Set{Int}, stack::Set{Int}, topology::DecayTopology, line::Int)
+    line in stack && throw(ArgumentError("topology contains a directed cycle at line $line"))
+    push!(stack, line)
+    push!(seen, line)
+    vertex = consumed_by(topology, line)
+    if vertex !== nothing
+        for child in outgoing_lines(topology, vertex)
+            _visit_lines!(seen, stack, topology, child)
+        end
+    end
+    delete!(stack, line)
+    return seen
+end
+
+"""
+    validate_topology(topology)
+
+Validate that a topology is a connected binary tree with an explicit root line.
+Throws `ArgumentError` on invalid input and returns `true` otherwise.
+"""
+function validate_topology(topology::DecayTopology)
+    all(x -> x in (-1, 0, 1), relation(topology)) ||
+        throw(ArgumentError("relation entries must be -1, 0, or +1"))
+
+    _require_line(topology, rootline(topology))
+    all(line -> line in _line_range(topology), finallines(topology)) ||
+        throw(ArgumentError("all final lines must be valid line ids"))
+    _allunique(finallines(topology)) || throw(ArgumentError("final lines must be unique"))
+    !isfinalline(topology, rootline(topology)) ||
+        throw(ArgumentError("root line cannot also be a final line"))
+
+    nlines(topology) == nfinal(topology) + nvertices(topology) ||
+        throw(ArgumentError("binary tree with explicit root must satisfy nlines == nfinal + nvertices"))
+
+    for vertex in _vertex_range(topology)
+        length(incoming_lines(topology, vertex)) == 1 ||
+            throw(ArgumentError("vertex $vertex must have exactly one incoming line"))
+        length(outgoing_lines(topology, vertex)) == 2 ||
+            throw(ArgumentError("vertex $vertex must have exactly two outgoing lines"))
+    end
+
+    produced_by(topology, rootline(topology)) === nothing ||
+        throw(ArgumentError("root line must not be produced by a vertex"))
+    consumed_by(topology, rootline(topology)) !== nothing ||
+        throw(ArgumentError("root line must be consumed by one vertex"))
+
+    for line in finallines(topology)
+        produced_by(topology, line) !== nothing ||
+            throw(ArgumentError("final line $line must be produced by one vertex"))
+        consumed_by(topology, line) === nothing ||
+            throw(ArgumentError("final line $line must not be consumed by a vertex"))
+    end
+
+    for line in internal_lines(topology)
+        produced_by(topology, line) !== nothing ||
+            throw(ArgumentError("internal line $line must be produced by one vertex"))
+        consumed_by(topology, line) !== nothing ||
+            throw(ArgumentError("internal line $line must be consumed by one vertex"))
+    end
+
+    seen = _visit_lines!(Set{Int}(), Set{Int}(), topology, rootline(topology))
+    length(seen) == nlines(topology) ||
+        throw(ArgumentError("topology must be connected to the root line"))
+
+    return true
+end
+
+function _final_descendants(topology::DecayTopology, line::Int)
+    vertex = consumed_by(topology, line)
+    vertex === nothing && return [line]
+    result = Int[]
+    for child in outgoing_lines(topology, vertex)
+        append!(result, _final_descendants(topology, child))
+    end
+    return result
+end
+
+function _ordered_children(topology::DecayTopology, vertex::Int)
+    children = outgoing_lines(topology, vertex)
+    return sort(children; by = line -> minimum(_final_descendants(topology, line)))
+end
+
+function _line_label(line::Int, labels)
+    labels === nothing && return string(line)
+    return string(labels[line])
+end
+
+function _bracket_for_line(topology::DecayTopology, line::Int, labels)
+    vertex = consumed_by(topology, line)
+    vertex === nothing && return _line_label(line, labels)
+    pieces = [_bracket_for_line(topology, child, labels) for child in _ordered_children(topology, vertex)]
+    return "(" * join(pieces, ",") * ")"
+end
+
+"""
+    bracket(topology; labels=nothing)
+
+Reconstruct a compact bracket notation from the canonical flat topology.
+"""
+bracket(topology::DecayTopology; labels = nothing) =
+    _bracket_for_line(topology, rootline(topology), labels)
