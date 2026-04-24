@@ -101,11 +101,20 @@ function routed_vertex_amplitude(
 )
     two_j0, _, _ = spins
     two_λ0, two_λ1, two_λ2 = helicities
-    recoupling = ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins)
+    recoupling =
+        _particle_two_phase(spins[3], two_λ2) *
+        ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins)
     formfactor = vertex.ff(masses2...)
     two_Δλ = two_λ1 - two_λ2
     rotation = conj(ThreeBodyDecays.wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
     return rotation * recoupling * formfactor
+end
+
+function _particle_two_phase(two_j2::Integer, two_λ2::Integer)
+    exponent_num = two_j2 - two_λ2
+    iseven(exponent_num) ||
+        throw(ArgumentError("particle-2 phase requires two_j2 - two_λ2 to be even"))
+    return isodd(div(exponent_num, 2)) ? -1 : 1
 end
 
 function routed_vertex_amplitude(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics, two_λs, vertex::Integer)

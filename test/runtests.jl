@@ -3,7 +3,7 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: RecouplingLS, VertexFunction
+using ThreeBodyDecays: NoRecoupling, RecouplingLS, VertexFunction
 
 struct TestVertex <: AbstractVertex
     name::Symbol
@@ -327,4 +327,16 @@ end
     A = amplitude(chain, system, x, (0, 0, 0, 0, 0))
     @test isfinite(real(A))
     @test isfinite(imag(A))
+end
+
+@testset "Particle-2 helicity phase" begin
+    masses2 = (1.0, 0.25, 0.25)
+    angles = (cosθ = 1.0, ϕ = 0.0)
+    spins = (0, 1, 1)
+
+    positive_phase = VertexFunction(NoRecoupling(1, 1))
+    negative_phase = VertexFunction(NoRecoupling(-1, -1))
+
+    @test routed_vertex_amplitude(positive_phase, masses2, (0, 1, 1), spins, angles) == 1
+    @test routed_vertex_amplitude(negative_phase, masses2, (0, -1, -1), spins, angles) == -1
 end
