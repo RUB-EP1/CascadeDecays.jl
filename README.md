@@ -8,7 +8,7 @@
 
 ## Installation
 
-With the checked-in `Manifest.toml` and Julia `1.10`, instantiate the project directly:
+With the checked-in `Manifest.toml` and Julia `1.11.5`, instantiate the project directly:
 
 ```julia
 using Pkg
