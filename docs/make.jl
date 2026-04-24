@@ -28,13 +28,13 @@ Literate.markdown(
 makedocs(;
     modules = [CascadeDecays],
     authors = "Mikhail Mikhasenko and contributors",
-    repo = "https://github.com/mmikhasenko/CascadeDecays.jl/blob/{commit}{path}#{line}",
+    repo = "https://github.com/RUB-EP1/CascadeDecays.jl/blob/{commit}{path}#{line}",
     sitename = "CascadeDecays.jl",
     doctest = false,
     checkdocs = :none,
     format = Documenter.HTML(;
-        canonical = "https://mmikhasenko.github.io/CascadeDecays.jl",
-        repolink = "https://github.com/mmikhasenko/CascadeDecays.jl",
+        canonical = "https://rub-ep1.github.io/CascadeDecays.jl",
+        repolink = "https://github.com/RUB-EP1/CascadeDecays.jl",
     ),
     pages = [
         "Home" => "index.md",
@@ -42,4 +42,4 @@ makedocs(;
     ],
 )
 
-deploydocs(; repo = "github.com/mmikhasenko/CascadeDecays.jl")
+deploydocs(; repo = "github.com/RUB-EP1/CascadeDecays.jl")

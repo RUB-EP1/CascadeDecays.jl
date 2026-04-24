@@ -1,8 +1,8 @@
 # CascadeDecays.jl
 
-[![Test workflow status](https://github.com/mmikhasenko/CascadeDecays.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/mmikhasenko/CascadeDecays.jl/actions/workflows/Test.yml?query=branch%3Amain)
-[![Docs workflow status](https://github.com/mmikhasenko/CascadeDecays.jl/actions/workflows/Docs.yml/badge.svg?branch=main)](https://github.com/mmikhasenko/CascadeDecays.jl/actions/workflows/Docs.yml?query=branch%3Amain)
-[![Dev documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://mmikhasenko.github.io/CascadeDecays.jl/dev)
+[![Test workflow status](https://github.com/RUB-EP1/CascadeDecays.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/RUB-EP1/CascadeDecays.jl/actions/workflows/Test.yml?query=branch%3Amain)
+[![Docs workflow status](https://github.com/RUB-EP1/CascadeDecays.jl/actions/workflows/Docs.yml/badge.svg?branch=main)](https://github.com/RUB-EP1/CascadeDecays.jl/actions/workflows/Docs.yml?query=branch%3Amain)
+[![Dev documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://rub-ep1.github.io/CascadeDecays.jl/dev)
 
 `CascadeDecays.jl` provides flat topology and routing utilities for sequential decay amplitudes. It connects static cascade definitions to event-by-event invariants and helicity-angle kinematics.
 
