@@ -70,8 +70,6 @@ function helicity_angle_program(
     ::Val{target_vertex};
     initial_frame::AbstractInitialFrame = HelicityRootFrame(),
 ) where {target_vertex}
-    target_vertex isa Integer ||
-        throw(ArgumentError("vertex $target_vertex is outside 1:$(nvertices(topology))"))
     target_vertex in Base.OneTo(nvertices(topology)) ||
         throw(ArgumentError("vertex $target_vertex is outside 1:$(nvertices(topology))"))
 
