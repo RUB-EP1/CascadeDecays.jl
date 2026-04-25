@@ -46,12 +46,9 @@ end
     θ = deg2rad(10.0)
     ϕ = deg2rad(20.0)
     rotated_objs = map(p -> p |> Ry(θ) |> Rz(ϕ), objs)
-    generated_x = cascade_kinematics(topology, system, rotated_objs)
+    generated_x = cascade_kinematics(topology, system, rotated_objs; initial_frame = CurrentFrame())
     root_angles = vertex_angles(topology, generated_x, ((1, 2), 3))
 
-    # The total root momentum is mathematically at rest, but after rotating all
-    # daughters tiny residual components can make ToHelicityFrame(root) choose
-    # an arbitrary axis. Keep this as the next convention/debug target.
-    @test_broken root_angles.cosθ ≈ cos(θ)
-    @test_broken root_angles.ϕ ≈ ϕ
+    @test root_angles.cosθ ≈ cos(θ)
+    @test root_angles.ϕ ≈ ϕ
 end

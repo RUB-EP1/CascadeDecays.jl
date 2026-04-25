@@ -29,18 +29,54 @@ function _root_vertex(topology::DecayTopology)
     return vertex
 end
 
+abstract type AbstractInitialFrame end
+
 """
-    helicity_angle_program(topology, vertex)
+    HelicityRootFrame()
+
+Start generated helicity-angle programs by transforming to the root/system
+helicity frame. This is the default for fully general four-vectors.
+"""
+struct HelicityRootFrame <: AbstractInitialFrame end
+
+"""
+    CurrentFrame()
+
+Start generated helicity-angle programs in the current axes. Use this when the
+input four-vectors are already expressed in the intended system frame.
+"""
+struct CurrentFrame <: AbstractInitialFrame end
+
+_initial_frame_program(topology::DecayTopology, ::HelicityRootFrame) =
+    (ToHelicityFrame(_indices_for_line(topology, rootline(topology))),)
+_initial_frame_program(::DecayTopology, ::CurrentFrame) = ()
+
+"""
+    helicity_angle_program(topology, vertex; initial_frame=HelicityRootFrame())
 
 Build an `InstructionalDecayTrees.jl` instruction program that measures the
 local `(cosθ, ϕ)` angle for `vertex` in helicity convention.
 """
-function helicity_angle_program(topology::DecayTopology, target_vertex::Integer)
+function helicity_angle_program(
+    topology::DecayTopology,
+    target_vertex::Integer;
+    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+)
+    return helicity_angle_program(topology, Val(Int(target_vertex)); initial_frame)
+end
+
+function helicity_angle_program(
+    topology::DecayTopology,
+    ::Val{target_vertex};
+    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+) where {target_vertex}
+    target_vertex isa Integer ||
+        throw(ArgumentError("vertex $target_vertex is outside 1:$(nvertices(topology))"))
     target_vertex in Base.OneTo(nvertices(topology)) ||
         throw(ArgumentError("vertex $target_vertex is outside 1:$(nvertices(topology))"))
 
     target_parent = incoming_line(topology, target_vertex)
-    program = Any[ToHelicityFrame(_indices_for_line(topology, rootline(topology)))]
+    program = _initial_frame_program(topology, initial_frame)
 
     current_vertex = _root_vertex(topology)
 
@@ -48,11 +84,13 @@ function helicity_angle_program(topology::DecayTopology, target_vertex::Integer)
         parent = incoming_line(topology, current_vertex)
         children = child_lines(topology, current_vertex)
         if parent == target_parent
-            push!(program, MeasureCosThetaPhi(Symbol(:v, target_vertex), _indices_for_line(topology, children[1])))
-            return Tuple(program)
+            return (
+                program...,
+                MeasureCosThetaPhi(Symbol(:v, target_vertex), _indices_for_line(topology, children[1])),
+            )
         end
         next_child = _child_containing_line(topology, current_vertex, target_parent)
-        push!(program, ToHelicityFrame(_indices_for_line(topology, next_child)))
+        program = (program..., ToHelicityFrame(_indices_for_line(topology, next_child)))
         current_vertex = consumed_by(topology, next_child)
         current_vertex === nothing &&
             throw(ArgumentError("target vertex $target_vertex is not reachable from the root"))
@@ -60,27 +98,35 @@ function helicity_angle_program(topology::DecayTopology, target_vertex::Integer)
 end
 
 """
-    helicity_angle_programs(topology)
+    helicity_angle_programs(topology; initial_frame=HelicityRootFrame())
 
 Return one helicity-angle measurement program per topology vertex.
 """
-helicity_angle_programs(topology::DecayTopology) =
-    ntuple(v -> helicity_angle_program(topology, v), nvertices(topology))
+helicity_angle_programs(
+    topology::DecayTopology;
+    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+) =
+    ntuple(v -> helicity_angle_program(topology, Val(v); initial_frame), nvertices(topology))
 
 function _sum_objects(objs, indices::Tuple)
     return reduce(+, (objs[i] for i in indices))
 end
 
 """
-    cascade_kinematics(topology, system, objs)
+    cascade_kinematics(topology, system, objs; initial_frame=HelicityRootFrame())
 
 Compute a `CascadeKinematics` input from final-state four-vectors `objs`.
 Internal invariant masses are derived from final-state descendants, and vertex
 angles are computed with generated helicity-angle programs.
 """
-function cascade_kinematics(topology::DecayTopology, system::CascadeSystem, objs)
+function cascade_kinematics(
+    topology::DecayTopology,
+    system::CascadeSystem,
+    objs;
+    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+)
     internal_masses2 = Tuple(mass(_sum_objects(objs, _indices_for_line(topology, line)))^2 for line in internal_lines(topology))
-    programs = helicity_angle_programs(topology)
+    programs = helicity_angle_programs(topology; initial_frame)
     angle_results = map(programs) do program
         _, result = apply_decay_instruction(program, objs)
         only(values(result))
