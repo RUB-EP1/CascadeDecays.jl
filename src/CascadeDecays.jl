@@ -9,12 +9,11 @@ import ThreeBodyDecays: SpinParity, VertexFunction
 
 export AbstractLineshape, AbstractVertex
 export ConstantLineshape
-export SystemMasses, SystemSpins, SystemParities
-export UndefinedParity, parity_defined
+export SystemMasses, SystemSpins, SystemParities, SystemSpinParity
+export UndefinedParity, parity_defined, has_parities
 export final_two_js, root_two_j, final_masses, root_mass
 export CascadeSystem, CascadeKinematics
-export ParityAugmentedSystem, add_parities
-export SpinParity, VertexFunction, VertexFunction
+export SpinParity, VertexFunction
 export DecayTopology, DecayChain
 export relation, rootline, finallines, nlines, nvertices, nfinal
 export incoming_lines, outgoing_lines, incoming_line

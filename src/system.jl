@@ -1,12 +1,31 @@
 """
     CascadeSystem(spins, masses)
+    CascadeSystem(spin_parity, masses)
 
-Static external information for a cascade model. Spins are [`SystemSpins`](@ref);
-masses are [`SystemMasses`](@ref).
+Static external information for a cascade model. Pass [`SystemSpins`](@ref) for
+spin-only systems, or [`SystemSpinParity`](@ref) when LS builders need explicit
+external and root parities. Masses are always [`SystemMasses`](@ref).
 """
 struct CascadeSystem{Nf,Tm}
     spins::SystemSpins{Nf}
     masses::SystemMasses{Nf,Tm}
+    parities::Union{SystemParities{Nf}, Nothing}
+end
+
+function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
+    return CascadeSystem{Nf,Tm}(spins, masses, nothing)
+end
+
+function CascadeSystem(quantum::SystemSpinParity{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
+    return CascadeSystem{Nf,Tm}(quantum.spins, masses, quantum.parities)
+end
+
+has_parities(system::CascadeSystem) = !isnothing(system.parities)
+
+function _require_system_parities(system::CascadeSystem)
+    has_parities(system) ||
+        throw(ArgumentError("LS builders require CascadeSystem(SystemSpinParity(...), masses)"))
+    return system.parities
 end
 
 final_two_js(system::CascadeSystem) = final_two_js(system.spins)

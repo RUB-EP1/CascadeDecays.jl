@@ -87,5 +87,28 @@ function SystemParities(Ps::ThreeBodyDecays.ParityTuple)
     return SystemParities(Ps.P1, Ps.P2, Ps.P3; P0 = Ps.P0)
 end
 
+"""
+    SystemSpinParity(spins, parities)
+    SystemSpinParity(spins, P1, P2, ...; P0)
+
+External spin and parity descriptor for [`CascadeSystem`](@ref) when LS
+enumeration needs explicit final-state and root parities.
+"""
+struct SystemSpinParity{Nf}
+    spins::SystemSpins{Nf}
+    parities::SystemParities{Nf}
+
+    function SystemSpinParity(spins::SystemSpins{Nf}, parities::SystemParities{Nf}) where {Nf}
+        length(parities.finals) == Nf ||
+            throw(ArgumentError("parities must have one entry per final-state line"))
+        return new{Nf}(spins, parities)
+    end
+end
+
+SystemSpinParity(spins::SystemSpins, Ps...; P0) =
+    SystemSpinParity(spins, SystemParities(Ps...; P0))
+
 final_two_js(spins::SystemSpins) = spins.finals
+final_two_js(quantum::SystemSpinParity) = final_two_js(quantum.spins)
 root_two_j(spins::SystemSpins) = spins.two_h0
+root_two_j(quantum::SystemSpinParity) = root_two_j(quantum.spins)
