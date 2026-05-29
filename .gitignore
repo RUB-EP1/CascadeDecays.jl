@@ -4,3 +4,4 @@ Manifest.toml
 *.jl.*.cov
 coverage/
 docs/build/
+docs/test_ls.jl
