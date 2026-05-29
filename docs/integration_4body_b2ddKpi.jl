@@ -81,16 +81,16 @@ topology = DecayTopology((((1, 2), 3), 4))
 # We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins are
 # represented as doubled integers.
 
-two_js = (
+two_js = SystemSpins(
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
-    0, # B⁺
+    two_h0 = 0, # B⁺
 )
 
-masses2 = (mass.(objs) .^ 2..., mass(P_B)^2)
-system = CascadeSystem(two_js, masses2);
+masses = SystemMasses(mass.(objs)...; m0 = mass(P_B))
+system = CascadeSystem(two_js, masses);
 
 # ## 4. Runtime kinematic input from the topology
 #

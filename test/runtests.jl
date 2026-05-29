@@ -3,10 +3,36 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: NoRecoupling, RecouplingLS, VertexFunction
+using ThreeBodyDecays: NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins, VertexFunction
 
 struct TestVertex <: AbstractVertex
     name::Symbol
+end
+
+@testset "Kinematic quantum-number types" begin
+    masses = TwoBodyMasses(2, 3; m0 = 5)
+    @test vertex_order(masses) == (5, 2, 3)
+    @test mass_invariants(masses) == (25, 4, 9)
+
+    spins = TwoBodySpins(1, 1; two_h0 = 2)
+    @test vertex_order(spins) == (2, 1, 1)
+    @test TwoBodySpins(1, 1; h0 = 1) == spins
+
+    parities = TwoBodyParities('+', '-'; P0 = '-')
+    @test vertex_order(parities) == ('-', '+', '-')
+
+    ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
+    @test SystemMasses(ms) == SystemMasses(1.1, 2.2, 3.3; m0 = 7.7)
+    @test SystemSpins(ThreeBodySpins(0, 0, 0; two_h0 = 0)) == SystemSpins(0, 0, 0; two_h0 = 0)
+
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
+    @test add_parities(system, '+', '+', '+'; P0 = '+').parities == SystemParities('+', '+', '+'; P0 = '+')
+    @test root_two_j(system) == 2
+    @test root_mass(system) == 3
+
+    @test_throws ArgumentError TwoBodySpins(0, 0)
+    @test_throws ArgumentError SystemSpins(0, 0)
+    @test_throws ArgumentError SystemMasses(; m0 = 1.0)
 end
 
 @testset "DecayTopology" begin
@@ -51,7 +77,7 @@ end
         -1 0
     ]
     topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
-    system = CascadeSystem((0, 0, 0, 2), (0.1, 0.2, 0.3, 9.0))
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     chain = DecayChain(
         topology,
         (ConstantLineshape(1.0),),
@@ -66,13 +92,13 @@ end
         vertex_angles = ((cosθ = 0.5, ϕ = 0.1), (cosθ = -0.2, ϕ = 0.3)),
     )
 
-    @test line_masses2(topology, system, (4.0,)) == SVector(0.1, 0.2, 0.3, 4.0, 9.0)
+    @test line_masses2(topology, system, (4.0,)) == SVector(1.0, 4.0, 9.0, 4.0, 9.0)
     @test line_invariant(x, 4) == 4.0
     @test line_invariant(topology, x, (1, 2)) == 4.0
 
-    @test vertex_masses2(topology, x, 1) == (9.0, 4.0, 0.3)
-    @test vertex_masses2(topology, x, 2) == (4.0, 0.1, 0.2)
-    @test vertex_masses2(topology, x, (1, 2)) == (4.0, 0.1, 0.2)
+    @test vertex_masses2(topology, x, 1) == (9.0, 4.0, 9.0)
+    @test vertex_masses2(topology, x, 2) == (4.0, 1.0, 4.0)
+    @test vertex_masses2(topology, x, (1, 2)) == (4.0, 1.0, 4.0)
     @test line_two_js(chain, system) == SVector(0, 0, 0, 2, 2)
     @test vertex_spins(chain, system, 1) == (2, 2, 0)
     @test vertex_spins(chain, system, 2) == (2, 0, 0)
@@ -174,7 +200,7 @@ end
             ((1, 2), 3) => TestVertex(:middle),
         ),
     )
-    system = CascadeSystem((0, 0, 0, 0, 2), (0.1, 0.2, 0.3, 0.4, 9.0))
+    system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
 
     @test chain.propagator_two_js == SVector(4, 2)
     @test chain.propagators[1](1.0) == :R123
@@ -224,7 +250,7 @@ end
         -1 0 0
     ]
     topology = DecayTopology(relation; root = 7, finals = (1, 2, 3, 4))
-    system = CascadeSystem((0, 0, 0, 0, 2), (0.1, 0.2, 0.3, 0.4, 9.0))
+    system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
     x = CascadeKinematics(
         topology,
         system;
@@ -248,10 +274,10 @@ end
     @test child_lines(topology, 1) == [6, 4]
     @test bracket(topology) == "(((1,2),3),4)"
 
-    @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 0.4)
-    @test vertex_masses2(topology, x, 2) == (2.3, 1.2, 0.3)
-    @test vertex_masses2(topology, x, 3) == (1.2, 0.1, 0.2)
-    @test vertex_masses2(topology, x, ((1, 2), 3)) == (2.3, 1.2, 0.3)
+    @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
+    @test vertex_masses2(topology, x, 2) == (2.3, 1.2, 9.0)
+    @test vertex_masses2(topology, x, 3) == (1.2, 1.0, 4.0)
+    @test vertex_masses2(topology, x, ((1, 2), 3)) == (2.3, 1.2, 9.0)
     @test line_two_js(chain, system) == SVector(0, 0, 0, 0, 2, 4, 2)
     @test vertex_spins(chain, system, 2) == (4, 2, 0)
     @test vertex_helicities(topology, (0, 0, 0, 0, 1, -2, 2), 2) == (-2, 1, 0)
@@ -300,7 +326,10 @@ end
     piplus = FourVector(-0.004158986333048991, 0.0012297296374225927, 0.00754591768614862; E = 0.13984149613322175)
     objs = (pD0, piplus, pDminus, pKplus)
 
-    system = CascadeSystem((0, 0, 0, 0, 0), (mass.(objs) .^ 2..., mass(sum(objs))^2))
+    system = CascadeSystem(
+        SystemSpins(0, 0, 0, 0; two_h0 = 0),
+        SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
+    )
     programs = helicity_angle_programs(topology)
     x = cascade_kinematics(topology, system, objs)
 
@@ -342,3 +371,49 @@ end
 end
 
 include("threebody_compat_tests.jl")
+
+@testset "LS decay-chain builders" begin
+    relation = [
+        0 1
+        0 1
+        1 0
+        1 -1
+        -1 0
+    ]
+    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
+    system = CascadeSystem(
+        SystemSpins(0, 0, 0; two_h0 = 0),
+        SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
+    )
+    weak_system = add_parities(system, '+', '+', '+'; P0 = UndefinedParity)
+    propagators = (
+        (1, 2) => (jp = SpinParity(0, '+'), lineshape = ConstantLineshape(1.0)),
+    )
+
+    @test minimal_vertex_couplings(topology, weak_system, propagators) == (
+        (((1, 2), 3) => (0, 0)),
+        ((1, 2) => (0, 0)),
+    )
+
+    minimal = minimal_ls_decay_chain(topology, weak_system, propagators)
+    @test minimal.propagator_two_js == SVector(0)
+    @test all(v -> v.h isa RecouplingLS, minimal.vertices)
+
+    all_chains = all_ls_decay_chains(topology, weak_system, propagators)
+    @test length(all_chains) == 1
+    @test Set(chain.propagator_two_js for chain in all_chains) == Set([SVector(0)])
+
+    @test !isempty(possible_vertex_ls(SpinParity(1, '-'), SpinParity(1, '+'), SpinParity(0, '+')))
+
+    jps = line_spin_parities(topology, weak_system, propagators)
+    @test jps[1].p == '+'
+    @test jps[rootline(topology)].p == UndefinedParity
+
+    spin_only_resonance = (
+        (1, 2) => (jp = SpinParity(2, '+'), lineshape = ConstantLineshape(1.0)),
+    )
+    resonance_couplings = possible_vertex_couplings(topology, weak_system, spin_only_resonance)
+    @test resonance_couplings[1] == (((1, 2), 3) => [(2, 2)])
+    @test resonance_couplings[2] == ((1, 2) => Tuple{Int,Int}[])
+    @test_throws ArgumentError minimal_ls_decay_chain(topology, weak_system, spin_only_resonance)
+end

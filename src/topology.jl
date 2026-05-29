@@ -284,6 +284,24 @@ function vertex_for(topology::DecayTopology, address)
     return vertex
 end
 
+"""
+    vertex_address(topology, vertex)
+
+Return the bracket address of a decay vertex, i.e. the same key used in
+[`vertex_for`](@ref) and in [`DecayChain`](@ref) vertex payloads.
+"""
+function vertex_address(topology::DecayTopology, vertex::Integer)
+    _require_vertex(topology, vertex)
+    return _line_address(topology, incoming_line(topology, vertex))
+end
+
+function _line_address(topology::DecayTopology, line::Integer)
+    _require_line(topology, line)
+    isfinalline(topology, line) && return Int(line)
+    children = child_lines(topology, consumed_by(topology, line))
+    return (_line_address(topology, children[1]), _line_address(topology, children[2]))
+end
+
 function _ordered_children(topology::DecayTopology, vertex::Int)
     children = outgoing_lines(topology, vertex)
     return sort(children; by = line -> minimum(_final_descendants_unordered(topology, line)))

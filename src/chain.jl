@@ -72,15 +72,33 @@ function _require_pair_specs(name::Symbol, specs)
 end
 
 function _propagator_payload(spec::Pair)
-    payload = spec.second
+    return _propagator_lineshape(spec.second)
+end
+
+function _propagator_lineshape(payload)
     hasproperty(payload, :lineshape) ||
-        throw(ArgumentError("propagator spec for $(spec.first) must provide `lineshape`"))
-    hasproperty(payload, :two_j) ||
-        throw(ArgumentError("propagator spec for $(spec.first) must provide `two_j`"))
+        throw(ArgumentError("propagator spec must provide `lineshape`"))
     return payload.lineshape
 end
 
-_propagator_two_j(spec::Pair) = Int(spec.second.two_j)
+function _propagator_spin_parity(payload)
+    if hasproperty(payload, :jp)
+        jp = payload.jp
+        return jp isa SpinParity ? jp : ThreeBodyDecays.str2jp(string(jp))
+    end
+    hasproperty(payload, :two_j) || throw(ArgumentError("propagator spec must provide `jp` or `two_j`"))
+    hasproperty(payload, :p) ||
+        throw(ArgumentError("propagator spec must provide `jp` or `two_j` together with `p`"))
+    return SpinParity(Int(payload.two_j), payload.p)
+end
+
+function _propagator_two_j(payload)
+    hasproperty(payload, :jp) && return (payload.jp isa SpinParity ? payload.jp : ThreeBodyDecays.str2jp(string(payload.jp))).two_j
+    hasproperty(payload, :two_j) || throw(ArgumentError("propagator spec must provide `jp` or `two_j`"))
+    return Int(payload.two_j)
+end
+
+_propagator_two_j(spec::Pair) = _propagator_two_j(spec.second)
 
 function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex::Integer)
     matches = findall(==(vertex), vertex_ids)
@@ -142,12 +160,12 @@ function line_two_js(chain::DecayChain, system::CascadeSystem)
     _check_system(chain.topology, system)
     spins = MVector{nlines(chain),Int}(undef)
     for (i, line) in pairs(finallines(chain))
-        spins[line] = system.final_two_js[i]
+        spins[line] = final_two_js(system)[i]
     end
     for (i, line) in pairs(propagating_lines(chain))
         spins[line] = chain.propagator_two_js[i]
     end
-    spins[rootline(chain)] = system.root_two_j
+    spins[rootline(chain)] = root_two_j(system)
     return SVector(spins)
 end
 

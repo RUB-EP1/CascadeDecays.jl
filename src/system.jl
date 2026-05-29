@@ -1,40 +1,22 @@
 """
-    CascadeSystem(two_js, masses2)
+    CascadeSystem(spins, masses)
 
-Static external information for a cascade model. `two_js` and `masses2` are
-given as `(final_1, ..., final_n, root)`. Internal spins belong to the
-`DecayChain` propagator specs.
+Static external information for a cascade model. Spins are [`SystemSpins`](@ref);
+masses are [`SystemMasses`](@ref).
 """
-struct CascadeSystem{Nf,T<:Real}
-    final_two_js::SVector{Nf,Int}
-    final_masses2::SVector{Nf,T}
-    root_two_j::Int
-    root_mass2::T
+struct CascadeSystem{Nf,Tm}
+    spins::SystemSpins{Nf}
+    masses::SystemMasses{Nf,Tm}
 end
 
-function CascadeSystem(two_js, masses2)
-    two_j_tuple = Tuple(Int(two_j) for two_j in two_js)
-    mass_tuple = Tuple(masses2)
-    length(two_j_tuple) == length(mass_tuple) ||
-        throw(ArgumentError("two_js and masses2 must have the same length"))
-    length(two_j_tuple) >= 2 ||
-        throw(ArgumentError("two_js and masses2 must contain at least one final state and one root"))
-    final_two_js = two_j_tuple[1:(end - 1)]
-    final_masses2 = mass_tuple[1:(end - 1)]
-    root_two_j = two_j_tuple[end]
-    root_mass2 = mass_tuple[end]
-    T = promote_type(typeof(root_mass2), map(typeof, final_masses2)...)
-    return CascadeSystem{length(final_masses2),T}(
-        SVector{length(final_two_js),Int}(final_two_js),
-        SVector{length(final_masses2),T}(final_masses2),
-        Int(root_two_j),
-        convert(T, root_mass2),
-    )
-end
+final_two_js(system::CascadeSystem) = final_two_js(system.spins)
+root_two_j(system::CascadeSystem) = root_two_j(system.spins)
+final_masses(system::CascadeSystem) = system.masses.finals
+root_mass(system::CascadeSystem) = system.masses.m0
 
 function _check_system(topology::DecayTopology, system::CascadeSystem{Nf}) where {Nf}
     Nf == nfinal(topology) ||
-        throw(ArgumentError("system final_masses2 must have one entry per final line"))
+        throw(ArgumentError("system final_masses must have one entry per final line"))
     return nothing
 end
 
@@ -73,8 +55,9 @@ end
 """
     line_masses2(topology, system, internal_masses2)
 
-Assemble a complete line-indexed mass-squared view. Final and root masses come
-from `system`; internal masses are supplied in the order `internal_lines(topology)`.
+Assemble a complete line-indexed invariant-mass-squared view. External and
+root masses come from `system` and are squared on assembly; internal entries
+are supplied directly as runtime invariants in `internal_masses2`.
 """
 function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_masses2)
     _check_system(topology, system)
@@ -83,18 +66,19 @@ function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_m
     length(internal_tuple) == length(internal) ||
         throw(ArgumentError("internal_masses2 must match the number of internal lines"))
 
+    invariant_type(m) = typeof(m * m)
     T = promote_type(
-        typeof(system.root_mass2),
-        eltype(system.final_masses2),
+        invariant_type(root_mass(system)),
+        (invariant_type(m) for m in final_masses(system))...,
         map(typeof, internal_tuple)...,
     )
     masses = MVector{nlines(topology),T}(undef)
     for (i, line) in pairs(finallines(topology))
-        masses[line] = system.final_masses2[i]
+        masses[line] = final_masses(system)[i]^2
     end
     for (i, line) in pairs(internal)
         masses[line] = internal_tuple[i]
     end
-    masses[rootline(topology)] = system.root_mass2
+    masses[rootline(topology)] = root_mass(system)^2
     return SVector(masses)
 end

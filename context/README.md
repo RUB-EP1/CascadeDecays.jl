@@ -16,5 +16,6 @@ Files:
 - `05-open-design-questions.md`: unresolved issues and recommended decisions
 - `06-kinematics-from-instructional-decay-trees.md`: how runtime masses, angles, and Wigner rotations should be provided
 - `07-amplitude-argument-routing.md`: how static vertices and propagators receive dynamic masses, helicities, and angles
+- `08-threebody-crosscheck-plan.md`: staged plan and findings for issue #3 compatibility checks against `ThreeBodyDecays.jl`
 
 These notes are meant to be the local project memory for the first implementation phase.
