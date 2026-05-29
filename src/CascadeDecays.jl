@@ -5,7 +5,7 @@ using FourVectors
 using InstructionalDecayTrees
 
 import ThreeBodyDecays
-import ThreeBodyDecays: SpinParity
+import ThreeBodyDecays: SpinParity, VertexFunction
 
 export AbstractLineshape, AbstractVertex
 export ConstantLineshape
