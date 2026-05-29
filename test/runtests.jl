@@ -202,6 +202,20 @@ end
     @test chain.vertices[2].name == :middle
     @test chain.vertices[3].name == :inner
     @test line_two_js(chain, system) == SVector(0, 0, 0, 0, 2, 4, 2)
+
+    jp_chain = DecayChain(
+        topology;
+        propagators = (
+            ((1, 2), 3) => (jp = SpinParity(4, '+'), lineshape = ConstantLineshape(:R123)),
+            (1, 2) => (jp = SpinParity(2, '-'), lineshape = ConstantLineshape(:R12)),
+        ),
+        vertices = (
+            (((1, 2), 3), 4) => TestVertex(:root),
+            ((1, 2), 3) => TestVertex(:middle),
+            (1, 2) => TestVertex(:inner),
+        ),
+    )
+    @test jp_chain.propagator_two_js == SVector(4, 2)
     @test line_values(
         topology;
         finals = (0, 0, 0, 0),
@@ -386,6 +400,11 @@ include("threebody_compat_tests.jl")
     @test minimal_vertex_couplings(topology, weak_system, propagators) == (
         (((1, 2), 3) => (0, 0)),
         ((1, 2) => (0, 0)),
+    )
+    @test_throws ArgumentError possible_vertex_couplings(
+        topology,
+        weak_system,
+        ((1, 2) => (two_j = 0, lineshape = ConstantLineshape(1.0)),),
     )
 
     minimal = minimal_ls_decay_chain(topology, weak_system, propagators)
