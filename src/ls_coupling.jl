@@ -5,7 +5,7 @@ using StaticArrays
     line_spin_parities(topology, system, propagator_specs)
 
 Assemble a line-indexed `SpinParity` view. Requires a [`CascadeSystem`](@ref)
-built from [`SystemSpinParity`](@ref). Final and root entries combine external
+built from [`SystemSpinParities`](@ref). Final and root entries combine external
 spins and parities; internal entries come from each propagator spec's `jp`
 (or `two_j` with `p`).
 """
@@ -137,7 +137,7 @@ end
 
 Build one [`DecayChain`](@ref) using the smallest allowed orbital coupling at
 each vertex. `system` must be a [`CascadeSystem`](@ref) built from
-[`SystemSpinParity`](@ref).
+[`SystemSpinParities`](@ref).
 
 This is the same as [`all_ls_decay_chains`](@ref), but takes `first` of each
 local coupling list from [`possible_vertex_couplings`](@ref).
@@ -152,7 +152,7 @@ end
 
 Build every [`DecayChain`](@ref) obtained from the Cartesian product of local
 LS couplings at all vertices. `system` must be a [`CascadeSystem`](@ref) built
-from [`SystemSpinParity`](@ref).
+from [`SystemSpinParities`](@ref).
 
 What the function does is equivalent to the example below.
 

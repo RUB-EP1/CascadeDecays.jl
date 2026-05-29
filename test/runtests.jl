@@ -16,7 +16,7 @@ end
 
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     @test !has_parities(system)
-    parity_system = CascadeSystem(SystemSpinParity(system.spins, '+', '+', '+'; P0 = '+'), system.masses)
+    parity_system = CascadeSystem(SystemSpinParities(system.spins, '+', '+', '+'; P0 = '+'), system.masses)
     @test parity_system.parities == SystemParities('+', '+', '+'; P0 = '+')
     @test has_parities(parity_system)
     @test root_two_j(system) == 2

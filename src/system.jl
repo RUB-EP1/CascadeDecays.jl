@@ -4,7 +4,7 @@
     CascadeSystem(spins, masses, P1, P2, ...; P0)
 
 Static external information for a cascade model. Pass [`SystemSpins`](@ref) for
-spin-only systems, or [`SystemSpinParity`](@ref) when LS builders need explicit
+spin-only systems, or [`SystemSpinParities`](@ref) when LS builders need explicit
 external and root parities. Masses are always [`SystemMasses`](@ref).
 """
 struct CascadeSystem{Nf,Tm}
@@ -17,19 +17,19 @@ function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}) wher
     return CascadeSystem{Nf,Tm}(spins, masses, nothing)
 end
 
-function CascadeSystem(quantum::SystemSpinParity{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
+function CascadeSystem(quantum::SystemSpinParities{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
     return CascadeSystem{Nf,Tm}(quantum.spins, masses, quantum.parities)
 end
 
 function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}, Ps...; P0) where {Nf,Tm}
-    return CascadeSystem(SystemSpinParity(spins, Ps...; P0), masses)
+    return CascadeSystem(SystemSpinParities(spins, Ps...; P0), masses)
 end
 
 has_parities(system::CascadeSystem) = !isnothing(system.parities)
 
 function _require_system_parities(system::CascadeSystem)
     has_parities(system) ||
-        throw(ArgumentError("LS builders require CascadeSystem(SystemSpinParity(...), masses)"))
+        throw(ArgumentError("LS builders require CascadeSystem(SystemSpinParities(...), masses)"))
     return system.parities
 end
 
