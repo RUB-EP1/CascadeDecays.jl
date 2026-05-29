@@ -95,16 +95,16 @@ We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins are
 represented as doubled integers.
 
 ````julia
-two_js = SystemSpins(
+two_js = (
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
-    two_h0 = 0, # B⁺
+    0, # B⁺
 )
 
-masses = SystemMasses(mass.(objs)...; m0 = mass(P_B))
-system = CascadeSystem(two_js, masses);
+masses2 = (mass.(objs) .^ 2..., mass(P_B)^2)
+system = CascadeSystem(two_js, masses2);
 ````
 
 ## 4. Runtime kinematic input from the topology
