@@ -376,10 +376,7 @@ include("threebody_compat_tests.jl")
         SystemSpins(0, 0, 0; two_h0 = 0),
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
     )
-    weak_system = CascadeSystem(
-        SystemSpinParity(system.spins, '+', '+', '+'; P0 = UndefinedParity),
-        system.masses,
-    )
+    weak_system = CascadeSystem(system.spins, system.masses, '+', '+', '+'; P0 = UndefinedParity)
     propagators = (
         (1, 2) => (jp = SpinParity(0, '+'), lineshape = ConstantLineshape(1.0)),
     )
