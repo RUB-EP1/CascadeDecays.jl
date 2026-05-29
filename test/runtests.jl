@@ -10,17 +10,6 @@ struct TestVertex <: AbstractVertex
 end
 
 @testset "Kinematic quantum-number types" begin
-    masses = TwoBodyMasses(2, 3; m0 = 5)
-    @test vertex_order(masses) == (5, 2, 3)
-    @test mass_invariants(masses) == (25, 4, 9)
-
-    spins = TwoBodySpins(1, 1; two_h0 = 2)
-    @test vertex_order(spins) == (2, 1, 1)
-    @test TwoBodySpins(1, 1; h0 = 1) == spins
-
-    parities = TwoBodyParities('+', '-'; P0 = '-')
-    @test vertex_order(parities) == ('-', '+', '-')
-
     ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
     @test SystemMasses(ms) == SystemMasses(1.1, 2.2, 3.3; m0 = 7.7)
     @test SystemSpins(ThreeBodySpins(0, 0, 0; two_h0 = 0)) == SystemSpins(0, 0, 0; two_h0 = 0)
@@ -30,7 +19,6 @@ end
     @test root_two_j(system) == 2
     @test root_mass(system) == 3
 
-    @test_throws ArgumentError TwoBodySpins(0, 0)
     @test_throws ArgumentError SystemSpins(0, 0)
     @test_throws ArgumentError SystemMasses(; m0 = 1.0)
 end
