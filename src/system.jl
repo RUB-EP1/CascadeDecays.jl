@@ -69,7 +69,7 @@ function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_m
     invariant_type(m) = typeof(m * m)
     T = promote_type(
         invariant_type(root_mass(system)),
-        (invariant_type(m) for m in final_masses(system))...,
+        map(invariant_type, Tuple(final_masses(system)))...,
         map(typeof, internal_tuple)...,
     )
     masses = MVector{nlines(topology),T}(undef)

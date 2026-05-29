@@ -107,11 +107,8 @@ function _vertex_coupling_specs(topology::DecayTopology, spec_fn)
     end
 end
 
-function _vertex_coupling_values(topology::DecayTopology, specs)
-    lookup = Dict(pair.first => pair.second for pair in specs)
-    return ntuple(nvertices(topology)) do vertex
-        lookup[vertex_address(topology, vertex)]
-    end
+function _vertex_coupling_values(specs)
+    return map(pair -> pair.second, specs)
 end
 
 """
@@ -175,7 +172,7 @@ This is the same as [`all_ls_decay_chains`](@ref), but takes `first` of each
 local coupling list from [`possible_vertex_couplings`](@ref).
 """
 function minimal_ls_decay_chain(topology::DecayTopology, system::ParityAugmentedSystem, propagator_specs)
-    couplings = _vertex_coupling_values(topology, minimal_vertex_couplings(topology, system, propagator_specs))
+    couplings = _vertex_coupling_values(minimal_vertex_couplings(topology, system, propagator_specs))
     return _build_ls_decay_chain(topology, propagator_specs, couplings)
 end
 

@@ -14,7 +14,7 @@ export UndefinedParity, parity_defined
 export final_two_js, root_two_j, final_masses, root_mass
 export CascadeSystem, CascadeKinematics
 export ParityAugmentedSystem, add_parities
-export SpinParity
+export SpinParity, VertexFunction, VertexFunction
 export DecayTopology, DecayChain
 export relation, rootline, finallines, nlines, nvertices, nfinal
 export incoming_lines, outgoing_lines, incoming_line
