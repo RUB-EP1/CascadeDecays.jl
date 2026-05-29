@@ -7,34 +7,37 @@ Static external information for a cascade model. Pass [`SystemSpins`](@ref) for
 spin-only systems, or [`SystemSpinParities`](@ref) when LS builders need explicit
 external and root parities. Masses are always [`SystemMasses`](@ref).
 """
-struct CascadeSystem{Nf,Tm}
-    spins::SystemSpins{Nf}
+struct CascadeSystem{Nf,Tm,Q<:Union{SystemSpins{Nf},SystemSpinParities{Nf}}}
+    quantum::Q
     masses::SystemMasses{Nf,Tm}
-    parities::Union{SystemParities{Nf}, Nothing}
 end
 
 function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
-    return CascadeSystem{Nf,Tm}(spins, masses, nothing)
+    return CascadeSystem{Nf,Tm,typeof(spins)}(spins, masses)
 end
 
 function CascadeSystem(quantum::SystemSpinParities{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
-    return CascadeSystem{Nf,Tm}(quantum.spins, masses, quantum.parities)
+    return CascadeSystem{Nf,Tm,typeof(quantum)}(quantum, masses)
 end
 
 function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}, Ps...; P0) where {Nf,Tm}
     return CascadeSystem(SystemSpinParities(spins, Ps...; P0), masses)
 end
 
-has_parities(system::CascadeSystem) = !isnothing(system.parities)
+has_parities(system::CascadeSystem) = has_parities(system.quantum)
+has_parities(::SystemSpins) = false
+has_parities(::SystemSpinParities) = true
+
+system_parities(quantum::SystemSpinParities) = quantum.parities
 
 function _require_system_parities(system::CascadeSystem)
     has_parities(system) ||
         throw(ArgumentError("LS builders require CascadeSystem(SystemSpinParities(...), masses)"))
-    return system.parities
+    return system_parities(system.quantum)
 end
 
-final_two_js(system::CascadeSystem) = final_two_js(system.spins)
-root_two_j(system::CascadeSystem) = root_two_j(system.spins)
+final_two_js(system::CascadeSystem) = final_two_js(system.quantum)
+root_two_j(system::CascadeSystem) = root_two_j(system.quantum)
 final_masses(system::CascadeSystem) = system.masses.finals
 root_mass(system::CascadeSystem) = system.masses.m0
 

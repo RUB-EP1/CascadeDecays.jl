@@ -16,9 +16,11 @@ end
 
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     @test !has_parities(system)
-    parity_system = CascadeSystem(SystemSpinParities(system.spins, '+', '+', '+'; P0 = '+'), system.masses)
-    @test parity_system.parities == SystemParities('+', '+', '+'; P0 = '+')
+    parity_system = CascadeSystem(SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'), system.masses)
+    @test parity_system.quantum.parities == SystemParities('+', '+', '+'; P0 = '+')
     @test has_parities(parity_system)
+    @test final_two_js(parity_system) == final_two_js(system)
+    @test root_two_j(parity_system) == root_two_j(system)
     @test root_two_j(system) == 2
     @test root_mass(system) == 3
 
@@ -376,7 +378,7 @@ include("threebody_compat_tests.jl")
         SystemSpins(0, 0, 0; two_h0 = 0),
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
     )
-    weak_system = CascadeSystem(system.spins, system.masses, '+', '+', '+'; P0 = UndefinedParity)
+    weak_system = CascadeSystem(system.quantum, system.masses, '+', '+', '+'; P0 = UndefinedParity)
     propagators = (
         (1, 2) => (jp = SpinParity(0, '+'), lineshape = ConstantLineshape(1.0)),
     )
