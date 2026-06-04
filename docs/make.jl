@@ -1,6 +1,23 @@
 using CascadeDecays
 using Documenter
-using Literate
+
+const DOCS = @__DIR__
+const QMD = joinpath(DOCS, "integration_4body_b2ddKpi.qmd")
+const GFM = joinpath(DOCS, "integration_4body_b2ddKpi.md")
+const TUTORIAL = joinpath(DOCS, "src", "tutorial.md")
+
+function render_integration_tutorial!()
+    cd(DOCS) do
+        run(`quarto render $(basename(QMD))`)
+    end
+    isfile(GFM) || error("expected Quarto output at $(GFM)")
+end
+
+function documenter_tutorial_page(gfm_path::AbstractString)
+    body = read(gfm_path, String)
+    meta = "```@meta\nEditURL = \"../integration_4body_b2ddKpi.qmd\"\n```\n\n"
+    return meta * body
+end
 
 DocMeta.setdocmeta!(
     CascadeDecays,
@@ -9,21 +26,8 @@ DocMeta.setdocmeta!(
     recursive = true,
 )
 
-docs_src_dir = joinpath(@__DIR__, "src")
-tutorial_src = joinpath(@__DIR__, "integration_4body_b2ddKpi.jl")
-
-function strip_edit_url(content)
-    replace(content, "EditURL = \"@__REPO_ROOT_URL__/\"" => "")
-end
-
-Literate.markdown(
-    tutorial_src,
-    docs_src_dir;
-    name = "tutorial",
-    documenter = true,
-    credit = true,
-    postprocess = strip_edit_url,
-)
+render_integration_tutorial!()
+write(TUTORIAL, documenter_tutorial_page(GFM))
 
 makedocs(;
     modules = [CascadeDecays],

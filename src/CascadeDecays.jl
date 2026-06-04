@@ -29,7 +29,8 @@ export bracket, validate_topology
 include("topology.jl")
 
 # quantum numbers
-export SystemMasses, SystemSpins, SystemParities, SystemSpinParities
+export SystemMasses, SystemParities, SystemSpinParities
+export SystemSpins, SystemHelicities, SystemSpinProjections
 export UndefinedParity
 export final_two_js, root_two_j
 include("quantum_numbers.jl")

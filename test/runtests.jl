@@ -30,6 +30,13 @@ end
     @test root_mass(system) == 3
 
     @test_throws ArgumentError SystemSpins(0, 0)
+    spins = SystemSpins(0, 0, 0, 0; two_h0=0)
+    @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0, 2; two_h0=0)
+    @test SystemHelicities(spins, 0, 0, 0, 0; two_h0=0) ==
+        SystemHelicities(0, 0, 0, 0; two_h0=0)
+    @test SystemSpinProjections === SystemSpins
+    @test_throws ArgumentError SystemHelicities(0, 0)
+    @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0)
     @test_throws ArgumentError SystemMasses(; m0 = 1.0)
 end
 
@@ -365,9 +372,11 @@ end
             (1, 2) => VertexFunction(RecouplingLS((2, 0))),
         ),
     )
-    A = amplitude(chain, system, x, (0, 0, 0, 0, 0))
+    external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0=0)
+    A = amplitude(chain, system, x, external_two_λs)
     @test isfinite(real(A))
     @test isfinite(imag(A))
+    @test_throws MethodError amplitude(chain, system, x, (0, 0, 0, 0, 0))
 end
 
 @testset "Particle-2 helicity phase" begin

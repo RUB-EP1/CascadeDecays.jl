@@ -225,12 +225,20 @@ The routing contract is:
 
 - topology chooses the local parent/children at each binary decay
 - `CascadeKinematics` supplies three local masses squared
-- `external_two_λs` supplies only final and initial helicities
+- `external_two_λs` is a [`SystemHelicities`](@ref) value aligned with `two_js`
+  (positional finals, root via `two_h0=...`)
 - `CascadeSystem` and `DecayChain` supply local external/internal spins
 - Julia dispatch selects vertex and propagator computations
 
 ````@example tutorial
-external_two_λs = (0, 0, 0, 0, 0)
+external_two_λs = SystemHelicities(
+    two_js,
+    0, # D⁰
+    0, # π⁺
+    0, # D⁻
+    0, # K⁺
+    two_h0=0, # B⁺
+)
 A = amplitude(chain, system, x, external_two_λs)
 ````
 
