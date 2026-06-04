@@ -7,16 +7,14 @@ using CascadeDecays
 using CascadeDecays:
     CascadeSystem,
     ConstantLineshape,
-    DecayChain,
     DecayTopology,
     PropagatorFunction,
-    RecouplingLS,
     SystemHelicities,
     SystemMasses,
-    SystemSpins,
-    VertexFunction,
+    SystemSpinParities,
     amplitude,
-    cascade_kinematics
+    cascade_kinematics,
+    minimal_ls_decay_chain
 using FourVectors
 using HadronicLineshapes
 using Random
@@ -56,46 +54,39 @@ function lc_events(n::Integer, rng::AbstractRNG)
     return [rand(rng, generator) for _ in 1:n]
 end
 
+# Final-state order: 1 = p, 2 = K⁻, 3 = π⁺; parent Λc⁺ (jp0 uses 1/2+; parity ± not fixed in this benchmark).
+const LC_QUANTUM = SystemSpinParities("1/2+", "0-", "0-"; jp0 = "1/2+")
+
 function threebody_system()
     ms = ThreeBodyMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0)
-    spins = ThreeBodySpins(0, 0, 0; h0 = 0)
+    spins = ThreeBodySpins(1, 0, 0; h0 = 1)
     return ThreeBodySystem(ms, spins), ms
 end
 
 function cascade_system()
     masses = SystemMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0)
-    spins = SystemSpins(0, 0, 0; two_h0 = 0)
-    return CascadeSystem(spins, masses)
+    return CascadeSystem(LC_QUANTUM, masses)
 end
 
-function external_helicities(system::CascadeSystem)
-    return SystemHelicities(system.quantum, 0, 0, 0; two_h0 = 0)
+"""Reference helicities: p and Λc at λ = +1/2; K and π scalars at λ = 0."""
+function reference_helicities(system::CascadeSystem)
+    return SystemHelicities(system.quantum.spins, 1, 0, 0; two_h0 = 1)
 end
 
-"""K* in (p,K), π spectator — Cascade bracket ((1,2),3)."""
-function kstar_cascade_chain()
+const TBD_REFERENCE_TWO_ΛS = (1, 0, 0, 1)
+
+"""K*⁰(892) in (p,K), π spectator — Cascade bracket ((1,2),3)."""
+function kstar_cascade_chain(system::CascadeSystem)
     topology = DecayTopology(((1, 2), 3))
-    return DecayChain(
-        topology;
-        propagators = (((1, 2) => PropagatorFunction(KSTAR.two_j, UNIT_LINESHAPE)),),
-        vertices = (
-            ((1, 2), 3) => VertexFunction(RecouplingLS((2, 0))),
-            (1, 2) => VertexFunction(RecouplingLS((0, 2))),
-        ),
-    )
+    propagators = (((1, 2) => PropagatorFunction(jp"1-", UNIT_LINESHAPE)),)
+    return minimal_ls_decay_chain(topology, system, propagators)
 end
 
 """Λ(1520) in (p,π), K spectator — Cascade bracket ((1,3),2)."""
-function lambda1520_cascade_chain()
+function lambda1520_cascade_chain(system::CascadeSystem)
     topology = DecayTopology(((1, 3), 2))
-    return DecayChain(
-        topology;
-        propagators = (((1, 3) => PropagatorFunction(L1520.two_j, UNIT_LINESHAPE)),),
-        vertices = (
-            ((1, 3), 2) => VertexFunction(RecouplingLS((3, 0))),
-            (1, 3) => VertexFunction(RecouplingLS((0, 2))),
-        ),
-    )
+    propagators = (((1, 3) => PropagatorFunction(jp"3/2-", UNIT_LINESHAPE)),)
+    return minimal_ls_decay_chain(topology, system, propagators)
 end
 
 function threebody_reference_chains(tbs, Ps)
@@ -122,8 +113,15 @@ function prepare_cascade(chain, system, events)
         objs = Tuple(point.momenta)
         xs[i] = cascade_kinematics(chain.topology, system, objs)
     end
-    hel = external_helicities(system)
+    hel = reference_helicities(system)
     return (; xs, hel)
+end
+
+function print_amplitude_shape(chain, system, x)
+    A = amplitude(chain, system, x)
+    println("  external-helicity array size: ", size(A), "  (p, K, π, Λc axes)")
+    println("  Λc–p helicity block A[:,1,1,:] size: ", size(A[:, 1, 1, :]))
+    return A
 end
 
 function bench_label(b)
@@ -145,7 +143,7 @@ function run_chain_benchmarks(; label, tbd_chain, cascade_chain, events, tbs)
     end
     tbd_scalar = @benchmark begin
         for σ in $σs
-            $tbd_amplitude($tbd_chain, σ, (0, 0, 0, 0))
+            $tbd_amplitude($tbd_chain, σ, $TBD_REFERENCE_TWO_ΛS)
         end
     end
     cas_full = @benchmark begin
@@ -160,10 +158,13 @@ function run_chain_benchmarks(; label, tbd_chain, cascade_chain, events, tbs)
     end
 
     println("\n=== ", label, " (", N_EVENTS, " events) ===")
+    print_amplitude_shape(cascade_chain, system, cascade.xs[1])
+    tbd_A = tbd_amplitude(tbd_chain, σs[1])
+    println("  ThreeBodyDecays matrix size: ", size(tbd_A))
     println("ThreeBodyDecays  full matrix : ", bench_label(tbd_full))
-    println("ThreeBodyDecays  scalar h=0  : ", bench_label(tbd_scalar))
+    println("ThreeBodyDecays  one helicity  : ", bench_label(tbd_scalar))
     println("CascadeDecays    full matrix : ", bench_label(cas_full))
-    println("CascadeDecays    scalar h=0  : ", bench_label(cas_scalar))
+    println("CascadeDecays    one helicity  : ", bench_label(cas_scalar))
     ratio = median(cas_full.times) / median(tbd_full.times)
     println("Cascade / ThreeBody (full) ≈ ", round(ratio; digits = 3), "x")
     return (; tbd_full, tbd_scalar, cas_full, cas_scalar, ratio)
@@ -178,21 +179,23 @@ function main()
     rng = MersenneTwister(0x4C633270)
     events = lc_events(N_EVENTS, rng)
     tbs, _ = threebody_system()
-    Ps = ThreeBodyParities('+', '+', '+'; P0 = '+')
+    Ps = ThreeBodyParities('+', '-', '-'; P0 = '+')
     tbd = threebody_reference_chains(tbs, Ps)
+    system = cascade_system()
+    println("Quantum numbers: p 1/2+, K 0-, π 0-, Λc 1/2+ (expected external shape (2,1,1,2))")
 
     results = Dict{String,Any}()
     results["kstar"] = run_chain_benchmarks(;
         label = "K* (pK isobar, π spectator)",
         tbd_chain = tbd.kstar,
-        cascade_chain = kstar_cascade_chain(),
+        cascade_chain = kstar_cascade_chain(system),
         events,
         tbs,
     )
     results["lambda1520"] = run_chain_benchmarks(;
         label = "Λ(1520) (pπ isobar, K spectator)",
         tbd_chain = tbd.lambda,
-        cascade_chain = lambda1520_cascade_chain(),
+        cascade_chain = lambda1520_cascade_chain(system),
         events,
         tbs,
     )
