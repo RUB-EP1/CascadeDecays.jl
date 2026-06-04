@@ -228,8 +228,8 @@ vertices = (
 )
 
 propagators = (
-    (1, 2) => (two_j = 2, lineshape = ConstantLineshape(1.0 + 0.0im)),
-    ((1, 2), 3) => (two_j = 2, lineshape = BreitWigner(4.039, 0.08)),
+    (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
 )
 
 chain = DecayChain(topology; propagators, vertices);
@@ -282,4 +282,3 @@ A
 ````
 -0.047365002876496934 + 0.014317306220053103im
 ````
-

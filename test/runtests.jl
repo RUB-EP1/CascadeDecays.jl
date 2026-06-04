@@ -184,8 +184,8 @@ end
     chain = DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => (two_j = 4, lineshape = ConstantLineshape(:R123)),
-            (1, 2) => (two_j = 2, lineshape = ConstantLineshape(:R12)),
+            ((1, 2), 3) => PropagatorFunction(4, ConstantLineshape(:R123)),
+            (1, 2) => PropagatorFunction(2, ConstantLineshape(:R12)),
         ),
         vertices = (
             (1, 2) => TestVertex(:inner),
@@ -206,8 +206,8 @@ end
     jp_chain = DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => (jp = SpinParity(4, '+'), lineshape = ConstantLineshape(:R123)),
-            (1, 2) => (jp = SpinParity(2, '-'), lineshape = ConstantLineshape(:R12)),
+            ((1, 2), 3) => PropagatorFunction(SpinParity(4, '+'), ConstantLineshape(:R123)),
+            (1, 2) => PropagatorFunction(SpinParity(2, '-'), ConstantLineshape(:R12)),
         ),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
@@ -225,18 +225,18 @@ end
 
     @test_throws ArgumentError DecayChain(
         topology;
-        propagators = ((1, 2) => (two_j = 2, lineshape = ConstantLineshape(:R12)),),
+        propagators = ((1, 2) => PropagatorFunction(2, ConstantLineshape(:R12)),),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
             ((1, 2), 3) => TestVertex(:middle),
             (1, 2) => TestVertex(:inner),
         ),
     )
-    @test_throws ArgumentError DecayChain(
+    @test_throws TypeError DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => (two_j = 4, lineshape = ConstantLineshape(:R123)),
-            (1, 2) => (lineshape = ConstantLineshape(:R12),),
+            ((1, 2), 3) => PropagatorFunction(4, ConstantLineshape(:R123)),
+            (1, 2) => ConstantLineshape(:R12),
         ),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
@@ -351,8 +351,8 @@ end
     chain = DecayChain(
         topology;
         propagators = (
-            (1, 2) => (two_j = 2, lineshape = ConstantLineshape(1.0 + 0.0im)),
-            ((1, 2), 3) => (two_j = 2, lineshape = BreitWigner(4.039, 0.08)),
+            (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
+            ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
         ),
         vertices = (
             (((1, 2), 3), 4) => VertexFunction(RecouplingLS((2, 2))),
@@ -392,19 +392,22 @@ include("threebody_compat_tests.jl")
         SystemSpins(0, 0, 0; two_h0 = 0),
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
     )
-    weak_system = CascadeSystem(system.quantum, system.masses, '+', '+', '+'; P0 = UndefinedParity)
+    weak_system = CascadeSystem(
+        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = UndefinedParity),
+        system.masses,
+    )
     propagators = (
-        (1, 2) => (jp = SpinParity(0, '+'), lineshape = ConstantLineshape(1.0)),
+        (1, 2) => PropagatorFunction(SpinParity(0, '+'), ConstantLineshape(1.0)),
     )
 
     @test minimal_vertex_couplings(topology, weak_system, propagators) == (
         (((1, 2), 3) => (0, 0)),
         ((1, 2) => (0, 0)),
     )
-    @test_throws ArgumentError possible_vertex_couplings(
+    @test_throws MethodError possible_vertex_couplings(
         topology,
         weak_system,
-        ((1, 2) => (two_j = 0, lineshape = ConstantLineshape(1.0)),),
+        ((1, 2) => PropagatorFunction(0, ConstantLineshape(1.0)),),
     )
 
     minimal = minimal_ls_decay_chain(topology, weak_system, propagators)
@@ -422,7 +425,7 @@ include("threebody_compat_tests.jl")
     @test jps[rootline(topology)].p == UndefinedParity
 
     spin_only_resonance = (
-        (1, 2) => (jp = SpinParity(2, '+'), lineshape = ConstantLineshape(1.0)),
+        (1, 2) => PropagatorFunction(SpinParity(2, '+'), ConstantLineshape(1.0)),
     )
     resonance_couplings = possible_vertex_couplings(topology, weak_system, spin_only_resonance)
     @test resonance_couplings[1] == (((1, 2), 3) => [(2, 2)])

@@ -64,50 +64,6 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
     )
 end
 
-function _require_pair_specs(name::Symbol, specs)
-    spec_tuple = Tuple(specs)
-    all(spec -> spec isa Pair, spec_tuple) ||
-        throw(ArgumentError("$name must be provided as `address => payload` pairs"))
-    return spec_tuple
-end
-
-function _propagator_payload(spec::Pair)
-    return _propagator_lineshape(spec.second)
-end
-
-_propagator_lineshape(payload::NamedTuple{names}) where {names} =
-    _propagator_lineshape(payload, Val(:lineshape in names))
-_propagator_lineshape(payload::NamedTuple, ::Val{true}) = payload.lineshape
-_propagator_lineshape(::NamedTuple, ::Val{false}) =
-    throw(ArgumentError("propagator spec must provide `lineshape`"))
-_propagator_lineshape(payload) =
-    throw(ArgumentError("propagator spec must be a named tuple with `lineshape`"))
-
-_parse_spin_parity(jp::SpinParity) = jp
-_parse_spin_parity(jp) = ThreeBodyDecays.str2jp(string(jp))
-
-_propagator_spin_parity(payload::NamedTuple{names}) where {names} =
-    _propagator_spin_parity(payload, Val(:jp in names))
-_propagator_spin_parity(payload::NamedTuple, ::Val{true}) =
-    _parse_spin_parity(payload.jp)
-_propagator_spin_parity(::NamedTuple, ::Val{false}) =
-    throw(ArgumentError("propagator spec must provide `jp`"))
-_propagator_spin_parity(payload) =
-    throw(ArgumentError("propagator spec must be a named tuple with `jp`"))
-
-_propagator_two_j(payload::NamedTuple{names}) where {names} =
-    _propagator_two_j(payload, Val(:jp in names), Val(:two_j in names))
-_propagator_two_j(payload::NamedTuple, ::Val{true}, ::Val) =
-    _parse_spin_parity(payload.jp).two_j
-_propagator_two_j(payload::NamedTuple, ::Val{false}, ::Val{true}) =
-    Int(payload.two_j)
-_propagator_two_j(::NamedTuple, ::Val{false}, ::Val{false}) =
-    throw(ArgumentError("propagator spec must provide `two_j` or `jp`"))
-_propagator_two_j(payload) =
-    throw(ArgumentError("propagator spec must be a named tuple with `two_j` or `jp`"))
-
-_propagator_two_j(spec::Pair) = _propagator_two_j(spec.second)
-
 function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex::Integer)
     matches = findall(==(vertex), vertex_ids)
     length(matches) == 1 ||
@@ -121,29 +77,30 @@ end
 Build a static cascade model from bracket-addressed payload pairs. User-facing
 addresses are resolved immediately to internal line and vertex ids.
 """
-function DecayChain(topology::DecayTopology; propagators, vertices)
-    propagator_specs = _require_pair_specs(:propagators, propagators)
-    vertex_specs = _require_pair_specs(:vertices, vertices)
-    length(vertex_specs) == nvertices(topology) ||
+function DecayChain(
+    topology::DecayTopology;
+    propagators::Tuple{Vararg{PropagatorSpec}},
+    vertices::Tuple{Vararg{Pair{<:Any,<:Any}}},
+)
+    length(vertices) == nvertices(topology) ||
         throw(ArgumentError("vertices must contain one payload per topology vertex"))
-
-    propagating_line_tuple = Tuple(line_for(topology, spec.first) for spec in propagator_specs)
+    propagating_line_tuple = Tuple(line_for(topology, spec.first) for spec in propagators)
     all(line -> isinternalline(topology, line), propagating_line_tuple) ||
         throw(ArgumentError("propagator addresses must refer to internal lines"))
-    vertex_id_tuple = Tuple(vertex_for(topology, spec.first) for spec in vertex_specs)
+    vertex_id_tuple = Tuple(vertex_for(topology, spec.first) for spec in vertices)
     length(unique(vertex_id_tuple)) == nvertices(topology) ||
         throw(ArgumentError("vertices must address each topology vertex exactly once"))
 
     ordered_vertices = ntuple(
-        vertex -> _vertex_payload_for(vertex_specs, vertex_id_tuple, vertex),
+        vertex -> _vertex_payload_for(vertices, vertex_id_tuple, vertex),
         nvertices(topology),
     )
     return DecayChain(
         topology,
-        Tuple(_propagator_payload(spec) for spec in propagator_specs),
+        Tuple(spec.second.lineshape for spec in propagators),
         ordered_vertices,
         propagating_line_tuple,
-        Tuple(_propagator_two_j(spec) for spec in propagator_specs),
+        Tuple(spec.second.two_j for spec in propagators),
     )
 end
 

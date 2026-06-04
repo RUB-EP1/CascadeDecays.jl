@@ -1,7 +1,6 @@
 """
     CascadeSystem(spins, masses)
     CascadeSystem(spin_parity, masses)
-    CascadeSystem(spins, masses, P1, P2, ...; P0)
 
 Static external information for a cascade model. Pass [`SystemSpins`](@ref) for
 spin-only systems, or [`SystemSpinParities`](@ref) when LS builders need explicit
@@ -20,21 +19,11 @@ function CascadeSystem(quantum::SystemSpinParities{Nf}, masses::SystemMasses{Nf,
     return CascadeSystem{Nf,Tm,typeof(quantum)}(quantum, masses)
 end
 
-function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}, Ps...; P0) where {Nf,Tm}
-    return CascadeSystem(SystemSpinParities(spins, Ps...; P0), masses)
-end
+const CascadeSystemWithParities = CascadeSystem{<:Any,<:Any,<:SystemSpinParities}
 
 has_parities(system::CascadeSystem) = has_parities(system.quantum)
 has_parities(::SystemSpins) = false
 has_parities(::SystemSpinParities) = true
-
-system_parities(quantum::SystemSpinParities) = quantum.parities
-
-function _require_system_parities(system::CascadeSystem)
-    has_parities(system) ||
-        throw(ArgumentError("LS builders require CascadeSystem(SystemSpinParities(...), masses)"))
-    return system_parities(system.quantum)
-end
 
 final_two_js(system::CascadeSystem) = final_two_js(system.quantum)
 root_two_j(system::CascadeSystem) = root_two_j(system.quantum)

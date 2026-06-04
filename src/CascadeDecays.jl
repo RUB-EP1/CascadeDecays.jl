@@ -8,8 +8,11 @@ import ThreeBodyDecays
 import ThreeBodyDecays: SpinParity, VertexFunction
 
 export AbstractLineshape, AbstractVertex
-export ConstantLineshape
+export ConstantLineshape, PropagatorFunction
+export PropagatorFunctionWithParity, PropagatorParityExtra
+export PropagatorSpec, PropagatorSpecWithParity
 export SystemMasses, SystemSpins, SystemParities, SystemSpinParities
+export CascadeSystemWithParities
 export UndefinedParity, parity_defined, has_parities
 export final_two_js, root_two_j, final_masses, root_mass
 export CascadeSystem, CascadeKinematics
@@ -35,6 +38,7 @@ export line_spin_parities, vertex_spin_parities
 export minimal_ls_decay_chain, all_ls_decay_chains
 
 include("interfaces.jl")
+include("propagator_function.jl")
 include("topology.jl")
 include("quantum_numbers.jl")
 include("system.jl")
