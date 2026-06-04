@@ -311,19 +311,42 @@ function _tullio_sum_internal(
 end
 
 """
+    external_helicity_amplitude(F, chain)
     external_helicity_amplitude(F, ext_dims, int_dims)
 
 Sum internal propagator helicities and return the external-helicity array.
-`ext_dims` / `int_dims` are line ids (finals + root, then propagating lines).
+For a [`DecayChain{Nf,Np}`](@ref), external axes are `Nf + 1` (finals + root) and
+internal axes are `Np` (propagating lines).
 """
+function external_helicity_amplitude(
+    F::AbstractArray,
+    chain::DecayChain{Nf,Np},
+) where {Nf,Np}
+    ext_dims = (Tuple(finallines(chain))..., rootline(chain))
+    int_dims = Tuple(propagating_lines(chain))
+    return external_helicity_amplitude(F, ext_dims, int_dims, Val(Nf + 1), Val(Np))
+end
+
 function external_helicity_amplitude(
     F::AbstractArray,
     ext_dims::Tuple{Int,Vararg{Int}},
     int_dims::Tuple{Int,Vararg{Int}},
 )
+    return external_helicity_amplitude(F, ext_dims, int_dims, Val(length(ext_dims)), Val(length(int_dims)))
+end
+
+function external_helicity_amplitude(
+    F::AbstractArray,
+    ext_dims::Tuple{Int,Vararg{Int}},
+    int_dims::Tuple{Int,Vararg{Int}},
+    ::Val{Ne},
+    ::Val{Ni},
+) where {Ne,Ni}
+    length(ext_dims) == Ne || throw(ArgumentError("ext_dims length must be Ne=$Ne"))
+    length(int_dims) == Ni || throw(ArgumentError("int_dims length must be Ni=$Ni"))
     isempty(int_dims) && return _permute_external(F, ext_dims)
     Fp = permutedims(F, (ext_dims..., int_dims...))
-    return _tullio_sum_internal(Fp, Val(length(ext_dims)), Val(length(int_dims)))
+    return _tullio_sum_internal(Fp, Val(Ne), Val(Ni))
 end
 
 """
@@ -343,9 +366,7 @@ function amplitude(
 ) where {Nf,Np}
     P_prod = routed_propagator_product(chain, x)
     F = line_amplitude_tensor(chain, system, x)
-    ext_dims = (Tuple(finallines(chain))..., rootline(chain))
-    int_dims = Tuple(propagating_lines(chain))
-    A = external_helicity_amplitude(F, ext_dims, int_dims)
+    A = external_helicity_amplitude(F, chain)
     return P_prod * A
 end
 
