@@ -40,38 +40,14 @@ function vertex_spin_parities(
     return (jps[l0], jps[l1], jps[l2])
 end
 
-vertex_spin_parities(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-    address,
-) =
-    vertex_spin_parities(topology, system, propagator_specs, vertex_for(topology, address))
-
-_spin_parity_defined(jp::SpinParity) = parity_defined(jp.p)
-
-function _possible_ls_spin_only(two_j0::Integer, two_j1::Integer, two_j2::Integer)
-    two_ls = Tuple{Int,Int}[]
-    for two_s in abs(two_j1 - two_j2):2:(two_j1+two_j2)
-        for two_l in abs(two_j0 - two_s):2:(two_j0+two_s)
-            push!(two_ls, (two_l, two_s))
-        end
-    end
-    return sort(two_ls, by=x -> x[1])
-end
-
 """
     possible_vertex_ls(jp0, jp1, jp2)
 
-Return allowed `(two_l, two_s)` couplings at one binary vertex. When any entry
-has [`UndefinedParity`](@ref), parity constraints are skipped at that vertex.
+Return allowed `(two_l, two_s)` couplings at one binary vertex using full J^P
+constraints from `ThreeBodyDecays.possible_ls`.
 """
-function possible_vertex_ls(jp0::SpinParity, jp1::SpinParity, jp2::SpinParity)
-    if _spin_parity_defined(jp0) && _spin_parity_defined(jp1) && _spin_parity_defined(jp2)
-        return possible_ls(jp1, jp2; jp=jp0)
-    end
-    return _possible_ls_spin_only(jp0.two_j, jp1.two_j, jp2.two_j)
-end
+possible_vertex_ls(jp0::SpinParity, jp1::SpinParity, jp2::SpinParity) =
+    possible_ls(jp1, jp2; jp = jp0)
 
 """
     minimal_vertex_coupling(jp0, jp1, jp2)

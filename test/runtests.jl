@@ -393,7 +393,7 @@ include("threebody_compat_tests.jl")
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
     )
     weak_system = CascadeSystem(
-        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = UndefinedParity),
+        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'),
         system.masses,
     )
     propagators = (
@@ -422,13 +422,20 @@ include("threebody_compat_tests.jl")
 
     jps = line_spin_parities(topology, weak_system, propagators)
     @test jps[1].p == '+'
-    @test jps[rootline(topology)].p == UndefinedParity
+    @test jps[rootline(topology)].p == '+'
+
+    undefined_root = CascadeSystem(
+        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = UndefinedParity),
+        system.masses,
+    )
+    @test line_spin_parities(topology, undefined_root, propagators)[rootline(topology)].p ==
+        UndefinedParity
 
     spin_only_resonance = (
         (1, 2) => PropagatorFunction(SpinParity(2, '+'), ConstantLineshape(1.0)),
     )
     resonance_couplings = possible_vertex_couplings(topology, weak_system, spin_only_resonance)
-    @test resonance_couplings[1] == (((1, 2), 3) => [(2, 2)])
-    @test resonance_couplings[2] == ((1, 2) => Tuple{Int,Int}[])
+    @test isempty(resonance_couplings[1].second)
+    @test isempty(resonance_couplings[2].second)
     @test_throws ArgumentError minimal_ls_decay_chain(topology, weak_system, spin_only_resonance)
 end
