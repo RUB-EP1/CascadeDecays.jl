@@ -175,18 +175,9 @@ function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
     end
 end
 
+# helicity-axis helpers (same indexing as ThreeBodyDecays: div(two_j + two_λ, 2) + 1)
 _helicity_axis_length(two_j::Integer) = two_j + 1
-
-function _helicity_index(two_λ::Integer, two_j::Integer)
-    return div(two_j + two_λ, 2) + 1
-end
-
-function _external_amplitude_dims(chain::DecayChain, system::CascadeSystem)
-    two_js = line_two_js(chain, system)
-    final_dims = ntuple(i -> _helicity_axis_length(two_js[finallines(chain)[i]]), nfinal(chain))
-    root_dim = (_helicity_axis_length(root_two_j(system)),)
-    return (final_dims..., root_dim)
-end
+_helicity_index(two_λ::Integer, two_j::Integer) = div(two_j + two_λ, 2) + 1
 
 function _external_amplitude_indices(
     chain::DecayChain,
@@ -194,16 +185,21 @@ function _external_amplitude_indices(
     external_two_λs::SystemSpins,
 )
     two_js = line_two_js(chain, system)
-    final_indices = ntuple(i -> _helicity_index(external_two_λs.finals[i], two_js[finallines(chain)[i]]), nfinal(chain))
+    final_indices = ntuple(
+        i -> _helicity_index(external_two_λs.finals[i], two_js[finallines(chain)[i]]),
+        nfinal(chain),
+    )
     root_index = _helicity_index(external_two_λs.two_h0, root_two_j(system))
     return (final_indices..., root_index)
 end
 
-function _line_helicity_values(two_j::Integer)
-    return (-two_j):2:two_j
-end
+"""
+    _vertex_factor(chain, system, x, vertex)
 
-function _vertex_helicity_tensor(
+Local vertex amplitude ``V_{λ_0 λ_1 λ_2}`` on the three lines of `vertex`,
+as a dense array (cf. `VRk` / `Vij` in `ThreeBodyDecays.aligned_amplitude`).
+"""
+function _vertex_factor(
     chain::DecayChain,
     system::CascadeSystem,
     x::CascadeKinematics,
@@ -215,76 +211,99 @@ function _vertex_helicity_tensor(
     spins = (two_j0, two_j1, two_j2)
     angles = vertex_angles(x, vertex)
     vertex_payload = chain.vertices[vertex]
-    axis_lengths = (_helicity_axis_length(two_j0), _helicity_axis_length(two_j1), _helicity_axis_length(two_j2))
-    T = zeros(promote_type(typeof(routed_propagator_product(chain, x)), ComplexF64), axis_lengths...)
-    λ0_axis = _line_helicity_values(two_j0)
-    λ1_axis = _line_helicity_values(two_j1)
-    λ2_axis = _line_helicity_values(two_j2)
-    for (i0, two_λ0) in pairs(λ0_axis), (i1, two_λ1) in pairs(λ1_axis), (i2, two_λ2) in pairs(λ2_axis)
-        helicities = (two_λ0, two_λ1, two_λ2)
-        T[i0, i1, i2] = routed_vertex_amplitude(vertex_payload, masses2, helicities, spins, angles)
-    end
-    return T, (l0, l1, l2)
+    V = [
+        routed_vertex_amplitude(vertex_payload, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
+        for two_λ0 in (-two_j0):2:two_j0, two_λ1 in (-two_j1):2:two_j1, two_λ2 in (-two_j2):2:two_j2
+    ]
+    return reshape(
+        V,
+        _helicity_axis_length(two_j0),
+        _helicity_axis_length(two_j1),
+        _helicity_axis_length(two_j2),
+    ),
+    (l0, l1, l2)
 end
 
-function _apply_vertex!(F::AbstractArray, Tv::AbstractArray, lines::NTuple{3,Int})
+function _multiply_vertex_into_lines!(
+    F::AbstractArray{T,N},
+    V::AbstractArray,
+    lines::NTuple{3,Int},
+) where {T,N}
     l0, l1, l2 = lines
-    nd = ndims(F)
-    expand_sizes = ntuple(d -> d == l0 ? size(Tv, 1) : d == l1 ? size(Tv, 2) : d == l2 ? size(Tv, 3) : 1, Val(nd))
-    F .*= reshape(Tv, expand_sizes)
+    expand_sizes = ntuple(
+        d -> d == l0 ? size(V, 1) : d == l1 ? size(V, 2) : d == l2 ? size(V, 3) : 1,
+        Val(N),
+    )
+    F .*= reshape(V, expand_sizes)
     return F
 end
 
-function _permute_external(F::AbstractArray, ext_dims::NTuple{Ne,Int}) where {Ne}
-    nd = ndims(F)
-    Ne == nd && return F
-    other_dims = Tuple(d for d in 1:nd if d ∉ ext_dims)
-    perm = (ext_dims..., other_dims...)
-    Fp = permutedims(F, perm)
-    return dropdims(Fp; dims=ntuple(i -> Ne + i, Val(length(other_dims))()))
-end
+"""
+    line_amplitude_tensor(chain, system, x)
 
-function _contract_internal(
-    F::AbstractArray{Ta},
-    ext_dims::NTuple{Ne,Int},
-    int_dims::NTuple{Ni,Int},
-) where {Ta,Ne,Ni}
-    A_shape = Tuple(size(F, d) for d in ext_dims)
-    isempty(int_dims) && return _permute_external(F, ext_dims)
-    A = zeros(Ta, A_shape...)
-    nd = ndims(F)
-    a_syms = [Symbol(:a, k) for k in 1:Ne]
-    F_idx_syms = Vector{Symbol}(undef, nd)
-    for (k, d) in pairs(ext_dims)
-        F_idx_syms[d] = a_syms[k]
-    end
-    for d in int_dims
-        F_idx_syms[d] = Symbol(:i, d)
-    end
-    F_ref = Expr(:ref, :F, F_idx_syms...)
-    A_ref = Expr(:ref, :A, a_syms...)
-    ex = quote
-        local A = $A
-        local F = $F
-        @tullio $A_ref := $F_ref
-        A
-    end
-    return Base.invokelatest(Core.eval, @__MODULE__, ex)
-end
-
-function _line_amplitude_tensor(
+Line-indexed amplitude buffer ``F_{λ_{\\mathrm{line}_1} \\ldots} =
+\\prod_v V_v`` before summing internal propagator helicities.
+"""
+function line_amplitude_tensor(
     chain::DecayChain,
     system::CascadeSystem,
     x::CascadeKinematics,
 )
+    T = promote_type(ComplexF64, typeof(routed_propagator_product(chain, x)))
     two_js = line_two_js(chain, system)
     line_sizes = ntuple(line -> _helicity_axis_length(two_js[line]), nlines(chain))
-    F = ones(promote_type(ComplexF64, typeof(routed_propagator_product(chain, x))), line_sizes...)
+    F = ones(T, line_sizes...)
     for vertex in 1:nvertices(chain)
-        Tv, lines = _vertex_helicity_tensor(chain, system, x, vertex)
-        _apply_vertex!(F, Tv, lines)
+        V, lines = _vertex_factor(chain, system, x, vertex)
+        _multiply_vertex_into_lines!(F, V, lines)
     end
     return F
+end
+
+function _permute_external(F::AbstractArray{T,N}, ext_dims::NTuple{Ne,Int}) where {T,N,Ne}
+    Ne == N && return F
+    other_dims = Tuple(d for d in 1:N if d ∉ ext_dims)
+    Fp = permutedims(F, (ext_dims..., other_dims...))
+    return dropdims(Fp; dims=ntuple(i -> Ne + i, Val(N - Ne)))
+end
+
+# Static `@tullio` methods (generated at load time), cf. `ThreeBodyDecays.amplitude(dc, σs)`.
+for Ne in 1:8, Ni in 1:4
+    ext_syms = Tuple(Symbol(:_λ, k) for k in 1:Ne)
+    int_syms = Tuple(Symbol(:_m, k) for k in 1:Ni)
+    fp_syms = (ext_syms..., int_syms...)
+    A_shape = Tuple(:(size(Fp, $k)) for k in 1:Ne)
+    N = Ne + Ni
+    @eval function _tullio_sum_internal(Fp::AbstractArray{Ta,$N}, ::Val{$Ne}, ::Val{$Ni}) where {Ta}
+        A = zeros(Ta, $(A_shape...))
+        @tullio $(Expr(:ref, :A, ext_syms...)) := $(Expr(:ref, :Fp, fp_syms...))
+        return A
+    end
+end
+
+function _tullio_sum_internal(
+    Fp::AbstractArray{Ta,N},
+    ::Val{Ne},
+    ::Val{Ni},
+) where {Ta,N,Ne,Ni}
+    int_dims = ntuple(i -> Ne + i, Val(Ni))
+    return dropdims(sum(Fp; dims=int_dims), dims=int_dims)
+end
+
+"""
+    external_helicity_amplitude(F, ext_dims, int_dims)
+
+Sum internal propagator helicities and return the external-helicity array.
+`ext_dims` / `int_dims` are line ids (finals + root, then propagating lines).
+"""
+function external_helicity_amplitude(
+    F::AbstractArray,
+    ext_dims::Tuple{Int,Vararg{Int}},
+    int_dims::Tuple{Int,Vararg{Int}},
+)
+    isempty(int_dims) && return _permute_external(F, ext_dims)
+    Fp = permutedims(F, (ext_dims..., int_dims...))
+    return _tullio_sum_internal(Fp, Val(length(ext_dims)), Val(length(int_dims)))
 end
 
 """
@@ -292,9 +311,10 @@ end
 
 Route masses, angles, and spins through the cascade and return the full amplitude
 array in the external helicity space. Final-state axes follow [`finallines`](@ref)
-order; the root helicity is the last axis. Internal propagator helicities are
-summed with [`Tullio`](https://github.com/mcabbott/Tullio.jl), matching the
-contraction style used in `ThreeBodyDecays.jl`.
+order; the root helicity is the last axis.
+
+The evaluation follows `ThreeBodyDecays.jl`: build vertex factors, multiply into
+a line-indexed buffer, then contract internal helicities with `@tullio`.
 """
 function amplitude(
     chain::DecayChain{Nf,Np},
@@ -302,10 +322,10 @@ function amplitude(
     x::CascadeKinematics,
 ) where {Nf,Np}
     P_prod = routed_propagator_product(chain, x)
-    F = _line_amplitude_tensor(chain, system, x)
+    F = line_amplitude_tensor(chain, system, x)
     ext_dims = (Tuple(finallines(chain))..., rootline(chain))
     int_dims = Tuple(propagating_lines(chain))
-    A = _contract_internal(F, ext_dims, int_dims)
+    A = external_helicity_amplitude(F, ext_dims, int_dims)
     return P_prod * A
 end
 
