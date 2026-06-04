@@ -88,9 +88,14 @@ end
 """
     SystemSpinParities(spins, parities)
     SystemSpinParities(spins, P1, P2, ...; P0)
+    SystemSpinParities(jp1, jp2, ...; jp0)
+    SystemSpinParities("1+", "0-", ...; jp0="1±")
 
 External spin and parity descriptor for [`CascadeSystem`](@ref) when LS
 enumeration needs explicit final-state and root parities.
+
+Spin–parity labels use the same `jp"…"` / string syntax as
+[`ThreeBodyDecays.ThreeBodySpinParities`](https://github.com/gw2ssi/ThreeBodyDecays.jl).
 """
 struct SystemSpinParities{Nf}
     spins::SystemSpins{Nf}
@@ -105,6 +110,32 @@ end
 
 SystemSpinParities(spins::SystemSpins, Ps...; P0) =
     SystemSpinParities(spins, SystemParities(Ps...; P0))
+
+function SystemSpinParities(
+    jps::ThreeBodyDecays.SpinParity...;
+    jp0::ThreeBodyDecays.SpinParity = error(
+        "provide root spin–parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
+    ),
+)
+    jp_tuple = Tuple(jps)
+    length(jp_tuple) >= 1 ||
+        throw(ArgumentError("provide at least one final-state jp before `jp0`"))
+    spins = SystemSpins(map(jp -> jp.two_j, jp_tuple)...; two_h0=jp0.two_j)
+    parities = SystemParities(map(jp -> jp.p, jp_tuple)...; P0=jp0.p)
+    return SystemSpinParities(spins, parities)
+end
+
+function SystemSpinParities(
+    jps::AbstractString...;
+    jp0::AbstractString = error(
+        "provide root spin–parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
+    ),
+)
+    return SystemSpinParities(
+        map(ThreeBodyDecays.str2jp, jps)...;
+        jp0=ThreeBodyDecays.str2jp(jp0),
+    )
+end
 
 final_two_js(spins::SystemSpins) = spins.finals
 final_two_js(quantum::SystemSpinParities) = final_two_js(quantum.spins)

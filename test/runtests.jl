@@ -4,7 +4,7 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins, VertexFunction
+using ThreeBodyDecays: @jp_str, NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins, VertexFunction
 
 struct TestVertex <: AbstractVertex
     name::Symbol
@@ -18,6 +18,12 @@ end
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     parity_system = CascadeSystem(SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'), system.masses)
     @test parity_system.quantum.parities == SystemParities('+', '+', '+'; P0 = '+')
+
+    from_strings = SystemSpinParities("1+", "0-", "0-"; jp0 = "1±")
+    from_jp = SystemSpinParities(jp"1+", jp"0-", jp"0-"; jp0 = jp"1±")
+    @test from_strings.spins == SystemSpins(2, 0, 0; two_h0 = 2)
+    @test from_strings.parities == SystemParities('+', '-', '-'; P0 = UndefinedParity)
+    @test from_jp == from_strings
     @test final_two_js(parity_system) == final_two_js(system)
     @test root_two_j(parity_system) == root_two_j(system)
     @test root_two_j(system) == 2
