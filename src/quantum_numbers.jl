@@ -1,12 +1,10 @@
 """
     UndefinedParity
 
-Character used when parity is not specified. LS enumeration then ignores parity
-constraints and keeps only spin-coupling rules.
+Parity character `'±'` when parity is not fixed or not specified. `possible_ls_more`
+skips the parity filter when any participating line carries it.
 """
-const UndefinedParity = '?'
-
-parity_defined(p::Char) = p != UndefinedParity
+const UndefinedParity = Char('±')
 
 """
     SystemMasses(m1, m2, ...; m0)
@@ -31,7 +29,7 @@ function SystemMasses(ms...; m0)
 end
 
 function SystemMasses(ms::ThreeBodyDecays.MassTuple)
-    return SystemMasses(ms.m1, ms.m2, ms.m3; m0 = ms.m0)
+    return SystemMasses(ms.m1, ms.m2, ms.m3; m0=ms.m0)
 end
 
 Base.:(==)(a::SystemMasses, b::SystemMasses) =
@@ -48,7 +46,7 @@ struct SystemSpins{Nf}
     two_h0::Int
 end
 
-function SystemSpins(finals...; h0 = nothing, two_h0 = nothing)
+function SystemSpins(finals...; h0=nothing, two_h0=nothing)
     spin_tuple = Tuple(finals)
     length(spin_tuple) >= 1 ||
         throw(ArgumentError("provide at least one final-state spin before the root spin"))
@@ -62,7 +60,7 @@ function SystemSpins(finals...; h0 = nothing, two_h0 = nothing)
 end
 
 function SystemSpins(two_js::ThreeBodyDecays.SpinTuple)
-    return SystemSpins(two_js.two_h1, two_js.two_h2, two_js.two_h3; two_h0 = two_js.two_h0)
+    return SystemSpins(two_js.two_h1, two_js.two_h2, two_js.two_h3; two_h0=two_js.two_h0)
 end
 
 """
@@ -84,7 +82,7 @@ function SystemParities(Ps...; P0)
 end
 
 function SystemParities(Ps::ThreeBodyDecays.ParityTuple)
-    return SystemParities(Ps.P1, Ps.P2, Ps.P3; P0 = Ps.P0)
+    return SystemParities(Ps.P1, Ps.P2, Ps.P3; P0=Ps.P0)
 end
 
 """

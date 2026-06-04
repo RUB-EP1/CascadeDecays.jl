@@ -1,4 +1,5 @@
 using CascadeDecays
+import CascadeDecays: possible_ls_more, UndefinedParity
 using FourVectors
 using HadronicLineshapes
 using StaticArrays
@@ -15,10 +16,8 @@ end
     @test SystemSpins(ThreeBodySpins(0, 0, 0; two_h0 = 0)) == SystemSpins(0, 0, 0; two_h0 = 0)
 
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
-    @test !has_parities(system)
     parity_system = CascadeSystem(SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'), system.masses)
     @test parity_system.quantum.parities == SystemParities('+', '+', '+'; P0 = '+')
-    @test has_parities(parity_system)
     @test final_two_js(parity_system) == final_two_js(system)
     @test root_two_j(parity_system) == root_two_j(system)
     @test root_two_j(system) == 2
@@ -420,6 +419,11 @@ include("threebody_compat_tests.jl")
 
     @test !isempty(possible_vertex_ls(SpinParity(1, '-'), SpinParity(1, '+'), SpinParity(0, '+')))
 
+    ambiguous_parent = possible_ls_more(SpinParity(1, '+'), SpinParity(1, '+'); jp = SpinParity(2, UndefinedParity))
+    definite_plus = possible_ls_more(SpinParity(1, '+'), SpinParity(1, '+'); jp = SpinParity(2, '+'))
+    definite_minus = possible_ls_more(SpinParity(1, '+'), SpinParity(1, '+'); jp = SpinParity(2, '-'))
+    @test Set(vcat(definite_plus, definite_minus)) ⊆ Set(ambiguous_parent)
+
     jps = line_spin_parities(topology, weak_system, propagators)
     @test jps[1].p == '+'
     @test jps[rootline(topology)].p == '+'
@@ -430,6 +434,9 @@ include("threebody_compat_tests.jl")
     )
     @test line_spin_parities(topology, undefined_root, propagators)[rootline(topology)].p ==
         UndefinedParity
+    undefined_couplings = possible_vertex_couplings(topology, undefined_root, propagators)
+    @test !isempty(undefined_couplings[1].second)
+    @test !isempty(undefined_couplings[2].second)
 
     spin_only_resonance = (
         (1, 2) => PropagatorFunction(SpinParity(2, '+'), ConstantLineshape(1.0)),

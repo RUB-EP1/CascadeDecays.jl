@@ -1,6 +1,3 @@
-using ThreeBodyDecays: SpinParity, VertexFunction, RecouplingLS, possible_ls
-using StaticArrays
-
 """
     line_spin_parities(topology, system, propagator_specs)
 
@@ -43,11 +40,11 @@ end
 """
     possible_vertex_ls(jp0, jp1, jp2)
 
-Return allowed `(two_l, two_s)` couplings at one binary vertex using full J^P
-constraints from `ThreeBodyDecays.possible_ls`.
+Return allowed `(two_l, two_s)` couplings at one binary vertex using
+`possible_ls_more` (including [`UndefinedParity`](@ref), `'±'`).
 """
 possible_vertex_ls(jp0::SpinParity, jp1::SpinParity, jp2::SpinParity) =
-    possible_ls(jp1, jp2; jp = jp0)
+    possible_ls_more(jp1, jp2; jp=jp0)
 
 """
     minimal_vertex_coupling(jp0, jp1, jp2)

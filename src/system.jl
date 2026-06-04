@@ -21,10 +21,6 @@ end
 
 const CascadeSystemWithParities = CascadeSystem{<:Any,<:Any,<:SystemSpinParities}
 
-has_parities(system::CascadeSystem) = has_parities(system.quantum)
-has_parities(::SystemSpins) = false
-has_parities(::SystemSpinParities) = true
-
 final_two_js(system::CascadeSystem) = final_two_js(system.quantum)
 root_two_j(system::CascadeSystem) = root_two_j(system.quantum)
 final_masses(system::CascadeSystem) = system.masses.finals
