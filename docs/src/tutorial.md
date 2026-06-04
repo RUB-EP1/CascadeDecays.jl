@@ -212,7 +212,9 @@ nothing #hide
 
 Call `amplitude(chain, system, x)` to obtain the full external-helicity array
 (final-state axes in [`finallines`](@ref) order, root helicity last). Internal
-propagator helicities are summed with `Tullio`, as in `ThreeBodyDecays.jl`.
+propagator helicities are summed with `Tullio`, as in
+`ThreeBodyDecays.aligned_amplitude` (helicity-frame Wigner rotations of
+`ThreeBodyDecays.amplitude` are not applied yet).
 
 For a single helicity assignment, pass [`SystemHelicities`](@ref) as the fourth
 argument; that method indexes the full array.

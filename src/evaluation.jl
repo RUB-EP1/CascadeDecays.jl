@@ -356,8 +356,9 @@ Route masses, angles, and spins through the cascade and return the full amplitud
 array in the external helicity space. Final-state axes follow [`finallines`](@ref)
 order; the root helicity is the last axis.
 
-The evaluation follows `ThreeBodyDecays.jl`: build vertex factors, multiply into
-a line-indexed buffer, then contract internal helicities with `@tullio`.
+Build vertex factors, multiply into a line-indexed buffer, then contract internal
+helicities with `@tullio` (aligned-style chain, as in `ThreeBodyDecays.aligned_amplitude`).
+Helicity-frame Wigner rotations of `ThreeBodyDecays.amplitude(dc, σs)` are not applied yet.
 """
 function amplitude(
     chain::DecayChain{Nf,Np},
