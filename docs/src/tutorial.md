@@ -210,8 +210,12 @@ nothing #hide
 
 ## 6. General amplitude evaluation
 
-The package-level `amplitude` method now performs the internal-helicity sum,
-so the user only provides external helicities in the order `(1,2,3,4,0)`.
+Call `amplitude(chain, system, x)` to obtain the full external-helicity array
+(final-state axes in [`finallines`](@ref) order, root helicity last). Internal
+propagator helicities are summed with `Tullio`, as in `ThreeBodyDecays.jl`.
+
+For a single helicity assignment, pass [`SystemHelicities`](@ref) as the fourth
+argument; that method indexes the full array.
 
 In formula form,
 
@@ -231,6 +235,7 @@ The routing contract is:
 - Julia dispatch selects vertex and propagator computations
 
 ````@example tutorial
+A_full = amplitude(chain, system, x)
 external_two_λs = SystemHelicities(
     two_js,
     0, # D⁰
@@ -240,6 +245,7 @@ external_two_λs = SystemHelicities(
     two_h0=0, # B⁺
 )
 A = amplitude(chain, system, x, external_two_λs)
+@assert A == A_full[1, 1, 1, 1, 1]
 ````
 
 ## 7. Numerical result

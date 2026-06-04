@@ -3,6 +3,7 @@ module CascadeDecays
 using StaticArrays
 using FourVectors
 using InstructionalDecayTrees
+using Tullio
 
 import ThreeBodyDecays
 import ThreeBodyDecays: SpinParity, VertexFunction, RecouplingLS, ⊗

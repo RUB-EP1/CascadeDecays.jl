@@ -373,7 +373,10 @@ end
         ),
     )
     external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0=0)
+    A_full = amplitude(chain, system, x)
+    @test size(A_full) == (1, 1, 1, 1, 1)
     A = amplitude(chain, system, x, external_two_λs)
+    @test A == A_full[1, 1, 1, 1, 1]
     @test isfinite(real(A))
     @test isfinite(imag(A))
     @test_throws MethodError amplitude(chain, system, x, (0, 0, 0, 0, 0))
