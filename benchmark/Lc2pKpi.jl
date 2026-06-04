@@ -59,7 +59,8 @@ const LC_QUANTUM = SystemSpinParities("1/2+", "0-", "0-"; jp0 = "1/2+")
 
 function threebody_system()
     ms = ThreeBodyMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0)
-    spins = ThreeBodySpins(1, 0, 0; h0 = 1)
+    # Use `two_h0=...` for doubled spins. `h0=1` would call `x2` on all entries (spin-1, not 1/2).
+    spins = ThreeBodySpins(1, 0, 0; two_h0 = 1)
     return ThreeBodySystem(ms, spins), ms
 end
 

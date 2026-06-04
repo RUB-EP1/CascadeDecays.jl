@@ -21,13 +21,17 @@ Run:
 julia --project=benchmark benchmark/Lc2pKpi.jl
 ```
 
-### Results (median time, 1000 events)
+### Results (median time, 1000 events; both full matrices `(2,1,1,2)`)
 
-| Chain | ThreeBody full `(3,1,1,3)` | Cascade full `(2,1,1,2)` | Ratio (Cascade/TBD) |
-|-------|---------------------------|------------------------|---------------------|
-| K* | ~17 ms | ~3.7 ms | ~0.2× |
-| Λ(1520) | ~18 ms | ~4.3 ms | ~0.2× |
+| Chain | ThreeBodyDecays full | CascadeDecays full | Cascade / TBD (full) |
+|-------|----------------------|--------------------|----------------------|
+| K* | ~4.3 ms (~4.3 µs/event) | ~3.8 ms (~3.8 µs/event) | ~0.90× |
+| Λ(1520) | ~5.0 ms (~5.0 µs/event) | ~4.0 ms (~4.0 µs/event) | ~0.82× |
 
-ThreeBodyDecays includes the resonance spin in the aligned tensor (larger `(3,1,1,3)`); Cascade keeps only external lines in the final array. Single-helicity component uses `(λ_p, λ_K, λ_π, λ_Λc) = (1, 0, 0, 1)`.
+Single helicity `(λ_p, λ_K, λ_π, λ_Λc) = (1,0,0,1)`: ThreeBodyDecays ~1.5–2.1 µs/event; Cascade ~3.8–4.1 µs/event (indexes the full array each call).
+
+Both packages return **`(2, 1, 1, 2)`** on `(λ_p, λ_K, λ_π, λ_Λc)` once `ThreeBodySpins` uses `two_h0=1` (not `h0=1`, which incorrectly doubles every entry to spin 1). Internal resonance helicities are summed inside `ThreeBodyDecays.amplitude(dc, σs)` as in Cascade.
+
+Single-helicity component uses `(λ_p, λ_K, λ_π, λ_Λc) = (1, 0, 0, 1)`.
 
 After typing the internal contraction as `Val(Nf+1)`, `Val(Np)` on `DecayChain{Nf,Np}`, timings were unchanged within run-to-run noise (constant-folding already applied for concrete chains).
