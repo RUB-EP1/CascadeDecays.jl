@@ -60,7 +60,7 @@ local `(cosθ, ϕ)` angle for `vertex` in helicity convention.
 function helicity_angle_program(
     topology::DecayTopology,
     target_vertex::Integer;
-    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
     return helicity_angle_program(topology, Val(Int(target_vertex)); initial_frame)
 end
@@ -68,7 +68,7 @@ end
 function helicity_angle_program(
     topology::DecayTopology,
     ::Val{target_vertex};
-    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 ) where {target_vertex}
     target_vertex in Base.OneTo(nvertices(topology)) ||
         throw(ArgumentError("vertex $target_vertex is outside 1:$(nvertices(topology))"))
@@ -102,7 +102,7 @@ Return one helicity-angle measurement program per topology vertex.
 """
 helicity_angle_programs(
     topology::DecayTopology;
-    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 ) =
     ntuple(v -> helicity_angle_program(topology, Val(v); initial_frame), nvertices(topology))
 
@@ -121,7 +121,7 @@ function cascade_kinematics(
     topology::DecayTopology,
     system::CascadeSystem,
     objs;
-    initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
     internal_masses2 = Tuple(mass(_sum_objects(objs, _indices_for_line(topology, line)))^2 for line in internal_lines(topology))
     programs = helicity_angle_programs(topology; initial_frame)
@@ -129,7 +129,7 @@ function cascade_kinematics(
         _, result = apply_decay_instruction(program, objs)
         only(values(result))
     end
-    return CascadeKinematics(topology, system; internal_masses2, vertex_angles = Tuple(angle_results))
+    return CascadeKinematics(topology, system; internal_masses2, vertex_angles=Tuple(angle_results))
 end
 
 function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
@@ -175,45 +175,43 @@ function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
     end
 end
 
-function _helicity_axis(two_j::Integer)
-    return (-Int(two_j)):2:Int(two_j)
-end
-
-function _full_helicity_assignment(chain::DecayChain, external_two_λs, internal_two_λs)
-    external_tuple = Tuple(Int(two_λ) for two_λ in external_two_λs)
-    length(external_tuple) == nfinal(chain) + 1 ||
-        throw(ArgumentError("external_two_λs must be given as `(finals..., root)`"))
-    internal_tuple = Tuple(Int(two_λ) for two_λ in internal_two_λs)
-    length(internal_tuple) == length(propagating_lines(chain)) ||
-        throw(ArgumentError("internal helicity assignment does not match the number of internal lines"))
-    values = MVector{nlines(chain),Int}(undef)
-    for (i, line) in pairs(finallines(chain))
-        values[line] = external_tuple[i]
+function _internal_helicity_axes(chain::DecayChain{<:Any,Np}) where {Np}
+    return ntuple(Np) do i
+        two_j = chain.propagator_two_js[i]
+        (-two_j):2:two_j
     end
-    for (i, line) in pairs(propagating_lines(chain))
-        values[line] = internal_tuple[i]
-    end
-    values[rootline(chain)] = external_tuple[end]
-    return SVector(values)
-end
-
-function _internal_helicity_assignments(chain::DecayChain)
-    axes = Tuple(_helicity_axis(two_j) for two_j in chain.propagator_two_js)
-    isempty(axes) && return ((),)
-    return Iterators.product(axes...)
 end
 
 """
     amplitude(chain, system, x, external_two_λs)
 
 Route masses, angles, and spins through the cascade and sum over all internal
-helicity assignments. `external_two_λs` is supplied as `(finals..., root)`.
+helicity assignments. `external_two_λs` is a [`SystemHelicities`](@ref) value
+(alias of [`SystemSpins`](@ref): positional finals, root via `two_h0=...` or `h0=...`).
 """
-function amplitude(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics, external_two_λs)
-    P = routed_propagator_product(chain, x)
-    return sum(_internal_helicity_assignments(chain)) do internal_two_λs
-        two_λs = _full_helicity_assignment(chain, external_two_λs, internal_two_λs)
-        V = prod(v -> routed_vertex_amplitude(chain, system, x, two_λs, v), 1:nvertices(chain))
-        V * P
+function amplitude(
+    chain::DecayChain{Nf,Np},
+    system::CascadeSystem,
+    x::CascadeKinematics,
+    external_two_λs::SystemSpins,
+) where {Nf,Np}
+    P_prod = routed_propagator_product(chain, x)
+    # 
+    itr = Iterators.product(_internal_helicity_axes(chain)...)
+    V_prod = sum(itr) do internal_two_λs
+        values = MVector{nlines(chain),Int}(undef)
+        for (i, line) in pairs(finallines(chain))
+            values[line] = external_two_λs.finals[i]
+        end
+        for (i, line) in pairs(propagating_lines(chain))
+            values[line] = internal_two_λs[i]
+        end
+        values[rootline(chain)] = external_two_λs.two_h0
+        two_λs = SVector(values)
+        # 
+        prod(1:nvertices(chain)) do v
+            routed_vertex_amplitude(chain, system, x, two_λs, v)
+        end
     end
+    return V_prod * P_prod
 end

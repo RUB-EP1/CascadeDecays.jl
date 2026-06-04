@@ -8,7 +8,7 @@ function _threebody_reference_point()
     ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
     σs = x2σs([0.5, 0.3], ms; k = 3)
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem((0, 0, 0, 0), (ms[1]^2, ms[2]^2, ms[3]^2, ms.m0^2))
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(ms))
     return (; ms, σs, topology, system)
 end
 

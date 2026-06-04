@@ -64,24 +64,6 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
     )
 end
 
-function _require_pair_specs(name::Symbol, specs)
-    spec_tuple = Tuple(specs)
-    all(spec -> spec isa Pair, spec_tuple) ||
-        throw(ArgumentError("$name must be provided as `address => payload` pairs"))
-    return spec_tuple
-end
-
-function _propagator_payload(spec::Pair)
-    payload = spec.second
-    hasproperty(payload, :lineshape) ||
-        throw(ArgumentError("propagator spec for $(spec.first) must provide `lineshape`"))
-    hasproperty(payload, :two_j) ||
-        throw(ArgumentError("propagator spec for $(spec.first) must provide `two_j`"))
-    return payload.lineshape
-end
-
-_propagator_two_j(spec::Pair) = Int(spec.second.two_j)
-
 function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex::Integer)
     matches = findall(==(vertex), vertex_ids)
     length(matches) == 1 ||
@@ -95,29 +77,30 @@ end
 Build a static cascade model from bracket-addressed payload pairs. User-facing
 addresses are resolved immediately to internal line and vertex ids.
 """
-function DecayChain(topology::DecayTopology; propagators, vertices)
-    propagator_specs = _require_pair_specs(:propagators, propagators)
-    vertex_specs = _require_pair_specs(:vertices, vertices)
-    length(vertex_specs) == nvertices(topology) ||
+function DecayChain(
+    topology::DecayTopology;
+    propagators::Tuple{Vararg{PropagatorSpec}},
+    vertices::Tuple{Vararg{Pair{<:Any,<:Any}}},
+)
+    length(vertices) == nvertices(topology) ||
         throw(ArgumentError("vertices must contain one payload per topology vertex"))
-
-    propagating_line_tuple = Tuple(line_for(topology, spec.first) for spec in propagator_specs)
+    propagating_line_tuple = Tuple(line_for(topology, spec.first) for spec in propagators)
     all(line -> isinternalline(topology, line), propagating_line_tuple) ||
         throw(ArgumentError("propagator addresses must refer to internal lines"))
-    vertex_id_tuple = Tuple(vertex_for(topology, spec.first) for spec in vertex_specs)
+    vertex_id_tuple = Tuple(vertex_for(topology, spec.first) for spec in vertices)
     length(unique(vertex_id_tuple)) == nvertices(topology) ||
         throw(ArgumentError("vertices must address each topology vertex exactly once"))
 
     ordered_vertices = ntuple(
-        vertex -> _vertex_payload_for(vertex_specs, vertex_id_tuple, vertex),
+        vertex -> _vertex_payload_for(vertices, vertex_id_tuple, vertex),
         nvertices(topology),
     )
     return DecayChain(
         topology,
-        Tuple(_propagator_payload(spec) for spec in propagator_specs),
+        Tuple(spec.second.lineshape for spec in propagators),
         ordered_vertices,
         propagating_line_tuple,
-        Tuple(_propagator_two_j(spec) for spec in propagator_specs),
+        Tuple(spec.second.two_j for spec in propagators),
     )
 end
 
@@ -142,12 +125,12 @@ function line_two_js(chain::DecayChain, system::CascadeSystem)
     _check_system(chain.topology, system)
     spins = MVector{nlines(chain),Int}(undef)
     for (i, line) in pairs(finallines(chain))
-        spins[line] = system.final_two_js[i]
+        spins[line] = final_two_js(system)[i]
     end
     for (i, line) in pairs(propagating_lines(chain))
         spins[line] = chain.propagator_two_js[i]
     end
-    spins[rootline(chain)] = system.root_two_j
+    spins[rootline(chain)] = root_two_j(system)
     return SVector(spins)
 end
 

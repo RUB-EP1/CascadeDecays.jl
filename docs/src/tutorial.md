@@ -96,16 +96,16 @@ We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins are
 represented as doubled integers.
 
 ````@example tutorial
-two_js = (
+two_js = SystemSpins(
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
-    0, # B⁺
+    two_h0 = 0, # B⁺
 )
 
-masses2 = (mass.(objs) .^ 2..., mass(P_B)^2)
-system = CascadeSystem(two_js, masses2);
+masses = SystemMasses(mass.(objs)...; m0 = mass(P_B))
+system = CascadeSystem(two_js, masses);
 nothing #hide
 ````
 
@@ -200,8 +200,8 @@ vertices = (
 )
 
 propagators = (
-    (1, 2) => (two_j = 2, lineshape = ConstantLineshape(1.0 + 0.0im)),
-    ((1, 2), 3) => (two_j = 2, lineshape = BreitWigner(4.039, 0.08)),
+    (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
 )
 
 chain = DecayChain(topology; propagators, vertices);
@@ -225,12 +225,20 @@ The routing contract is:
 
 - topology chooses the local parent/children at each binary decay
 - `CascadeKinematics` supplies three local masses squared
-- `external_two_λs` supplies only final and initial helicities
+- `external_two_λs` is a [`SystemHelicities`](@ref) value aligned with `two_js`
+  (positional finals, root via `two_h0=...`)
 - `CascadeSystem` and `DecayChain` supply local external/internal spins
 - Julia dispatch selects vertex and propagator computations
 
 ````@example tutorial
-external_two_λs = (0, 0, 0, 0, 0)
+external_two_λs = SystemHelicities(
+    two_js,
+    0, # D⁰
+    0, # π⁺
+    0, # D⁻
+    0, # K⁺
+    two_h0=0, # B⁺
+)
 A = amplitude(chain, system, x, external_two_λs)
 ````
 

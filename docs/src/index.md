@@ -9,4 +9,4 @@
 - Build runtime kinematics with `cascade_kinematics(...)`.
 - Evaluate amplitudes with `amplitude(...)`.
 
-The main user-facing walkthrough is the tutorial page generated from the literate source in `docs/integration_4body_b2ddKpi.jl`.
+The main user-facing walkthrough is the tutorial page generated from the Quarto source in `docs/integration_4body_b2ddKpi.qmd`.
