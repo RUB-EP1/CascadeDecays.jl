@@ -238,6 +238,26 @@ function _multiply_vertex_into_lines!(
     return F
 end
 
+"""Element type for line / external amplitude arrays (cf. `zeros(typeof(lineshape), …)` in ThreeBodyDecays)."""
+function _line_amplitude_eltype(chain::DecayChain, system::CascadeSystem, x::CascadeKinematics)
+    P = routed_propagator_product(chain, x)
+    v = 1
+    two_j0, two_j1, two_j2 = vertex_spins(chain, system, v)
+    helicities = (
+        first((-two_j0):2:two_j0),
+        first((-two_j1):2:two_j1),
+        first((-two_j2):2:two_j2),
+    )
+    V0 = routed_vertex_amplitude(
+        chain.vertices[v],
+        vertex_masses2(chain, x, v),
+        helicities,
+        (two_j0, two_j1, two_j2),
+        vertex_angles(x, v),
+    )
+    return promote_type(typeof(V0), typeof(P))
+end
+
 """
     line_amplitude_tensor(chain, system, x)
 
@@ -249,7 +269,7 @@ function line_amplitude_tensor(
     system::CascadeSystem,
     x::CascadeKinematics,
 )
-    T = promote_type(ComplexF64, typeof(routed_propagator_product(chain, x)))
+    T = _line_amplitude_eltype(chain, system, x)
     two_js = line_two_js(chain, system)
     line_sizes = ntuple(line -> _helicity_axis_length(two_js[line]), nlines(chain))
     F = ones(T, line_sizes...)
