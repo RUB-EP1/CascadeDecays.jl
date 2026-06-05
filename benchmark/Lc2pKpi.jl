@@ -9,7 +9,7 @@ using CascadeDecays:
     CascadeSystem,
     ConstantLineshape,
     DecayTopology,
-    PropagatorFunction,
+    Propagator,
     SystemMasses,
     SystemSpinParities,
     amplitude,
@@ -82,7 +82,7 @@ let
     tbd_chain = tbd.kstar
     cascade_chain = let
         topology = DecayTopology(((1, 2), 3))
-        propagators = (((1, 2) => PropagatorFunction(jp"1-", UNIT_LINESHAPE)),)
+        propagators = (((1, 2) => Propagator(jp"1-", UNIT_LINESHAPE)),)
         minimal_ls_decay_chain(topology, system, propagators)
     end
 
@@ -103,7 +103,7 @@ let
     tbd_chain = tbd.lambda
     cascade_chain = let
         topology = DecayTopology(((1, 3), 2))
-        propagators = (((1, 3) => PropagatorFunction(jp"3/2-", UNIT_LINESHAPE)),)
+        propagators = (((1, 3) => Propagator(jp"3/2-", UNIT_LINESHAPE)),)
         minimal_ls_decay_chain(topology, system, propagators)
     end
 

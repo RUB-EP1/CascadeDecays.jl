@@ -6,7 +6,7 @@ using InstructionalDecayTrees
 using Tullio
 
 import ThreeBodyDecays
-import ThreeBodyDecays: SpinParity, VertexFunction, RecouplingLS, ⊗
+import ThreeBodyDecays: SpinParity, VertexFunction as Vertex, RecouplingLS, ⊗
 
 # interfaces
 export AbstractLineshape, AbstractVertex
@@ -14,8 +14,8 @@ export ConstantLineshape
 include("interfaces.jl")
 
 # propagators
-export PropagatorFunction
-include("propagator_function.jl")
+export Propagator
+include("propagator.jl")
 
 # topology
 export DecayTopology
@@ -53,7 +53,7 @@ include("kinematics.jl")
 
 # decay chain
 export DecayChain
-export SpinParity, VertexFunction
+export SpinParity, Vertex
 export line_two_js
 include("chain.jl")
 

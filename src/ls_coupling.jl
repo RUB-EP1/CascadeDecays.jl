@@ -3,8 +3,8 @@
 
 Assemble a line-indexed `SpinParity` view. Requires a [`CascadeSystem`](@ref)
 built from [`SystemSpinParities`](@ref). Final and root entries combine external
-spins and parities; internal entries come from each [`PropagatorFunction`](@ref) built with
-`PropagatorFunction(jp, lineshape)`.
+spins and parities; internal entries come from each [`Propagator`](@ref) built with
+`Propagator(jp, lineshape)`.
 """
 function line_spin_parities(
     topology::DecayTopology,
@@ -112,7 +112,7 @@ function minimal_vertex_couplings(
 end
 
 function _ls_vertices(vertex_couplings)
-    return SVector(map(c -> VertexFunction(RecouplingLS(c)), vertex_couplings))
+    return SVector(map(c -> Vertex(RecouplingLS(c)), vertex_couplings))
 end
 
 function _build_ls_decay_chain(
@@ -167,8 +167,8 @@ let
         DecayChain(topology;
             propagators,
             vertices = (
-                l1 => VertexFunction(RecouplingLS((two_l1, two_s1))),
-                l2 => VertexFunction(RecouplingLS((two_l2, two_s2))),
+                l1 => Vertex(RecouplingLS((two_l1, two_s1))),
+                l2 => Vertex(RecouplingLS((two_l2, two_s2))),
             ),
         )
     end

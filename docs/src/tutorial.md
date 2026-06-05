@@ -29,7 +29,7 @@ using CascadeDecays
 using FourVectors
 using HadronicLineshapes
 using StaticArrays
-using ThreeBodyDecays: VertexFunction, RecouplingLS
+using ThreeBodyDecays: RecouplingLS
 
 format_instruction(inst) =
     string(nameof(typeof(inst)), "(", join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), ", "), ")")
@@ -208,35 +208,35 @@ from which routing and evaluation order are derived.
 connectivity = Matrix(relation(topology))
 
 vertices = (
-    (((1, 2), 3), 4) => VertexFunction(RecouplingLS((2, 2))), # B⁺ -> ψ K
-    ((1, 2), 3) => VertexFunction(RecouplingLS((0, 2))),      # ψ -> Dₓ D
-    (1, 2) => VertexFunction(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
+    (((1, 2), 3), 4) => Vertex(RecouplingLS((2, 2))), # B⁺ -> ψ K
+    ((1, 2), 3) => Vertex(RecouplingLS((0, 2))),      # ψ -> Dₓ D
+    (1, 2) => Vertex(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
 )
 
 propagators = (
-    (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
-    ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
+    (1, 2) => Propagator(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
 )
 
 chain = DecayChain(topology; propagators, vertices)
 ```
 
-    DecayChain{4, 2, 3, Any, VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}, DecayTopology{7, 3, 4, Int64, 21}}(DecayTopology{7, 3, 4, Int64, 21}([0 0 1; 0 0 1; … ; 1 -1 0; -1 0 0], 7, [1, 2, 3, 4]), Any[ConstantLineshape{ComplexF64}(1.0 + 0.0im), BreitWigner
+    DecayChain{4, 2, 3, Any, Vertex{RecouplingLS, ThreeBodyDecays.NoFormFactor}, DecayTopology{7, 3, 4, Int64, 21}}(DecayTopology{7, 3, 4, Int64, 21}([0 0 1; 0 0 1; … ; 1 -1 0; -1 0 0], 7, [1, 2, 3, 4]), Any[ConstantLineshape{ComplexF64}(1.0 + 0.0im), BreitWigner
       m: Float64 4.039
       Γ: Float64 0.08
       ma: Float64 0.0
       mb: Float64 0.0
       l: Int64 0
       d: Float64 1.0
-    ], VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}[VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
+    ], Vertex{RecouplingLS, ThreeBodyDecays.NoFormFactor}[Vertex{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
       two_ls: Tuple{Int64, Int64}
-    , ThreeBodyDecays.NoFormFactor()), VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
+    , ThreeBodyDecays.NoFormFactor()), Vertex{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
       two_ls: Tuple{Int64, Int64}
-    , ThreeBodyDecays.NoFormFactor()), VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
+    , ThreeBodyDecays.NoFormFactor()), Vertex{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
       two_ls: Tuple{Int64, Int64}
     , ThreeBodyDecays.NoFormFactor())], [5, 6], [2, 2])
 
-Vertices are `ThreeBodyDecays.VertexFunction` objects. In this minimal
+Vertices are [`Vertex`](@ref) objects (from ThreeBodyDecays, imported as `VertexFunction`). In this minimal
 example we choose LS recouplings compatible with the spin assignments
 below.
 

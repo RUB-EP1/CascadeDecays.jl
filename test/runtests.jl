@@ -4,7 +4,7 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: @jp_str, NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins, VertexFunction
+using ThreeBodyDecays: @jp_str, NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins
 
 struct TestVertex <: AbstractVertex
     name::Symbol
@@ -196,8 +196,8 @@ end
     chain = DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => PropagatorFunction(4, ConstantLineshape(:R123)),
-            (1, 2) => PropagatorFunction(2, ConstantLineshape(:R12)),
+            ((1, 2), 3) => Propagator(4, ConstantLineshape(:R123)),
+            (1, 2) => Propagator(2, ConstantLineshape(:R12)),
         ),
         vertices = (
             (1, 2) => TestVertex(:inner),
@@ -218,8 +218,8 @@ end
     jp_chain = DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => PropagatorFunction(SpinParity(4, '+'), ConstantLineshape(:R123)),
-            (1, 2) => PropagatorFunction(SpinParity(2, '-'), ConstantLineshape(:R12)),
+            ((1, 2), 3) => Propagator(SpinParity(4, '+'), ConstantLineshape(:R123)),
+            (1, 2) => Propagator(SpinParity(2, '-'), ConstantLineshape(:R12)),
         ),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
@@ -237,7 +237,7 @@ end
 
     @test_throws ArgumentError DecayChain(
         topology;
-        propagators = ((1, 2) => PropagatorFunction(2, ConstantLineshape(:R12)),),
+        propagators = ((1, 2) => Propagator(2, ConstantLineshape(:R12)),),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
             ((1, 2), 3) => TestVertex(:middle),
@@ -247,7 +247,7 @@ end
     @test_throws TypeError DecayChain(
         topology;
         propagators = (
-            ((1, 2), 3) => PropagatorFunction(4, ConstantLineshape(:R123)),
+            ((1, 2), 3) => Propagator(4, ConstantLineshape(:R123)),
             (1, 2) => ConstantLineshape(:R12),
         ),
         vertices = (
@@ -363,13 +363,13 @@ end
     chain = DecayChain(
         topology;
         propagators = (
-            (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
-            ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
+            (1, 2) => Propagator(2, ConstantLineshape(1.0 + 0.0im)),
+            ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
         ),
         vertices = (
-            (((1, 2), 3), 4) => VertexFunction(RecouplingLS((2, 2))),
-            ((1, 2), 3) => VertexFunction(RecouplingLS((0, 2))),
-            (1, 2) => VertexFunction(RecouplingLS((2, 0))),
+            (((1, 2), 3), 4) => Vertex(RecouplingLS((2, 2))),
+            ((1, 2), 3) => Vertex(RecouplingLS((0, 2))),
+            (1, 2) => Vertex(RecouplingLS((2, 0))),
         ),
     )
     external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0=0)
@@ -387,8 +387,8 @@ end
     angles = (cosθ = 1.0, ϕ = 0.0)
     spins = (0, 1, 1)
 
-    positive_phase = VertexFunction(NoRecoupling(1, 1))
-    negative_phase = VertexFunction(NoRecoupling(-1, -1))
+    positive_phase = Vertex(NoRecoupling(1, 1))
+    negative_phase = Vertex(NoRecoupling(-1, -1))
 
     @test routed_vertex_amplitude(positive_phase, masses2, (0, 1, 1), spins, angles) == 1
     @test routed_vertex_amplitude(negative_phase, masses2, (0, -1, -1), spins, angles) == -1
@@ -414,7 +414,7 @@ include("threebody_compat_tests.jl")
         system.masses,
     )
     propagators = (
-        (1, 2) => PropagatorFunction(SpinParity(0, '+'), ConstantLineshape(1.0)),
+        (1, 2) => Propagator(SpinParity(0, '+'), ConstantLineshape(1.0)),
     )
 
     @test minimal_vertex_couplings(topology, weak_system, propagators) == (
@@ -424,7 +424,7 @@ include("threebody_compat_tests.jl")
     @test_throws MethodError possible_vertex_couplings(
         topology,
         weak_system,
-        ((1, 2) => PropagatorFunction(0, ConstantLineshape(1.0)),),
+        ((1, 2) => Propagator(0, ConstantLineshape(1.0)),),
     )
 
     minimal = minimal_ls_decay_chain(topology, weak_system, propagators)
@@ -457,7 +457,7 @@ include("threebody_compat_tests.jl")
     @test !isempty(undefined_couplings[2].second)
 
     spin_only_resonance = (
-        (1, 2) => PropagatorFunction(SpinParity(2, '+'), ConstantLineshape(1.0)),
+        (1, 2) => Propagator(SpinParity(2, '+'), ConstantLineshape(1.0)),
     )
     resonance_couplings = possible_vertex_couplings(topology, weak_system, spin_only_resonance)
     @test isempty(resonance_couplings[1].second)
