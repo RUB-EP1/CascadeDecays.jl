@@ -3,6 +3,9 @@ title: "Four-body integration: `B⁺ → ψ(4040) K⁺`, `ψ(4040) → Dₓ⁺ D
 engine: julia
 format:
   gfm: default
+execute:
+  echo: true
+  output: false
 ---
 
 This tutorial demonstrates how the current `CascadeDecays.jl` internals
@@ -252,6 +255,4 @@ println("summed amplitude = ", A)
 
 @assert isfinite(real(A))
 @assert isfinite(imag(A))
-
-A
 ```
