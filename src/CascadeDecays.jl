@@ -7,7 +7,6 @@ using Tullio
 
 import ThreeBodyDecays
 import ThreeBodyDecays: SpinParity, RecouplingLS, ⊗
-import ThreeBodyDecays: VertexFunction as Vertex
 
 # interfaces
 export AbstractLineshape, AbstractVertex

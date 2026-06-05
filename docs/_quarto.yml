@@ -4,9 +4,4 @@ project:
   type: default
 
 format:
-  pdf:
-    margin-left: 2cm
-    margin-right: 1.5cm
-    margin-top: 1.5cm
-    margin-bottom: 1.5cm
   gfm: default

@@ -2,7 +2,6 @@
 title: "Four-body integration: `B⁺ → ψ(4040) K⁺`, `ψ(4040) → Dₓ⁺ D⁻`, `Dₓ⁺ → D⁰ π⁺`"
 engine: julia
 format:
-  pdf: default
   gfm: default
 ---
 

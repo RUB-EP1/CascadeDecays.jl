@@ -8,7 +8,7 @@ const TUTORIAL = joinpath(DOCS, "src", "tutorial.md")
 
 function render_integration_tutorial!()
     cd(DOCS) do
-        run(`quarto render $(basename(QMD))`)
+        run(`quarto render $(basename(QMD)) --to gfm`)
     end
     isfile(GFM) || error("expected Quarto output at $(GFM)")
 end
