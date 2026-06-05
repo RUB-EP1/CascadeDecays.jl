@@ -7,6 +7,8 @@
 - Define a cascade with `DecayTopology(...)`.
 - Attach propagators and vertices with `DecayChain(...)`.
 - Build runtime kinematics with `cascade_kinematics(...)`.
-- Evaluate amplitudes with `amplitude(...)`.
+- Evaluate amplitudes with `amplitude(chain, system, x)` (full external-helicity array) or `amplitude(..., external_two_λs)` (one component).
 
 The main user-facing walkthrough is the tutorial page generated from the Quarto source in `docs/integration_4body_b2ddKpi.qmd`.
+
+For line ids, vertex indices, and the incidence matrix, see [Internal notation](@ref notation).

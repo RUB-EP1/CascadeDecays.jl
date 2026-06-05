@@ -10,6 +10,7 @@ InstructionalDecayTrees = "1d606af4-d0f8-4ff7-bc8d-eb3f657b7647"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
+Tullio = "bc48ee85-29a4-5162-ae0b-a64e1601d4bc"
 
 [sources]
 FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
@@ -22,6 +23,7 @@ InstructionalDecayTrees = "0.2.0"
 Literate = "2.21.0"
 StaticArrays = "1"
 ThreeBodyDecays = "0.14.0"
+Tullio = "0.3"
 julia = "1.11"
 
 [extras]

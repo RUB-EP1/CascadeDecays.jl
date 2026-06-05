@@ -15,7 +15,7 @@ end
 
 function documenter_tutorial_page(gfm_path::AbstractString)
     body = read(gfm_path, String)
-    meta = "```@meta\nEditURL = \"../integration_4body_b2ddKpi.qmd\"\n```\n\n"
+    meta = "```@meta\nCurrentModule = CascadeDecays\nEditURL = \"../integration_4body_b2ddKpi.qmd\"\n```\n\n"
     return meta * body
 end
 
@@ -42,7 +42,9 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Internal notation" => "notation.md",
         "Tutorial" => "tutorial.md",
+        "API reference" => "api-reference.md",
     ],
 )
 

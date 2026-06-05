@@ -30,10 +30,10 @@ function vertex_spin_parities(
     topology::DecayTopology,
     system::CascadeSystemWithParities,
     propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-    vertex::Integer,
+    vertex_ind::Integer,
 )
     jps = line_spin_parities(topology, system, propagator_specs)
-    l0, l1, l2 = vertex_lines(topology, vertex)
+    l0, l1, l2 = vertex_lines(topology, vertex_ind)
     return (jps[l0], jps[l1], jps[l2])
 end
 
@@ -60,8 +60,8 @@ function _first_coupling(couplings)
 end
 
 function _vertex_coupling_specs(topology::DecayTopology, spec_fn)
-    return ntuple(nvertices(topology)) do vertex
-        vertex_address(topology, vertex) => spec_fn(vertex)
+    return ntuple(nvertices(topology)) do vertex_ind
+        vertex_address(topology, vertex_ind) => spec_fn(vertex_ind)
     end
 end
 
@@ -87,8 +87,8 @@ function possible_vertex_couplings(
     system::CascadeSystemWithParities,
     propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
 )
-    return _vertex_coupling_specs(topology, vertex -> begin
-        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex)
+    return _vertex_coupling_specs(topology, vertex_ind -> begin
+        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
         possible_vertex_ls(jp0, jp1, jp2)
     end)
 end
@@ -105,8 +105,8 @@ function minimal_vertex_couplings(
     system::CascadeSystemWithParities,
     propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
 )
-    return _vertex_coupling_specs(topology, vertex -> begin
-        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex)
+    return _vertex_coupling_specs(topology, vertex_ind -> begin
+        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
         minimal_vertex_coupling(jp0, jp1, jp2)
     end)
 end

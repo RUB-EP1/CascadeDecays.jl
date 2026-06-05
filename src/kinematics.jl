@@ -42,9 +42,9 @@ function _require_kinematic_line(x::CascadeKinematics, line::Integer)
     return nothing
 end
 
-function _require_kinematic_vertex(x::CascadeKinematics, vertex::Integer)
-    vertex in Base.OneTo(length(x.vertex_angles)) ||
-        throw(ArgumentError("vertex $vertex is outside 1:$(length(x.vertex_angles))"))
+function _require_kinematic_vertex(x::CascadeKinematics, vertex_ind::Integer)
+    vertex_ind in Base.OneTo(length(x.vertex_angles)) ||
+        throw(ArgumentError("vertex_ind $vertex_ind is outside 1:$(length(x.vertex_angles))"))
     return nothing
 end
 
@@ -64,32 +64,32 @@ end
 line_invariant(topology::DecayTopology, x::CascadeKinematics, address) =
     line_invariant(x, line_for(topology, address))
 
-function vertex_masses2(topology::DecayTopology, x::CascadeKinematics, vertex::Integer)
+function vertex_masses2(topology::DecayTopology, x::CascadeKinematics, vertex_ind::Integer)
     _check_kinematics(topology, x)
-    l0, l1, l2 = vertex_lines(topology, vertex)
+    l0, l1, l2 = vertex_lines(topology, vertex_ind)
     return (x.line_masses2[l0], x.line_masses2[l1], x.line_masses2[l2])
 end
 
 vertex_masses2(topology::DecayTopology, x::CascadeKinematics, address) =
     vertex_masses2(topology, x, vertex_for(topology, address))
 
-function vertex_helicities(topology::DecayTopology, two_λs, vertex::Integer)
-    l0, l1, l2 = vertex_lines(topology, vertex)
+function vertex_helicities(topology::DecayTopology, two_λs, vertex_ind::Integer)
+    l0, l1, l2 = vertex_lines(topology, vertex_ind)
     length(two_λs) == nlines(topology) ||
         throw(ArgumentError("two_λs must have one entry per topology line"))
     return (two_λs[l0], two_λs[l1], two_λs[l2])
 end
 
-function vertex_spins(topology::DecayTopology, two_js, vertex::Integer)
+function vertex_spins(topology::DecayTopology, two_js, vertex_ind::Integer)
     length(two_js) == nlines(topology) ||
         throw(ArgumentError("two_js must have one entry per topology line"))
-    l0, l1, l2 = vertex_lines(topology, vertex)
+    l0, l1, l2 = vertex_lines(topology, vertex_ind)
     return (two_js[l0], two_js[l1], two_js[l2])
 end
 
-function vertex_angles(x::CascadeKinematics, vertex::Integer)
-    _require_kinematic_vertex(x, vertex)
-    return x.vertex_angles[vertex]
+function vertex_angles(x::CascadeKinematics, vertex_ind::Integer)
+    _require_kinematic_vertex(x, vertex_ind)
+    return x.vertex_angles[vertex_ind]
 end
 
 vertex_angles(topology::DecayTopology, x::CascadeKinematics, address) =

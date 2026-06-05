@@ -1,0 +1,20 @@
+[deps]
+CascadeDecays = "fffe189e-c188-4e56-b22b-870ae3b23d6b"
+FourVectors = "b122eb78-8380-428a-b8c8-584a022ae8b6"
+HadronicLineshapes = "49c9d978-1f9d-4e96-a984-0a9783c0b9bf"
+RemboOnDiet = "1cb55d97-0cb4-4390-8d6a-9cd22df9b4c4"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
+
+[sources]
+CascadeDecays = {path = ".."}
+FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
+RemboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
+
+[compat]
+FourVectors = "0.3.1"
+HadronicLineshapes = "0.4.2"
+RemboOnDiet = "0.1.1"
+StaticArrays = "1"
+ThreeBodyDecays = "0.14.0"
+julia = "1.11"

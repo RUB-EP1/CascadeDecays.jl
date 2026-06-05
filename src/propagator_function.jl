@@ -18,6 +18,8 @@ struct PropagatorFunction{F,X}
 end
 
 const PropagatorParityExtra = NamedTuple{(:parity,)}
+
+"""Alias of [`PropagatorFunction`](@ref) with parity metadata in `extra`."""
 const PropagatorFunctionWithParity{F} = PropagatorFunction{F,<:PropagatorParityExtra}
 const PropagatorSpec = Pair{<:Tuple,<:PropagatorFunction}
 const PropagatorSpecWithParity = Pair{<:Tuple,<:PropagatorFunctionWithParity}

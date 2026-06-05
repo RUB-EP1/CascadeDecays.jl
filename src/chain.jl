@@ -64,10 +64,10 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
     )
 end
 
-function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex::Integer)
-    matches = findall(==(vertex), vertex_ids)
+function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex_ind::Integer)
+    matches = findall(==(vertex_ind), vertex_ids)
     length(matches) == 1 ||
-        throw(ArgumentError("provide exactly one vertex payload for vertex $vertex"))
+        throw(ArgumentError("provide exactly one vertex payload for vertex_ind $vertex_ind"))
     return vertex_specs[only(matches)].second
 end
 
@@ -92,7 +92,7 @@ function DecayChain(
         throw(ArgumentError("vertices must address each topology vertex exactly once"))
 
     ordered_vertices = ntuple(
-        vertex -> _vertex_payload_for(vertices, vertex_id_tuple, vertex),
+        vertex_ind -> _vertex_payload_for(vertices, vertex_id_tuple, vertex_ind),
         nvertices(topology),
     )
     return DecayChain(
@@ -111,15 +111,21 @@ nlines(chain::DecayChain) = nlines(chain.topology)
 nvertices(chain::DecayChain) = nvertices(chain.topology)
 nfinal(::DecayChain{Nf}) where {Nf} = Nf
 internal_lines(chain::DecayChain) = internal_lines(chain.topology)
+
+"""
+    propagating_lines(chain)
+
+Return the internal line ids that carry propagators, in propagator-index order.
+"""
 propagating_lines(chain::DecayChain) = chain.propagating_lines
 bracket(chain::DecayChain; labels = nothing) = bracket(chain.topology; labels)
-vertex_lines(chain::DecayChain, vertex::Integer) = vertex_lines(chain.topology, vertex)
-child_lines(chain::DecayChain, vertex::Integer) = child_lines(chain.topology, vertex)
+vertex_lines(chain::DecayChain, vertex_ind::Integer) = vertex_lines(chain.topology, vertex_ind)
+child_lines(chain::DecayChain, vertex_ind::Integer) = child_lines(chain.topology, vertex_ind)
 final_descendants(chain::DecayChain, line::Integer) = final_descendants(chain.topology, line)
-vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex::Integer) =
-    vertex_masses2(chain.topology, x, vertex)
-vertex_helicities(chain::DecayChain, two_λs, vertex::Integer) =
-    vertex_helicities(chain.topology, two_λs, vertex)
+vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex_ind::Integer) =
+    vertex_masses2(chain.topology, x, vertex_ind)
+vertex_helicities(chain::DecayChain, two_λs, vertex_ind::Integer) =
+    vertex_helicities(chain.topology, two_λs, vertex_ind)
 
 function line_two_js(chain::DecayChain, system::CascadeSystem)
     _check_system(chain.topology, system)
@@ -134,8 +140,8 @@ function line_two_js(chain::DecayChain, system::CascadeSystem)
     return SVector(spins)
 end
 
-function vertex_spins(chain::DecayChain, system::CascadeSystem, vertex::Integer)
+function vertex_spins(chain::DecayChain, system::CascadeSystem, vertex_ind::Integer)
     two_js = line_two_js(chain, system)
-    l0, l1, l2 = vertex_lines(chain, vertex)
+    l0, l1, l2 = vertex_lines(chain, vertex_ind)
     return (two_js[l0], two_js[l1], two_js[l2])
 end
