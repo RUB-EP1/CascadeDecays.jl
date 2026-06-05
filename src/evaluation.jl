@@ -215,13 +215,7 @@ function _vertex_factor(
         routed_vertex_amplitude(vertex_payload, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
         for two_λ0 in (-two_j0):2:two_j0, two_λ1 in (-two_j1):2:two_j1, two_λ2 in (-two_j2):2:two_j2
     ]
-    return reshape(
-        V,
-        _helicity_axis_length(two_j0),
-        _helicity_axis_length(two_j1),
-        _helicity_axis_length(two_j2),
-    ),
-    (l0, l1, l2)
+    return V, (l0, l1, l2)
 end
 
 function _multiply_vertex_into_lines!(
@@ -230,10 +224,9 @@ function _multiply_vertex_into_lines!(
     lines::NTuple{3,Int},
 ) where {T,N}
     l0, l1, l2 = lines
-    expand_sizes = ntuple(
-        d -> d == l0 ? size(V, 1) : d == l1 ? size(V, 2) : d == l2 ? size(V, 3) : 1,
-        Val(N),
-    )
+    expand_sizes = ntuple(Val(N)) do d
+        d == l0 ? size(V, 1) : d == l1 ? size(V, 2) : d == l2 ? size(V, 3) : 1
+    end
     F .*= reshape(V, expand_sizes)
     return F
 end
