@@ -28,7 +28,7 @@ using CascadeDecays
 using FourVectors
 using HadronicLineshapes
 using StaticArrays
-using ThreeBodyDecays: VertexFunction, RecouplingLS
+using ThreeBodyDecays: RecouplingLS
 
 format_instruction(inst) =
     string(nameof(typeof(inst)), "(", join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), ", "), ")")
@@ -191,20 +191,20 @@ order are derived.
 connectivity = Matrix(relation(topology))
 
 vertices = (
-    (((1, 2), 3), 4) => VertexFunction(RecouplingLS((2, 2))), # B⁺ -> ψ K
-    ((1, 2), 3) => VertexFunction(RecouplingLS((0, 2))),      # ψ -> Dₓ D
-    (1, 2) => VertexFunction(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
+    (((1, 2), 3), 4) => Vertex(RecouplingLS((2, 2))), # B⁺ -> ψ K
+    ((1, 2), 3) => Vertex(RecouplingLS((0, 2))),      # ψ -> Dₓ D
+    (1, 2) => Vertex(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
 )
 
 propagators = (
-    (1, 2) => PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
-    ((1, 2), 3) => PropagatorFunction(2, BreitWigner(4.039, 0.08)),
+    (1, 2) => Propagator(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
 )
 
 chain = DecayChain(topology; propagators, vertices)
 ```
 
-Vertices are `ThreeBodyDecays.VertexFunction` objects. In this minimal example
+Vertices are [`Vertex`](@ref) objects. In this minimal example
 we choose LS recouplings compatible with the spin assignments below.
 
 ## 6. General amplitude evaluation

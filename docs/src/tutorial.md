@@ -236,7 +236,7 @@ chain = DecayChain(topology; propagators, vertices)
       two_ls: Tuple{Int64, Int64}
     , ThreeBodyDecays.NoFormFactor())], [5, 6], [2, 2])
 
-Vertices are [`Vertex`](@ref) objects (from ThreeBodyDecays, imported as `VertexFunction`). In this minimal
+Vertices are [`Vertex`](@ref) objects (re-exported from ThreeBodyDecays). In this minimal
 example we choose LS recouplings compatible with the spin assignments
 below.
 

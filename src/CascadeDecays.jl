@@ -6,7 +6,8 @@ using InstructionalDecayTrees
 using Tullio
 
 import ThreeBodyDecays
-import ThreeBodyDecays: SpinParity, VertexFunction as Vertex, RecouplingLS, ⊗
+import ThreeBodyDecays: SpinParity, RecouplingLS, ⊗
+import ThreeBodyDecays: VertexFunction as Vertex
 
 # interfaces
 export AbstractLineshape, AbstractVertex

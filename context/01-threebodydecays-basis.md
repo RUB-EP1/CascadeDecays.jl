@@ -38,7 +38,7 @@ This is a strong signal for the new package:
 
 ### 2. Vertex content
 
-The local vertex object is `VertexFunction{R,F}` with:
+The local vertex object is `Vertex{R,F}` with:
 
 - `h::R`, where `R <: Recoupling`
 - `ff::F`, a callable form factor
@@ -192,7 +192,7 @@ The direct conceptual translation is:
 
 - `ThreeBodySystem` becomes a more general external-state descriptor
 - `DecayChain` becomes a flat graph topology container
-- `VertexFunction` informs the future `AbstractVertex` payload
+- `Vertex` informs the [`AbstractVertex`](@ref) payload
 - `Xlineshape` informs the future `AbstractLineshape` payload
 - Wigner wrappers remain utility-level physics functions
 - frame-transport and computational ordering should be derived from graph paths
