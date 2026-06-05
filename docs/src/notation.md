@@ -16,8 +16,8 @@ Short reference for indices and the flat topology used inside `CascadeDecays.jl`
 | `vertex` | — | Local amplitude model (`Vertex`): `chain.vertices[vertex_ind]` |
 | `propagator` | — | Lineshape payload, **not** a line id: entry in `chain.propagators` |
 
-User input uses `address => vertex_func` pairs in the `vertices` keyword; [`DecayChain`](@ref) stores the
-funcs in [`vertex_address`](@ref) / root-first preorder as `chain.vertices`.
+User input uses `address => vertex` pairs in the `vertices` keyword; [`DecayChain`](@ref) stores them
+in [`vertex_address`](@ref) / root-first preorder as `chain.vertices`.
 
 Counts for a tree with `n` final-state particles:
 
