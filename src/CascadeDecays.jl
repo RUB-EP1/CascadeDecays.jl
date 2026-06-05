@@ -19,12 +19,13 @@ include("propagator.jl")
 
 # topology
 export DecayTopology
-export relation, rootline, finallines, nlines, nvertices, nfinal
-export incoming_lines, outgoing_lines, incoming_line
-export child_lines, vertex_lines, final_descendants
+export relation, root_line_ind, final_line_inds, nlines, nvertices, nfinal
+export line_ind_for, vertex_ind_for
+export incoming_line_inds, outgoing_line_inds, incoming_line_ind
+export child_line_inds, vertex_line_inds, final_descendants
 export produced_by, consumed_by
-export internal_lines, propagating_lines
-export isrootline, isfinalline, isinternalline
+export internal_line_inds, propagating_line_inds
+export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
 export bracket, validate_topology
 include("topology.jl")

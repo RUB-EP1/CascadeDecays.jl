@@ -54,16 +54,16 @@ end
     @test nlines(topology) == 5
     @test nvertices(topology) == 2
     @test nfinal(topology) == 3
-    @test rootline(topology) == 5
-    @test finallines(topology) == SVector(1, 2, 3)
-    @test internal_lines(topology) == [4]
+    @test root_line_ind(topology) == 5
+    @test final_line_inds(topology) == SVector(1, 2, 3)
+    @test internal_line_inds(topology) == [4]
     @test has_canonical_line_order(topology)
 
-    @test outgoing_lines(topology, 1) == [3, 4]
-    @test child_lines(topology, 1) == [4, 3]
+    @test outgoing_line_inds(topology, 1) == [3, 4]
+    @test child_line_inds(topology, 1) == [4, 3]
     @test final_descendants(topology, 4) == [1, 2]
-    @test outgoing_lines(topology, 2) == [1, 2]
-    @test child_lines(topology, 2) == [1, 2]
+    @test outgoing_line_inds(topology, 2) == [1, 2]
+    @test child_line_inds(topology, 2) == [1, 2]
 
     @test produced_by(topology, 4) == 1
     @test consumed_by(topology, 4) == 2
@@ -147,7 +147,7 @@ end
         -1 0
     ]
     @test_throws ArgumentError DecayTopology(invalid_root; root = 1, finals = (1, 2, 3))
-    @test_throws ArgumentError incoming_lines(DecayTopology(invalid_root; root = 5, finals = (1, 2, 3)), 3)
+    @test_throws ArgumentError incoming_line_inds(DecayTopology(invalid_root; root = 5, finals = (1, 2, 3)), 3)
     @test_throws ArgumentError produced_by(DecayTopology(invalid_root; root = 5, finals = (1, 2, 3)), 6)
 end
 
@@ -289,8 +289,8 @@ end
     )
 
     @test has_canonical_line_order(topology)
-    @test outgoing_lines(topology, 1) == [4, 6]
-    @test child_lines(topology, 1) == [6, 4]
+    @test outgoing_line_inds(topology, 1) == [4, 6]
+    @test child_line_inds(topology, 1) == [6, 4]
     @test bracket(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
@@ -444,13 +444,13 @@ include("threebody_compat_tests.jl")
 
     jps = line_spin_parities(topology, weak_system, propagators)
     @test jps[1].p == '+'
-    @test jps[rootline(topology)].p == '+'
+    @test jps[root_line_ind(topology)].p == '+'
 
     undefined_root = CascadeSystem(
         SystemSpinParities(system.quantum, '+', '+', '+'; P0 = UndefinedParity),
         system.masses,
     )
-    @test line_spin_parities(topology, undefined_root, propagators)[rootline(topology)].p ==
+    @test line_spin_parities(topology, undefined_root, propagators)[root_line_ind(topology)].p ==
         UndefinedParity
     undefined_couplings = possible_vertex_couplings(topology, undefined_root, propagators)
     @test !isempty(undefined_couplings[1].second)
