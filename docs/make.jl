@@ -42,6 +42,7 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Internal notation" => "notation.md",
         "Tutorial" => "tutorial.md",
     ],
 )
