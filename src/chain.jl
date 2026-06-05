@@ -111,6 +111,12 @@ nlines(chain::DecayChain) = nlines(chain.topology)
 nvertices(chain::DecayChain) = nvertices(chain.topology)
 nfinal(::DecayChain{Nf}) where {Nf} = Nf
 internal_lines(chain::DecayChain) = internal_lines(chain.topology)
+
+"""
+    propagating_lines(chain)
+
+Return the internal line ids that carry propagators, in propagator-index order.
+"""
 propagating_lines(chain::DecayChain) = chain.propagating_lines
 bracket(chain::DecayChain; labels = nothing) = bracket(chain.topology; labels)
 vertex_lines(chain::DecayChain, vertex_ind::Integer) = vertex_lines(chain.topology, vertex_ind)

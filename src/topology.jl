@@ -118,6 +118,12 @@ end
 
 relation(topology::DecayTopology) = topology.relation
 rootline(topology::DecayTopology) = topology.root
+
+"""
+    finallines(topology)
+
+Return the final-state line ids in canonical order (`1:nfinal`).
+"""
 finallines(topology::DecayTopology) = topology.finals
 nlines(::DecayTopology{Nl}) where {Nl} = Nl
 nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv

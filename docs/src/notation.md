@@ -1,4 +1,8 @@
-# Internal notation {#notation}
+# [Internal notation](@id notation)
+
+```@meta
+CurrentModule = CascadeDecays
+```
 
 Short reference for indices and the flat topology used inside `CascadeDecays.jl`.
 
