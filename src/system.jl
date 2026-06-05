@@ -46,21 +46,21 @@ function line_values(topology::DecayTopology; finals, root, internals = ())
         throw(ArgumentError("finals must have one entry per final-state line"))
     all(spec -> spec isa Pair, internal_specs) ||
         throw(ArgumentError("internals must be provided as `address => value` pairs"))
-    internal_line_tuple = Tuple(line_for(topology, spec.first) for spec in internal_specs)
-    all(line -> isinternalline(topology, line), internal_line_tuple) ||
+    internal_line_tuple = Tuple(line_ind_for(topology, spec.first) for spec in internal_specs)
+    all(line_ind -> isinternal_line_ind(topology, line_ind), internal_line_tuple) ||
         throw(ArgumentError("internal addresses must refer to internal lines"))
-    sort(collect(internal_line_tuple)) == internal_lines(topology) ||
+    sort(collect(internal_line_tuple)) == internal_line_inds(topology) ||
         throw(ArgumentError("provide exactly one internal value for each internal line"))
 
     T = promote_type(typeof(root), map(typeof, final_tuple)..., map(spec -> typeof(spec.second), internal_specs)...)
     values = MVector{nlines(topology),T}(undef)
-    for (i, line) in pairs(finallines(topology))
-        values[line] = final_tuple[i]
+    for (i, line_ind) in pairs(final_line_inds(topology))
+        values[line_ind] = final_tuple[i]
     end
-    for (spec, line) in zip(internal_specs, internal_line_tuple)
-        values[line] = spec.second
+    for (spec, line_ind) in zip(internal_specs, internal_line_tuple)
+        values[line_ind] = spec.second
     end
-    values[rootline(topology)] = root
+    values[root_line_ind(topology)] = root
     return SVector(values)
 end
 
@@ -74,7 +74,7 @@ are supplied directly as runtime invariants in `internal_masses2`.
 function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_masses2)
     _check_system(topology, system)
     internal_tuple = Tuple(internal_masses2)
-    internal = internal_lines(topology)
+    internal = internal_line_inds(topology)
     length(internal_tuple) == length(internal) ||
         throw(ArgumentError("internal_masses2 must match the number of internal lines"))
 
@@ -85,12 +85,12 @@ function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_m
         map(typeof, internal_tuple)...,
     )
     masses = MVector{nlines(topology),T}(undef)
-    for (i, line) in pairs(finallines(topology))
-        masses[line] = final_masses(system)[i]^2
+    for (i, line_ind) in pairs(final_line_inds(topology))
+        masses[line_ind] = final_masses(system)[i]^2
     end
-    for (i, line) in pairs(internal)
-        masses[line] = internal_tuple[i]
+    for (i, line_ind) in pairs(internal)
+        masses[line_ind] = internal_tuple[i]
     end
-    masses[rootline(topology)] = root_mass(system)^2
+    masses[root_line_ind(topology)] = root_mass(system)^2
     return SVector(masses)
 end

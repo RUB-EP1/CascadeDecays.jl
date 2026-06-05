@@ -1,6 +1,6 @@
 # Amplitude Argument Routing
 
-Topology indices (`line`, vertex index, `address`, incidence matrix) are documented in
+Topology indices (`line_ind`, `vertex_ind`, `address`, incidence matrix) are documented in
 [`docs/src/notation.md`](../docs/src/notation.md). This note covers only how runtime
 inputs are routed into local amplitude calls.
 
@@ -8,14 +8,11 @@ inputs are routed into local amplitude calls.
 
 | Name | Meaning |
 |------|---------|
-| `line` | Topology line id (`1:nlines`) |
+| `line_ind` | Topology line id (`1:nlines`) |
 | `vertex_ind` | Topology vertex index (`1:nvertices`) |
 | `address` | Bracket key in `address => payload` constructor pairs |
-| `vertex_func` | Static `VertexFunction` at one vertex: `chain.vertices[vertex_ind]` |
-| `propagator` | Static lineshape callable: `chain.propagators[i]` on `propagating_lines[i]` |
-
-Do not use bare `vertex` for the func — the word also means the graph slot, the index,
-and the `vertices = (...)` keyword of address/func pairs.
+| `vertex` | Static [`Vertex`](@ref) at one topology vertex: `chain.vertices[vertex_ind]` |
+| `propagator` | Static lineshape callable: `chain.propagators[i]` on `propagating_line_inds[i]` |
 
 ## Core correction
 
@@ -33,11 +30,11 @@ cascade, intermediate masses are phase-space variables.
 
 Therefore:
 
-- `vertex_func` holds only static information (recoupling, form factor)
+- `vertex` holds only static information (recoupling, form factor)
 - form factors and recouplings still require local arguments at evaluation time
 - the amplitude input provides dynamic values for each local call
-- the evaluator routes those values to each `vertex_func` and `propagator`
-- dispatch on `VertexFunction` and propagator types performs the physics
+- the evaluator routes those values to each `vertex` and `propagator`
+- dispatch on `Vertex` and propagator types performs the physics
 
 ## Static system object
 
@@ -45,17 +42,17 @@ Therefore:
 line-to-particle mapping, and related quantum numbers. It does not store dynamic
 internal invariant masses.
 
-## Static vertex func
+## Static vertex
 
-A `vertex_func` (`VertexFunction`) holds:
+A [`Vertex`](@ref) holds:
 
-- recoupling model (`vertex_func.h`)
-- form-factor model (`vertex_func.ff`)
+- recoupling model (`vertex.h`)
+- form-factor model (`vertex.ff`)
 
 It should not store `m0`, `m1`, `m2`, local angles, helicities, or intermediate masses.
 Those are routed in at evaluation time.
 
-Constructor input is `address => vertex_func`; storage is `chain.vertices[vertex_ind]`.
+Constructor input is `address => vertex`; storage is `chain.vertices[vertex_ind]`.
 
 ## Input shape
 
@@ -64,13 +61,13 @@ amplitude(chain, system, x)
 amplitude(chain, system, x, external_two_λs)
 ```
 
-- `x::CascadeKinematics` — runtime kinematics indexed by `line` and vertex index
+- `x::CascadeKinematics` — runtime kinematics indexed by `line_ind` and `vertex_ind`
 - `external_two_λs` — optional external helicity selection
 
 ```julia
 struct CascadeKinematics{...}
-    line_masses2::SVector{Nl,T}   # indexed by line
-    vertex_angles::SVector{Nv,A}  # indexed by vertex_ind
+    line_masses2::SVector{Nl,T}   # indexed by line_ind
+    vertex_angles::SVector{Nv,A}    # indexed by vertex_ind
 end
 ```
 
@@ -82,35 +79,35 @@ four-vectors (`cascade_kinematics`), Dalitz variables, or other parameterization
 Before local evaluation, assemble complete line-indexed views:
 
 ```julia
-line_masses2[line]
-two_λs[line]
-two_js[line]   # from line_two_js(chain, system)
+line_masses2[line_ind]
+two_λs[line_ind]
+two_js[line_ind]   # from line_two_js(chain, system)
 ```
 
 Every line id has one slot. The evaluator does not branch on final vs internal vs root
 when reading these arrays.
 
 Construction may mix static system data and dynamic `x` values; after assembly, local
-code only indexes by `line`.
+code only indexes by `line_ind`.
 
 ## Mass routing
 
 For vertex index `vertex_ind`:
 
 ```julia
-l0, l1, l2 = vertex_lines(chain, vertex_ind)
+l0, l1, l2 = vertex_line_inds(chain, vertex_ind)
 m0², m1², m2² = vertex_masses2(chain, x, vertex_ind)
 # equivalent to x.line_masses2[l0], x.line_masses2[l1], x.line_masses2[l2]
 ```
 
-Use `vertex_lines`, not raw `outgoing_lines`, so child order matches bracket
+Use `vertex_line_inds`, not raw `outgoing_line_inds`, so child order matches bracket
 addresses and physics conventions.
 
 ## Form-factor and recoupling calls
 
 ```julia
-vertex_func.ff(m0², m1², m2²)
-ThreeBodyDecays.amplitude(vertex_func.h, (two_λ1, two_λ2), (two_j0, two_j1, two_j2))
+vertex.ff(m0², m1², m2²)
+ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), (two_j0, two_j1, two_j2))
 ```
 
 Squared masses match `ThreeBodyDecays.jl` form-factor conventions.
@@ -130,10 +127,10 @@ programs (`cascade_kinematics`, `helicity_angle_programs`).
 
 ## Propagator call
 
-For internal line `line` with propagator slot `i`:
+For internal line `line_ind` with propagator slot `i`:
 
 ```julia
-σ² = line_invariant(x, line)
+σ² = line_invariant(x, line_ind)
 chain.propagators[i](σ²)
 ```
 
@@ -142,28 +139,28 @@ chain.propagators[i](σ²)
 The graph traversal only routes arguments. Physics is in typed callables:
 
 ```julia
-routed_vertex_amplitude(vertex_func::VertexFunction, masses2, helicities, spins, angles)
+routed_vertex_amplitude(vertex::Vertex, masses2, helicities, spins, angles)
 propagator(σ²)
 ```
 
-New models extend `VertexFunction` / propagator types and their methods, not traversal.
+New models extend `Vertex` / propagator types and their methods, not traversal.
 
 ## Implemented routing helpers
 
 ```julia
-vertex_lines(topology, vertex_ind) -> (l0, l1, l2)
+vertex_line_inds(topology, vertex_ind) -> (l0, l1, l2)
 vertex_masses2(chain, x, vertex_ind) -> (m0², m1², m2²)
 vertex_helicities(chain, two_λs, vertex_ind) -> (two_λ0, two_λ1, two_λ2)
 vertex_spins(chain, system, vertex_ind) -> (two_j0, two_j1, two_j2)
 vertex_angles(x, vertex_ind) -> (cosθ, ϕ)
-line_invariant(x, line) -> σ²
+line_invariant(x, line_ind) -> σ²
 ```
 
 Local evaluation pattern:
 
 ```julia
-function routed_vertex_amplitude(vertex_func, masses2, helicities, spins, angles)
-    # Wigner rotation × recoupling(vertex_func.h, ...) × vertex_func.ff(masses2...)
+function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
+    # Wigner rotation × recoupling(vertex.h, ...) × vertex.ff(masses2...)
 end
 ```
 

@@ -3,8 +3,8 @@
 
 Assemble a line-indexed `SpinParity` view. Requires a [`CascadeSystem`](@ref)
 built from [`SystemSpinParities`](@ref). Final and root entries combine external
-spins and parities; internal entries come from each [`PropagatorFunction`](@ref) built with
-`PropagatorFunction(jp, lineshape)`.
+spins and parities; internal entries come from each [`Propagator`](@ref) built with
+`Propagator(jp, lineshape)`.
 """
 function line_spin_parities(
     topology::DecayTopology,
@@ -14,15 +14,15 @@ function line_spin_parities(
     _check_system(topology, system)
     parities = system.quantum.parities
     jps = MVector{nlines(topology),SpinParity}(undef)
-    for (i, line) in pairs(finallines(topology))
-        jps[line] = SpinParity(final_two_js(system)[i], parities.finals[i])
+    for (i, line_ind) in pairs(final_line_inds(topology))
+        jps[line_ind] = SpinParity(final_two_js(system)[i], parities.finals[i])
     end
     for spec in propagator_specs
-        line = line_for(topology, spec.first)
+        line_ind = line_ind_for(topology, spec.first)
         prop = spec.second
-        jps[line] = SpinParity(prop.two_j, prop.extra.parity)
+        jps[line_ind] = SpinParity(prop.two_j, prop.extra.parity)
     end
-    jps[rootline(topology)] = SpinParity(root_two_j(system), parities.P0)
+    jps[root_line_ind(topology)] = SpinParity(root_two_j(system), parities.P0)
     return SVector(jps)
 end
 
@@ -33,7 +33,7 @@ function vertex_spin_parities(
     vertex_ind::Integer,
 )
     jps = line_spin_parities(topology, system, propagator_specs)
-    l0, l1, l2 = vertex_lines(topology, vertex_ind)
+    l0, l1, l2 = vertex_line_inds(topology, vertex_ind)
     return (jps[l0], jps[l1], jps[l2])
 end
 
@@ -112,7 +112,7 @@ function minimal_vertex_couplings(
 end
 
 function _ls_vertices(vertex_couplings)
-    return SVector(map(c -> VertexFunction(RecouplingLS(c)), vertex_couplings))
+    return SVector(map(c -> Vertex(RecouplingLS(c)), vertex_couplings))
 end
 
 function _build_ls_decay_chain(
@@ -120,7 +120,7 @@ function _build_ls_decay_chain(
     propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
     vertex_couplings,
 )
-    propagating_line_tuple = Tuple(line_for(topology, spec.first) for spec in propagator_specs)
+    propagating_line_tuple = Tuple(line_ind_for(topology, spec.first) for spec in propagator_specs)
     return DecayChain(
         topology,
         Tuple(spec.second.lineshape for spec in propagator_specs),
@@ -167,8 +167,8 @@ let
         DecayChain(topology;
             propagators,
             vertices = (
-                l1 => VertexFunction(RecouplingLS((two_l1, two_s1))),
-                l2 => VertexFunction(RecouplingLS((two_l2, two_s2))),
+                l1 => Vertex(RecouplingLS((two_l1, two_s1))),
+                l2 => Vertex(RecouplingLS((two_l2, two_s2))),
             ),
         )
     end

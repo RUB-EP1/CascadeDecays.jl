@@ -36,7 +36,7 @@ function DecayTopology(
     validate::Bool = true,
 ) where {T<:Integer}
     Nl, Nv = size(relation)
-    final_tuple = Tuple(Int(line) for line in finals)
+    final_tuple = Tuple(Int(line_ind) for line_ind in finals)
     final_lines = SVector{length(final_tuple),Int}(final_tuple)
     static_relation = SMatrix{Nl,Nv,T,Nl * Nv}(relation)
     return DecayTopology(static_relation, root, final_lines; validate)
@@ -57,18 +57,18 @@ function _collect_final_labels!(labels::Vector{Int}, tree)
     return labels
 end
 
-function _assign_lines!(line_for_address::Dict{Any,Int}, next_internal::Base.RefValue{Int}, address)
+function _assign_lines!(line_ind_for_address::Dict{Any,Int}, next_internal::Base.RefValue{Int}, address)
     if address isa Integer
-        line_for_address[address] = _bracket_leaf(address)
-        return line_for_address[address]
+        line_ind_for_address[address] = _bracket_leaf(address)
+        return line_ind_for_address[address]
     end
     address isa Tuple && length(address) == 2 ||
         throw(ArgumentError("topology bracket must be a binary nested tuple of integer leaves"))
-    _assign_lines!(line_for_address, next_internal, address[1])
-    _assign_lines!(line_for_address, next_internal, address[2])
+    _assign_lines!(line_ind_for_address, next_internal, address[1])
+    _assign_lines!(line_ind_for_address, next_internal, address[2])
     line = next_internal[]
     next_internal[] += 1
-    line_for_address[address] = line
+    line_ind_for_address[address] = line
     return line
 end
 
@@ -101,14 +101,14 @@ function DecayTopology(tree::Tuple)
     nfinal = length(final_labels)
     nvertices = nfinal - 1
     nlines = nfinal + nvertices
-    line_for_address = Dict{Any,Int}()
-    _assign_lines!(line_for_address, Ref(nfinal + 1), tree)
+    line_ind_for_address = Dict{Any,Int}()
+    _assign_lines!(line_ind_for_address, Ref(nfinal + 1), tree)
     vertex_addresses = _collect_vertex_addresses_preorder!(Any[], tree)
     relation = zeros(Int, nlines, nvertices)
     for (vertex_ind, address) in pairs(vertex_addresses)
-        parent = line_for_address[address]
-        child1 = line_for_address[address[1]]
-        child2 = line_for_address[address[2]]
+        parent = line_ind_for_address[address]
+        child1 = line_ind_for_address[address[1]]
+        child2 = line_ind_for_address[address[2]]
         relation[parent, vertex_ind] = -1
         relation[child1, vertex_ind] = 1
         relation[child2, vertex_ind] = 1
@@ -117,14 +117,14 @@ function DecayTopology(tree::Tuple)
 end
 
 relation(topology::DecayTopology) = topology.relation
-rootline(topology::DecayTopology) = topology.root
+root_line_ind(topology::DecayTopology) = topology.root
 
 """
-    finallines(topology)
+    final_line_inds(topology)
 
 Return the final-state line ids in canonical order (`1:nfinal`).
 """
-finallines(topology::DecayTopology) = topology.finals
+final_line_inds(topology::DecayTopology) = topology.finals
 nlines(::DecayTopology{Nl}) where {Nl} = Nl
 nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv
 nfinal(::DecayTopology{Nl,Nv,Nf}) where {Nl,Nv,Nf} = Nf
@@ -133,53 +133,53 @@ _line_range(topology::DecayTopology) = Base.OneTo(nlines(topology))
 _vertex_range(topology::DecayTopology) = Base.OneTo(nvertices(topology))
 _allunique(xs) = length(unique(xs)) == length(xs)
 
-function incoming_lines(topology::DecayTopology, vertex_ind::Integer)
+function incoming_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
-    return [line for line in _line_range(topology) if relation(topology)[line, vertex_ind] == -1]
+    return [line_ind for line_ind in _line_range(topology) if relation(topology)[line_ind, vertex_ind] == -1]
 end
 
-function outgoing_lines(topology::DecayTopology, vertex_ind::Integer)
+function outgoing_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
-    return [line for line in _line_range(topology) if relation(topology)[line, vertex_ind] == 1]
+    return [line_ind for line_ind in _line_range(topology) if relation(topology)[line_ind, vertex_ind] == 1]
 end
 
-function incoming_line(topology::DecayTopology, vertex_ind::Integer)
-    lines = incoming_lines(topology, vertex_ind)
+function incoming_line_ind(topology::DecayTopology, vertex_ind::Integer)
+    lines = incoming_line_inds(topology, vertex_ind)
     length(lines) == 1 || throw(ArgumentError("vertex_ind $vertex_ind does not have exactly one incoming line"))
     return only(lines)
 end
 
-function produced_by(topology::DecayTopology, line::Integer)
-    _require_line(topology, line)
+function produced_by(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
     vertex_inds = [
-        vertex_ind for vertex_ind in _vertex_range(topology) if relation(topology)[line, vertex_ind] == 1
+        vertex_ind for vertex_ind in _vertex_range(topology) if relation(topology)[line_ind, vertex_ind] == 1
     ]
     return isempty(vertex_inds) ? nothing : only(vertex_inds)
 end
 
-function consumed_by(topology::DecayTopology, line::Integer)
-    _require_line(topology, line)
+function consumed_by(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
     vertex_inds = [
-        vertex_ind for vertex_ind in _vertex_range(topology) if relation(topology)[line, vertex_ind] == -1
+        vertex_ind for vertex_ind in _vertex_range(topology) if relation(topology)[line_ind, vertex_ind] == -1
     ]
     return isempty(vertex_inds) ? nothing : only(vertex_inds)
 end
 
-isrootline(topology::DecayTopology, line::Integer) = line == rootline(topology)
-isfinalline(topology::DecayTopology, line::Integer) = line in finallines(topology)
-isinternalline(topology::DecayTopology, line::Integer) =
-    !isrootline(topology, line) && !isfinalline(topology, line)
+isroot_line_ind(topology::DecayTopology, line_ind::Integer) = line_ind == root_line_ind(topology)
+isfinal_line_ind(topology::DecayTopology, line_ind::Integer) = line_ind in final_line_inds(topology)
+isinternal_line_ind(topology::DecayTopology, line_ind::Integer) =
+    !isroot_line_ind(topology, line_ind) && !isfinal_line_ind(topology, line_ind)
 
-internal_lines(topology::DecayTopology) =
-    [line for line in _line_range(topology) if isinternalline(topology, line)]
+internal_line_inds(topology::DecayTopology) =
+    [line_ind for line_ind in _line_range(topology) if isinternal_line_ind(topology, line_ind)]
 
 has_canonical_line_order(topology::DecayTopology) =
-    Tuple(finallines(topology)) == Tuple(1:nfinal(topology)) &&
-    internal_lines(topology) == collect((nfinal(topology) + 1):(nlines(topology) - 1)) &&
-    rootline(topology) == nlines(topology)
+    Tuple(final_line_inds(topology)) == Tuple(1:nfinal(topology)) &&
+    internal_line_inds(topology) == collect((nfinal(topology) + 1):(nlines(topology) - 1)) &&
+    root_line_ind(topology) == nlines(topology)
 
-function _require_line(topology::DecayTopology, line::Integer)
-    line in _line_range(topology) || throw(ArgumentError("line $line is outside 1:$(nlines(topology))"))
+function _require_line_ind(topology::DecayTopology, line_ind::Integer)
+    line_ind in _line_range(topology) || throw(ArgumentError("line_ind $line_ind is outside 1:$(nlines(topology))"))
     return nothing
 end
 
@@ -189,17 +189,17 @@ function _require_vertex(topology::DecayTopology, vertex_ind::Integer)
     return nothing
 end
 
-function _visit_lines!(seen::Set{Int}, stack::Set{Int}, topology::DecayTopology, line::Int)
-    line in stack && throw(ArgumentError("topology contains a directed cycle at line $line"))
-    push!(stack, line)
-    push!(seen, line)
-    vertex_ind = consumed_by(topology, line)
+function _visit_lines!(seen::Set{Int}, stack::Set{Int}, topology::DecayTopology, line_ind::Int)
+    line_ind in stack && throw(ArgumentError("topology contains a directed cycle at line_ind $line_ind"))
+    push!(stack, line_ind)
+    push!(seen, line_ind)
+    vertex_ind = consumed_by(topology, line_ind)
     if vertex_ind !== nothing
-        for child in outgoing_lines(topology, vertex_ind)
+        for child in outgoing_line_inds(topology, vertex_ind)
             _visit_lines!(seen, stack, topology, child)
         end
     end
-    delete!(stack, line)
+    delete!(stack, line_ind)
     return seen
 end
 
@@ -213,83 +213,83 @@ function validate_topology(topology::DecayTopology)
     all(x -> x in (-1, 0, 1), relation(topology)) ||
         throw(ArgumentError("relation entries must be -1, 0, or +1"))
 
-    _require_line(topology, rootline(topology))
-    all(line -> line in _line_range(topology), finallines(topology)) ||
+    _require_line_ind(topology, root_line_ind(topology))
+    all(line_ind -> line_ind in _line_range(topology), final_line_inds(topology)) ||
         throw(ArgumentError("all final lines must be valid line ids"))
-    _allunique(finallines(topology)) || throw(ArgumentError("final lines must be unique"))
-    !isfinalline(topology, rootline(topology)) ||
+    _allunique(final_line_inds(topology)) || throw(ArgumentError("final lines must be unique"))
+    !isfinal_line_ind(topology, root_line_ind(topology)) ||
         throw(ArgumentError("root line cannot also be a final line"))
 
     nlines(topology) == nfinal(topology) + nvertices(topology) ||
         throw(ArgumentError("binary tree with explicit root must satisfy nlines == nfinal + nvertices"))
 
     for vertex_ind in _vertex_range(topology)
-        length(incoming_lines(topology, vertex_ind)) == 1 ||
+        length(incoming_line_inds(topology, vertex_ind)) == 1 ||
             throw(ArgumentError("vertex_ind $vertex_ind must have exactly one incoming line"))
-        length(outgoing_lines(topology, vertex_ind)) == 2 ||
+        length(outgoing_line_inds(topology, vertex_ind)) == 2 ||
             throw(ArgumentError("vertex_ind $vertex_ind must have exactly two outgoing lines"))
     end
 
-    produced_by(topology, rootline(topology)) === nothing ||
+    produced_by(topology, root_line_ind(topology)) === nothing ||
         throw(ArgumentError("root line must not be produced by a vertex"))
-    consumed_by(topology, rootline(topology)) !== nothing ||
+    consumed_by(topology, root_line_ind(topology)) !== nothing ||
         throw(ArgumentError("root line must be consumed by one vertex"))
 
-    for line in finallines(topology)
-        produced_by(topology, line) !== nothing ||
-            throw(ArgumentError("final line $line must be produced by one vertex"))
-        consumed_by(topology, line) === nothing ||
-            throw(ArgumentError("final line $line must not be consumed by a vertex"))
+    for line_ind in final_line_inds(topology)
+        produced_by(topology, line_ind) !== nothing ||
+            throw(ArgumentError("final line_ind $line_ind must be produced by one vertex"))
+        consumed_by(topology, line_ind) === nothing ||
+            throw(ArgumentError("final line_ind $line_ind must not be consumed by a vertex"))
     end
 
-    for line in internal_lines(topology)
-        produced_by(topology, line) !== nothing ||
-            throw(ArgumentError("internal line $line must be produced by one vertex"))
-        consumed_by(topology, line) !== nothing ||
-            throw(ArgumentError("internal line $line must be consumed by one vertex"))
+    for line_ind in internal_line_inds(topology)
+        produced_by(topology, line_ind) !== nothing ||
+            throw(ArgumentError("internal line_ind $line_ind must be produced by one vertex"))
+        consumed_by(topology, line_ind) !== nothing ||
+            throw(ArgumentError("internal line_ind $line_ind must be consumed by one vertex"))
     end
 
-    seen = _visit_lines!(Set{Int}(), Set{Int}(), topology, rootline(topology))
+    seen = _visit_lines!(Set{Int}(), Set{Int}(), topology, root_line_ind(topology))
     length(seen) == nlines(topology) ||
         throw(ArgumentError("topology must be connected to the root line"))
 
     return true
 end
 
-function _final_descendants_unordered(topology::DecayTopology, line::Integer)
-    _require_line(topology, line)
-    vertex_ind = consumed_by(topology, line)
-    vertex_ind === nothing && return [Int(line)]
+function _final_descendants_unordered(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return [Int(line_ind)]
     result = Int[]
-    for child in outgoing_lines(topology, vertex_ind)
+    for child in outgoing_line_inds(topology, vertex_ind)
         append!(result, _final_descendants_unordered(topology, child))
     end
     return result
 end
 
 """
-    line_for(topology, address)
+    line_ind_for(topology, address)
 
 Resolve a bracket address such as `(1, 2)` or `((1, 2), 3)` to the internal
-line id used by the flat topology. The root address resolves to `rootline`.
+line id used by the flat topology. The root address resolves to `root_line_ind`.
 """
-function line_for(topology::DecayTopology, address)
+function line_ind_for(topology::DecayTopology, address)
     labels = _address_final_labels(address)
-    for line in _line_range(topology)
-        Tuple(final_descendants(topology, line)) == labels && return Int(line)
+    for line_ind in _line_range(topology)
+        Tuple(final_descendants(topology, line_ind)) == labels && return Int(line_ind)
     end
-    throw(ArgumentError("address $address does not correspond to a line in this topology"))
+    throw(ArgumentError("address $address does not correspond to a line_ind in this topology"))
 end
 
 """
-    vertex_for(topology, address)
+    vertex_ind_for(topology, address)
 
 Resolve the parent bracket address of a binary decay to the vertex id. For
 example, `(1, 2)` resolves to the vertex `(1,2) -> 1,2`.
 """
-function vertex_for(topology::DecayTopology, address)
-    line = line_for(topology, address)
-    vertex_ind = consumed_by(topology, line)
+function vertex_ind_for(topology::DecayTopology, address)
+    line_ind = line_ind_for(topology, address)
+    vertex_ind = consumed_by(topology, line_ind)
     vertex_ind === nothing && throw(ArgumentError("address $address does not correspond to a decay vertex"))
     return vertex_ind
 end
@@ -298,70 +298,70 @@ end
     vertex_address(topology, vertex_ind)
 
 Return the bracket address of a decay vertex, i.e. the same key used in
-[`vertex_for`](@ref) and in [`DecayChain`](@ref) vertex payloads.
+[`vertex_ind_for`](@ref) and in [`DecayChain`](@ref) vertex payloads.
 """
 function vertex_address(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
-    return _line_address(topology, incoming_line(topology, vertex_ind))
+    return _line_ind_address(topology, incoming_line_ind(topology, vertex_ind))
 end
 
-function _line_address(topology::DecayTopology, line::Integer)
-    _require_line(topology, line)
-    isfinalline(topology, line) && return Int(line)
-    children = child_lines(topology, consumed_by(topology, line))
-    return (_line_address(topology, children[1]), _line_address(topology, children[2]))
+function _line_ind_address(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
+    isfinal_line_ind(topology, line_ind) && return Int(line_ind)
+    children = child_line_inds(topology, consumed_by(topology, line_ind))
+    return (_line_ind_address(topology, children[1]), _line_ind_address(topology, children[2]))
 end
 
 function _ordered_children(topology::DecayTopology, vertex_ind::Int)
-    children = outgoing_lines(topology, vertex_ind)
-    return sort(children; by = line -> minimum(_final_descendants_unordered(topology, line)))
+    children = outgoing_line_inds(topology, vertex_ind)
+    return sort(children; by = line_ind -> minimum(_final_descendants_unordered(topology, line_ind)))
 end
 
-function final_descendants(topology::DecayTopology, line::Integer)
-    _require_line(topology, line)
-    vertex_ind = consumed_by(topology, line)
-    vertex_ind === nothing && return [Int(line)]
+function final_descendants(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return [Int(line_ind)]
     result = Int[]
-    for child in child_lines(topology, vertex_ind)
+    for child in child_line_inds(topology, vertex_ind)
         append!(result, final_descendants(topology, child))
     end
     return result
 end
 
 """
-    child_lines(topology, vertex_ind)
+    child_line_inds(topology, vertex_ind)
 
 Return the two outgoing lines of topology vertex `vertex_ind` in canonical child
 order. This is the ordered pair that should be used for local two-body arguments.
 """
-function child_lines(topology::DecayTopology, vertex_ind::Integer)
+function child_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
     return _ordered_children(topology, Int(vertex_ind))
 end
 
 """
-    vertex_lines(topology, vertex_ind)
+    vertex_line_inds(topology, vertex_ind)
 
 Return `(parent, child1, child2)` for a binary vertex. The children are ordered
 canonically by their final-state descendants.
 """
-function vertex_lines(topology::DecayTopology, vertex_ind::Integer)
-    parent = incoming_line(topology, vertex_ind)
-    children = child_lines(topology, vertex_ind)
+function vertex_line_inds(topology::DecayTopology, vertex_ind::Integer)
+    parent = incoming_line_ind(topology, vertex_ind)
+    children = child_line_inds(topology, vertex_ind)
     length(children) == 2 ||
         throw(ArgumentError("vertex_ind $vertex_ind does not have exactly two outgoing lines"))
     return (parent, children[1], children[2])
 end
 
-function _line_label(line::Int, labels)
-    labels === nothing && return string(line)
-    return string(labels[line])
+function _line_ind_label(line_ind::Int, labels)
+    labels === nothing && return string(line_ind)
+    return string(labels[line_ind])
 end
 
-function _bracket_for_line(topology::DecayTopology, line::Int, labels)
-    vertex_ind = consumed_by(topology, line)
-    vertex_ind === nothing && return _line_label(line, labels)
-    pieces = [_bracket_for_line(topology, child, labels) for child in child_lines(topology, vertex_ind)]
+function _bracket_for_line_ind(topology::DecayTopology, line_ind::Int, labels)
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return _line_ind_label(line_ind, labels)
+    pieces = [_bracket_for_line_ind(topology, child, labels) for child in child_line_inds(topology, vertex_ind)]
     return "(" * join(pieces, ",") * ")"
 end
 
@@ -371,4 +371,4 @@ end
 Reconstruct a compact bracket notation from the canonical flat topology.
 """
 bracket(topology::DecayTopology; labels = nothing) =
-    _bracket_for_line(topology, rootline(topology), labels)
+    _bracket_for_line_ind(topology, root_line_ind(topology), labels)

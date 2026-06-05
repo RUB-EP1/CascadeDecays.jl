@@ -29,6 +29,6 @@ Pkg.instantiate()
 ## Development
 
 - Run tests with `julia --project=. test/runtests.jl`.
-- Build the docs with `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` followed by `julia --project=docs docs/make.jl` (requires [Quarto](https://quarto.org/) and TinyTeX for the PDF tutorial).
+- Build the docs with `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` followed by `julia --project=docs docs/make.jl` (requires [Quarto](https://quarto.org/)).
 - Render the integration tutorial alone with `quarto render docs/integration_4body_b2ddKpi.qmd` from the repo root (or from `docs/`).
 - The Quarto source for the four-body walkthrough is [docs/integration_4body_b2ddKpi.qmd](docs/integration_4body_b2ddKpi.qmd).

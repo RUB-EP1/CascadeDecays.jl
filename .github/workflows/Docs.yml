@@ -37,8 +37,6 @@ jobs:
       - name: Use Julia cache
         uses: julia-actions/cache@v3
       - uses: quarto-dev/quarto-actions/setup@v2
-      - name: Install TinyTeX
-        run: quarto install tinytex
       - name: Instantiate docs environment
         run: |
           julia --project=docs -e '

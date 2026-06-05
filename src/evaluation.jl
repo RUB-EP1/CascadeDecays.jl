@@ -1,30 +1,30 @@
-_indices_for_line(topology::DecayTopology, line::Integer) =
-    Tuple(final_descendants(topology, line))
+_indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
+    Tuple(final_descendants(topology, line_ind))
 
 _neg_indices(indices::Tuple) = Tuple(-i for i in indices)
 
-function _child_containing_line(topology::DecayTopology, vertex_ind::Integer, line::Integer)
-    for child in child_lines(topology, vertex_ind)
+function _child_containing_line_ind(topology::DecayTopology, vertex_ind::Integer, line_ind::Integer)
+    for child in child_line_inds(topology, vertex_ind)
         descendants = final_descendants(topology, child)
-        if child == line || line in descendants || !isfinalline(topology, line) && !isrootline(topology, line) && line in _subtree_lines(topology, child)
+        if child == line_ind || line_ind in descendants || !isfinal_line_ind(topology, line_ind) && !isroot_line_ind(topology, line_ind) && line_ind in _subtree_line_inds(topology, child)
             return child
         end
     end
-    throw(ArgumentError("line $line is not below vertex $vertex_ind"))
+    throw(ArgumentError("line_ind $line_ind is not below vertex $vertex_ind"))
 end
 
-function _subtree_lines(topology::DecayTopology, line::Integer)
-    lines = Int[Int(line)]
-    vertex_ind = consumed_by(topology, line)
-    vertex_ind === nothing && return lines
-    for child in child_lines(topology, vertex_ind)
-        append!(lines, _subtree_lines(topology, child))
+function _subtree_line_inds(topology::DecayTopology, line_ind::Integer)
+    line_inds = Int[Int(line_ind)]
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return line_inds
+    for child in child_line_inds(topology, vertex_ind)
+        append!(line_inds, _subtree_line_inds(topology, child))
     end
-    return lines
+    return line_inds
 end
 
 function _root_vertex_ind(topology::DecayTopology)
-    vertex_ind = consumed_by(topology, rootline(topology))
+    vertex_ind = consumed_by(topology, root_line_ind(topology))
     vertex_ind === nothing && throw(ArgumentError("topology root line is not consumed by any vertex"))
     return vertex_ind
 end
@@ -48,7 +48,7 @@ input four-vectors are already expressed in the intended system frame.
 struct CurrentFrame <: AbstractInitialFrame end
 
 _initial_frame_program(topology::DecayTopology, ::HelicityRootFrame) =
-    (ToHelicityFrame(_indices_for_line(topology, rootline(topology))),)
+    (ToHelicityFrame(_indices_for_line_ind(topology, root_line_ind(topology))),)
 _initial_frame_program(::DecayTopology, ::CurrentFrame) = ()
 
 """
@@ -73,22 +73,22 @@ function helicity_angle_program(
     vertex_ind in Base.OneTo(nvertices(topology)) ||
         throw(ArgumentError("vertex_ind $vertex_ind is outside 1:$(nvertices(topology))"))
 
-    target_parent = incoming_line(topology, vertex_ind)
+    target_parent = incoming_line_ind(topology, vertex_ind)
     program = _initial_frame_program(topology, initial_frame)
 
     current_vertex_ind = _root_vertex_ind(topology)
 
     while true
-        parent = incoming_line(topology, current_vertex_ind)
-        children = child_lines(topology, current_vertex_ind)
+        parent = incoming_line_ind(topology, current_vertex_ind)
+        children = child_line_inds(topology, current_vertex_ind)
         if parent == target_parent
             return (
                 program...,
-                MeasureCosThetaPhi(Symbol(:v, vertex_ind), _indices_for_line(topology, children[1])),
+                MeasureCosThetaPhi(Symbol(:v, vertex_ind), _indices_for_line_ind(topology, children[1])),
             )
         end
-        next_child = _child_containing_line(topology, current_vertex_ind, target_parent)
-        program = (program..., ToHelicityFrame(_indices_for_line(topology, next_child)))
+        next_child = _child_containing_line_ind(topology, current_vertex_ind, target_parent)
+        program = (program..., ToHelicityFrame(_indices_for_line_ind(topology, next_child)))
         current_vertex_ind = consumed_by(topology, next_child)
         current_vertex_ind === nothing &&
             throw(ArgumentError("vertex_ind $vertex_ind is not reachable from the root"))
@@ -123,7 +123,7 @@ function cascade_kinematics(
     objs;
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
-    internal_masses2 = Tuple(mass(_sum_objects(objs, _indices_for_line(topology, line)))^2 for line in internal_lines(topology))
+    internal_masses2 = Tuple(mass(_sum_objects(objs, _indices_for_line_ind(topology, line_ind)))^2 for line_ind in internal_line_inds(topology))
     programs = helicity_angle_programs(topology; initial_frame)
     angle_results = map(programs) do program
         _, result = apply_decay_instruction(program, objs)
@@ -132,12 +132,12 @@ function cascade_kinematics(
     return CascadeKinematics(topology, system; internal_masses2, vertex_angles=Tuple(angle_results))
 end
 
-function routed_vertex_amplitude(vertex_func, masses2, helicities, spins, angles)
-    throw(MethodError(routed_vertex_amplitude, (vertex_func, masses2, helicities, spins, angles)))
+function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
+    throw(MethodError(routed_vertex_amplitude, (vertex, masses2, helicities, spins, angles)))
 end
 
 function routed_vertex_amplitude(
-    vertex_func::ThreeBodyDecays.VertexFunction,
+    vertex::Vertex,
     masses2,
     helicities,
     spins,
@@ -147,8 +147,8 @@ function routed_vertex_amplitude(
     two_λ0, two_λ1, two_λ2 = helicities
     recoupling =
         _particle_two_phase(spins[3], two_λ2) *
-        ThreeBodyDecays.amplitude(vertex_func.h, (two_λ1, two_λ2), spins)
-    formfactor = vertex_func.ff(masses2...)
+        ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins)
+    formfactor = vertex.ff(masses2...)
     two_Δλ = two_λ1 - two_λ2
     rotation = conj(ThreeBodyDecays.wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
     return rotation * recoupling * formfactor
@@ -172,13 +172,13 @@ function routed_vertex_amplitude(
     helicities = vertex_helicities(chain, two_λs, vertex_ind)
     spins = vertex_spins(chain, system, vertex_ind)
     angles = vertex_angles(x, vertex_ind)
-    vertex_func = chain.vertices[vertex_ind]
-    return routed_vertex_amplitude(vertex_func, masses2, helicities, spins, angles)
+    vertex = chain.vertices[vertex_ind]
+    return routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
 end
 
 function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
-    return prod(zip(chain.propagators, propagating_lines(chain))) do (propagator, line)
-        propagator(line_invariant(x, line))
+    return prod(zip(chain.propagators, propagating_line_inds(chain))) do (propagator, line_ind)
+        propagator(line_invariant(x, line_ind))
     end
 end
 
@@ -193,7 +193,7 @@ function _external_amplitude_indices(
 )
     two_js = line_two_js(chain, system)
     final_indices = ntuple(
-        i -> _helicity_index(external_two_λs.finals[i], two_js[finallines(chain)[i]]),
+        i -> _helicity_index(external_two_λs.finals[i], two_js[final_line_inds(chain)[i]]),
         nfinal(chain),
     )
     root_index = _helicity_index(external_two_λs.two_h0, root_two_j(system))
@@ -213,14 +213,14 @@ function _vertex_factor(
     x::CascadeKinematics,
     vertex_ind::Integer,
 )
-    l0, l1, l2 = vertex_lines(chain, vertex_ind)
+    l0, l1, l2 = vertex_line_inds(chain, vertex_ind)
     two_j0, two_j1, two_j2 = vertex_spins(chain, system, vertex_ind)
     masses2 = vertex_masses2(chain, x, vertex_ind)
     spins = (two_j0, two_j1, two_j2)
     angles = vertex_angles(x, vertex_ind)
-    vertex_func = chain.vertices[vertex_ind]
+    vertex = chain.vertices[vertex_ind]
     V = [
-        routed_vertex_amplitude(vertex_func, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
+        routed_vertex_amplitude(vertex, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
         for two_λ0 in (-two_j0):2:two_j0, two_λ1 in (-two_j1):2:two_j1, two_λ2 in (-two_j2):2:two_j2
     ]
     return V, (l0, l1, l2)
@@ -251,7 +251,7 @@ function line_amplitude_tensor(
     x::CascadeKinematics,
 )
     two_js = line_two_js(chain, system)
-    line_sizes = ntuple(line -> _helicity_axis_length(two_js[line]), nlines(chain))
+    line_sizes = ntuple(line_ind -> _helicity_axis_length(two_js[line_ind]), nlines(chain))
     # manually proceed with the first vertex to get the element type
     first_vertex_ind = 1
     V, lines = _vertex_factor(chain, system, x, first_vertex_ind)
@@ -308,8 +308,8 @@ function external_helicity_amplitude(
     F::AbstractArray,
     chain::DecayChain{Nf,Np},
 ) where {Nf,Np}
-    ext_dims = (Tuple(finallines(chain))..., rootline(chain))
-    int_dims = Tuple(propagating_lines(chain))
+    ext_dims = (Tuple(final_line_inds(chain))..., root_line_ind(chain))
+    int_dims = Tuple(propagating_line_inds(chain))
     return external_helicity_amplitude(F, ext_dims, int_dims, Val(Nf + 1), Val(Np))
 end
 
@@ -339,7 +339,7 @@ end
     amplitude(chain, system, x)
 
 Route masses, angles, and spins through the cascade and return the full amplitude
-array in the external helicity space. Final-state axes follow [`finallines`](@ref)
+array in the external helicity space. Final-state axes follow [`final_line_inds`](@ref)
 order; the root helicity is the last axis.
 
 Build vertex factors, multiply into a line-indexed buffer, then contract internal
