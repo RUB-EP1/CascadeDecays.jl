@@ -57,27 +57,27 @@ function _collect_final_labels!(labels::Vector{Int}, tree)
     return labels
 end
 
-function _assign_lines!(line_for_node::Dict{Any,Int}, next_internal::Base.RefValue{Int}, tree)
-    if tree isa Integer
-        line_for_node[tree] = _bracket_leaf(tree)
-        return line_for_node[tree]
+function _assign_lines!(line_for_address::Dict{Any,Int}, next_internal::Base.RefValue{Int}, address)
+    if address isa Integer
+        line_for_address[address] = _bracket_leaf(address)
+        return line_for_address[address]
     end
-    tree isa Tuple && length(tree) == 2 ||
+    address isa Tuple && length(address) == 2 ||
         throw(ArgumentError("topology bracket must be a binary nested tuple of integer leaves"))
-    _assign_lines!(line_for_node, next_internal, tree[1])
-    _assign_lines!(line_for_node, next_internal, tree[2])
+    _assign_lines!(line_for_address, next_internal, address[1])
+    _assign_lines!(line_for_address, next_internal, address[2])
     line = next_internal[]
     next_internal[] += 1
-    line_for_node[tree] = line
+    line_for_address[address] = line
     return line
 end
 
-function _collect_vertices_preorder!(vertices, tree)
-    tree isa Tuple && length(tree) == 2 || return vertices
-    push!(vertices, tree)
-    _collect_vertices_preorder!(vertices, tree[1])
-    _collect_vertices_preorder!(vertices, tree[2])
-    return vertices
+function _collect_vertex_addresses_preorder!(addresses, address)
+    address isa Tuple && length(address) == 2 || return addresses
+    push!(addresses, address)
+    _collect_vertex_addresses_preorder!(addresses, address[1])
+    _collect_vertex_addresses_preorder!(addresses, address[2])
+    return addresses
 end
 
 function _address_final_labels(address)
@@ -101,14 +101,14 @@ function DecayTopology(tree::Tuple)
     nfinal = length(final_labels)
     nvertices = nfinal - 1
     nlines = nfinal + nvertices
-    line_for_node = Dict{Any,Int}()
-    _assign_lines!(line_for_node, Ref(nfinal + 1), tree)
-    vertices = _collect_vertices_preorder!(Any[], tree)
+    line_for_address = Dict{Any,Int}()
+    _assign_lines!(line_for_address, Ref(nfinal + 1), tree)
+    vertex_addresses = _collect_vertex_addresses_preorder!(Any[], tree)
     relation = zeros(Int, nlines, nvertices)
-    for (vertex_ind, node) in pairs(vertices)
-        parent = line_for_node[node]
-        child1 = line_for_node[node[1]]
-        child2 = line_for_node[node[2]]
+    for (vertex_ind, address) in pairs(vertex_addresses)
+        parent = line_for_address[address]
+        child1 = line_for_address[address[1]]
+        child2 = line_for_address[address[2]]
         relation[parent, vertex_ind] = -1
         relation[child1, vertex_ind] = 1
         relation[child2, vertex_ind] = 1

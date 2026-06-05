@@ -7,9 +7,13 @@ Short reference for indices and the flat topology used inside `CascadeDecays.jl`
 | Name | Range | Meaning |
 |------|-------|---------|
 | `line` | `1:nlines` | Row in the incidence matrix: a particle line (final, internal, or root) |
-| vertex index | `1:nvertices` | Column in the incidence matrix: a binary decay node |
-| `vertex` | — | Local amplitude payload (`VertexFunction`), **not** an index: `chain.vertices[v]` for vertex index `v` |
+| vertex index | `1:nvertices` | Column in the incidence matrix: a binary decay vertex |
+| `address` | — | Bracket key such as `(2, 3)`; resolves via [`vertex_for`](@ref) / [`line_for`](@ref) |
+| `vertex_func` | — | Local amplitude model (`VertexFunction`): `chain.vertices[v]` for vertex index `v` |
 | `propagator` | — | Lineshape payload, **not** a line id: entry in `chain.propagators` |
+
+User input uses `address => vertex_func` pairs in the `vertices` keyword; [`DecayChain`](@ref) stores the
+funcs in [`vertex_address`](@ref) / root-first preorder as `chain.vertices`.
 
 Counts for a tree with `n` final-state particles:
 

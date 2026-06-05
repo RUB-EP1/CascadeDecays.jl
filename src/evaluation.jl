@@ -132,12 +132,12 @@ function cascade_kinematics(
     return CascadeKinematics(topology, system; internal_masses2, vertex_angles=Tuple(angle_results))
 end
 
-function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
-    throw(MethodError(routed_vertex_amplitude, (vertex, masses2, helicities, spins, angles)))
+function routed_vertex_amplitude(vertex_func, masses2, helicities, spins, angles)
+    throw(MethodError(routed_vertex_amplitude, (vertex_func, masses2, helicities, spins, angles)))
 end
 
 function routed_vertex_amplitude(
-    vertex::ThreeBodyDecays.VertexFunction,
+    vertex_func::ThreeBodyDecays.VertexFunction,
     masses2,
     helicities,
     spins,
@@ -147,8 +147,8 @@ function routed_vertex_amplitude(
     two_λ0, two_λ1, two_λ2 = helicities
     recoupling =
         _particle_two_phase(spins[3], two_λ2) *
-        ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins)
-    formfactor = vertex.ff(masses2...)
+        ThreeBodyDecays.amplitude(vertex_func.h, (two_λ1, two_λ2), spins)
+    formfactor = vertex_func.ff(masses2...)
     two_Δλ = two_λ1 - two_λ2
     rotation = conj(ThreeBodyDecays.wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
     return rotation * recoupling * formfactor
@@ -172,8 +172,8 @@ function routed_vertex_amplitude(
     helicities = vertex_helicities(chain, two_λs, vertex_ind)
     spins = vertex_spins(chain, system, vertex_ind)
     angles = vertex_angles(x, vertex_ind)
-    vertex = chain.vertices[vertex_ind]
-    return routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
+    vertex_func = chain.vertices[vertex_ind]
+    return routed_vertex_amplitude(vertex_func, masses2, helicities, spins, angles)
 end
 
 function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
@@ -218,9 +218,9 @@ function _vertex_factor(
     masses2 = vertex_masses2(chain, x, vertex_ind)
     spins = (two_j0, two_j1, two_j2)
     angles = vertex_angles(x, vertex_ind)
-    vertex = chain.vertices[vertex_ind]
+    vertex_func = chain.vertices[vertex_ind]
     V = [
-        routed_vertex_amplitude(vertex, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
+        routed_vertex_amplitude(vertex_func, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
         for two_λ0 in (-two_j0):2:two_j0, two_λ1 in (-two_j1):2:two_j1, two_λ2 in (-two_j2):2:two_j2
     ]
     return V, (l0, l1, l2)
