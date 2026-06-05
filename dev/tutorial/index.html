@@ -3,10 +3,10 @@
 using FourVectors
 using HadronicLineshapes
 using StaticArrays
-using ThreeBodyDecays: VertexFunction, RecouplingLS
+using ThreeBodyDecays: RecouplingLS
 
 format_instruction(inst) =
-    string(nameof(typeof(inst)), &quot;(&quot;, join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), &quot;, &quot;), &quot;)&quot;)</code></pre><pre><code class="nohighlight hljs">format_instruction (generic function with 1 method)</code></pre><h2 id="1.-Event-four-vectors"><a class="docs-heading-anchor" href="#1.-Event-four-vectors">1. Event four-vectors</a><a id="1.-Event-four-vectors-1"></a><a class="docs-heading-anchor-permalink" href="#1.-Event-four-vectors" title="Permalink"></a></h2><p>The final-state particle labels are chosen to match the <code>InstructionalDecayTrees.jl</code> angle notebook:</p><pre><code class="language-text hljs">1: D⁰
+    string(nameof(typeof(inst)), &quot;(&quot;, join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), &quot;, &quot;), &quot;)&quot;)</code></pre><h2 id="1.-Event-four-vectors"><a class="docs-heading-anchor" href="#1.-Event-four-vectors">1. Event four-vectors</a><a id="1.-Event-four-vectors-1"></a><a class="docs-heading-anchor-permalink" href="#1.-Event-four-vectors" title="Permalink"></a></h2><p>The final-state particle labels are chosen to match the <code>InstructionalDecayTrees.jl</code> angle notebook:</p><pre><code class="language-text hljs">1: D⁰
 2: π⁺
 3: D⁻
 4: K⁺</code></pre><pre><code class="language-julia hljs">pDminus = FourVector(0.8634762475578601, -0.2273640501540901, 0.5897962254778486; E=2.1542368373711818)
@@ -36,7 +36,7 @@ reference_ϕ_D_in_Dx = -2.84901364039537
 )
 
 masses = SystemMasses(mass.(objs)...; m0=mass(P_B))
-system = CascadeSystem(two_js, masses)</code></pre><pre><code class="nohighlight hljs">CascadeSystem{4, Float64, SystemSpins{4}}(SystemSpins{4}([0, 0, 0, 0], 0), SystemMasses{4, Float64}([1.8648299999999995, 0.13957039, 1.8696499999999998, 0.49367700000000025], 5.279340034967328))</code></pre><h2 id="4.-Runtime-kinematic-input-from-the-topology"><a class="docs-heading-anchor" href="#4.-Runtime-kinematic-input-from-the-topology">4. Runtime kinematic input from the topology</a><a id="4.-Runtime-kinematic-input-from-the-topology-1"></a><a class="docs-heading-anchor-permalink" href="#4.-Runtime-kinematic-input-from-the-topology" title="Permalink"></a></h2><p><code>CascadeKinematics</code> is the completed input point from which the package can route local invariants and angles by topology address.</p><p>The angle programs are generated directly from the topology. It is useful to look at them explicitly: each entry is the sequence of frame changes and one final <code>MeasureCosThetaPhi(...)</code> instruction for one binary decay in the cascade.</p><p>In helicity convention:</p><ul><li><code>ToHelicityFrame((...))</code> boosts to the rest frame of the addressed subsystem</li><li>the final <code>MeasureCosThetaPhi(...)</code> returns the local helicity angles <code>(cosθ, ϕ)</code> for the first child of that binary decay</li></ul><p>The initial configuration of four-vectors is assumed to be already aligned so that the subsequent helicity-angle measurements are performed in the desired convention.</p><p>After that, <code>cascade_kinematics(...)</code> evaluates the generated programs on the event four-vectors and assembles the full kinematic input object.</p><p>Here we inspect the local decay <code>(1,2)</code>, which corresponds to <code>Dₓ⁺ → D⁰π⁺</code> and matches the cross-check angle in the input event.</p><pre><code class="language-julia hljs">programs = helicity_angle_programs(topology)
+system = CascadeSystem(two_js, masses)</code></pre><h2 id="4.-Runtime-kinematic-input-from-the-topology"><a class="docs-heading-anchor" href="#4.-Runtime-kinematic-input-from-the-topology">4. Runtime kinematic input from the topology</a><a id="4.-Runtime-kinematic-input-from-the-topology-1"></a><a class="docs-heading-anchor-permalink" href="#4.-Runtime-kinematic-input-from-the-topology" title="Permalink"></a></h2><p><code>CascadeKinematics</code> is the completed input point from which the package can route local invariants and angles by topology address.</p><p>The angle programs are generated directly from the topology. It is useful to look at them explicitly: each entry is the sequence of frame changes and one final <code>MeasureCosThetaPhi(...)</code> instruction for one binary decay in the cascade.</p><p>In helicity convention:</p><ul><li><code>ToHelicityFrame((...))</code> boosts to the rest frame of the addressed subsystem</li><li>the final <code>MeasureCosThetaPhi(...)</code> returns the local helicity angles <code>(cosθ, ϕ)</code> for the first child of that binary decay</li></ul><p>The initial configuration of four-vectors is assumed to be already aligned so that the subsequent helicity-angle measurements are performed in the desired convention.</p><p>After that, <code>cascade_kinematics(...)</code> evaluates the generated programs on the event four-vectors and assembles the full kinematic input object.</p><p>Here we inspect the local decay <code>(1,2)</code>, which corresponds to <code>Dₓ⁺ → D⁰π⁺</code> and matches the cross-check angle in the input event.</p><pre><code class="language-julia hljs">programs = helicity_angle_programs(topology)
 
 for (label, program) in (
     (&quot;(((1,2),3),4)&quot;, programs[1]),
@@ -62,48 +62,21 @@ println(&quot;angles for (1,2): cosθ = &quot;, Dx_angles.cosθ, &quot;, ϕ = &q
 
 @assert line_invariant(topology, x, (1, 2)) ≈ mass(P_Dx)^2
 @assert line_invariant(topology, x, ((1, 2), 3)) ≈ mass(P_psi)^2
-@assert vertex_masses2(topology, x, (((1, 2), 3), 4)) == (mass(P_B)^2, mass(P_psi)^2, mass(pKplus)^2)</code></pre><pre><code class="nohighlight hljs">program for (((1,2),3),4)
-  ToHelicityFrame((1, 2, 3, 4))
-  MeasureCosThetaPhi(:v1, (1, 2, 3))
-program for ((1,2),3)
-  ToHelicityFrame((1, 2, 3, 4))
-  ToHelicityFrame((1, 2, 3))
-  MeasureCosThetaPhi(:v2, (1, 2))
-program for (1,2)
-  ToHelicityFrame((1, 2, 3, 4))
-  ToHelicityFrame((1, 2, 3))
-  ToHelicityFrame((1, 2))
-  MeasureCosThetaPhi(:v3, (1,))
-angles for (((1,2),3),4): cosθ = -0.04377817152173917, ϕ = 2.5569510595758183
-angles for ((1,2),3): cosθ = -0.551937811945214, ϕ = 1.2182839270106544e-7
-angles for (1,2): cosθ = 0.8746538492596709, ϕ = -2.849013640395373</code></pre><h2 id="5.-Static-payloads:-vertices-and-propagators"><a class="docs-heading-anchor" href="#5.-Static-payloads:-vertices-and-propagators">5. Static payloads: vertices and propagators</a><a id="5.-Static-payloads:-vertices-and-propagators-1"></a><a class="docs-heading-anchor-permalink" href="#5.-Static-payloads:-vertices-and-propagators" title="Permalink"></a></h2><p><code>HadronicLineshapes.BreitWigner</code> is a callable propagator object. The requested model parameters are:</p><pre><code class="language-json hljs">&quot;Psi(4040)_mass&quot;: 4.039,
+@assert vertex_masses2(topology, x, (((1, 2), 3), 4)) == (mass(P_B)^2, mass(P_psi)^2, mass(pKplus)^2)</code></pre><h2 id="5.-Static-payloads:-vertices-and-propagators"><a class="docs-heading-anchor" href="#5.-Static-payloads:-vertices-and-propagators">5. Static payloads: vertices and propagators</a><a id="5.-Static-payloads:-vertices-and-propagators-1"></a><a class="docs-heading-anchor-permalink" href="#5.-Static-payloads:-vertices-and-propagators" title="Permalink"></a></h2><p><code>HadronicLineshapes.BreitWigner</code> is a callable propagator object. The requested model parameters are:</p><pre><code class="language-json hljs">&quot;Psi(4040)_mass&quot;: 4.039,
 &quot;Psi(4040)_width&quot;: 0.08</code></pre><p>The left side of each pair is a bracket address, so no user-facing model input depends on internal line or vertex numbering. The constructor resolves these addresses once and stores typed <code>SVector</code>s internally.</p><p>For curiosity, the topology is internally compiled into a flat connectivity matrix: rows are particle/state lines, columns are binary decay vertices, <code>-1</code> marks the incoming parent line, and <code>+1</code> marks the two outgoing child lines. This is the canonical graph representation from which routing and evaluation order are derived.</p><pre><code class="language-julia hljs">connectivity = Matrix(relation(topology))
 
 vertices = (
-    (((1, 2), 3), 4) =&gt; VertexFunction(RecouplingLS((2, 2))), # B⁺ -&gt; ψ K
-    ((1, 2), 3) =&gt; VertexFunction(RecouplingLS((0, 2))),      # ψ -&gt; Dₓ D
-    (1, 2) =&gt; VertexFunction(RecouplingLS((2, 0))),           # Dₓ -&gt; D⁰ π
+    (((1, 2), 3), 4) =&gt; Vertex(RecouplingLS((2, 2))), # B⁺ -&gt; ψ K
+    ((1, 2), 3) =&gt; Vertex(RecouplingLS((0, 2))),      # ψ -&gt; Dₓ D
+    (1, 2) =&gt; Vertex(RecouplingLS((2, 0))),           # Dₓ -&gt; D⁰ π
 )
 
 propagators = (
-    (1, 2) =&gt; PropagatorFunction(2, ConstantLineshape(1.0 + 0.0im)),
-    ((1, 2), 3) =&gt; PropagatorFunction(2, BreitWigner(4.039, 0.08)),
+    (1, 2) =&gt; Propagator(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) =&gt; Propagator(2, BreitWigner(4.039, 0.08)),
 )
 
-chain = DecayChain(topology; propagators, vertices)</code></pre><pre><code class="nohighlight hljs">DecayChain{4, 2, 3, Any, VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}, DecayTopology{7, 3, 4, Int64, 21}}(DecayTopology{7, 3, 4, Int64, 21}([0 0 1; 0 0 1; … ; 1 -1 0; -1 0 0], 7, [1, 2, 3, 4]), Any[ConstantLineshape{ComplexF64}(1.0 + 0.0im), BreitWigner
-  m: Float64 4.039
-  Γ: Float64 0.08
-  ma: Float64 0.0
-  mb: Float64 0.0
-  l: Int64 0
-  d: Float64 1.0
-], VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}[VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
-  two_ls: Tuple{Int64, Int64}
-, ThreeBodyDecays.NoFormFactor()), VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
-  two_ls: Tuple{Int64, Int64}
-, ThreeBodyDecays.NoFormFactor()), VertexFunction{RecouplingLS, ThreeBodyDecays.NoFormFactor}(RecouplingLS
-  two_ls: Tuple{Int64, Int64}
-, ThreeBodyDecays.NoFormFactor())], [5, 6], [2, 2])</code></pre><p>Vertices are <code>ThreeBodyDecays.VertexFunction</code> objects. In this minimal example we choose LS recouplings compatible with the spin assignments below.</p><h2 id="6.-General-amplitude-evaluation"><a class="docs-heading-anchor" href="#6.-General-amplitude-evaluation">6. General amplitude evaluation</a><a id="6.-General-amplitude-evaluation-1"></a><a class="docs-heading-anchor-permalink" href="#6.-General-amplitude-evaluation" title="Permalink"></a></h2><p>The package-level <code>amplitude</code> method now performs the internal-helicity sum, so the user only provides external helicities in the order <code>(1,2,3,4,0)</code>.</p><p>In formula form,</p><p class="math-container">\[\mathcal{A}(\lambda_1,\lambda_2,\lambda_3,\lambda_4,\lambda_0)
+chain = DecayChain(topology; propagators, vertices)</code></pre><p>Vertices are <a href="../api-reference/#CascadeDecays.Vertex"><code>Vertex</code></a> objects. In this minimal example we choose LS recouplings compatible with the spin assignments below.</p><h2 id="6.-General-amplitude-evaluation"><a class="docs-heading-anchor" href="#6.-General-amplitude-evaluation">6. General amplitude evaluation</a><a id="6.-General-amplitude-evaluation-1"></a><a class="docs-heading-anchor-permalink" href="#6.-General-amplitude-evaluation" title="Permalink"></a></h2><p>The package-level <code>amplitude</code> method now performs the internal-helicity sum, so the user only provides external helicities in the order <code>(1,2,3,4,0)</code>.</p><p>In formula form,</p><p class="math-container">\[\mathcal{A}(\lambda_1,\lambda_2,\lambda_3,\lambda_4,\lambda_0)
 = \sum_{\lambda_{12},\lambda_{123}}
 \prod_v D_v^*\,V_v \prod_r P_r.\]</p><p>The routing contract is:</p><ul><li>topology chooses the local parent/children at each binary decay</li><li><code>CascadeKinematics</code> supplies three local masses squared</li><li><code>external_two_λs</code> is a <code>SystemHelicities</code> value aligned with <code>two_js</code> (positional finals, root via <code>two_h0=...</code>)</li><li><code>CascadeSystem</code> and <code>DecayChain</code> supply local external/internal spins</li><li>Julia dispatch selects vertex and propagator computations</li></ul><pre><code class="language-julia hljs">external_two_λs = SystemHelicities(
     two_js,
@@ -113,17 +86,10 @@ chain = DecayChain(topology; propagators, vertices)</code></pre><pre><code class
     0, # K⁺
     two_h0=0, # B⁺
 )
-A = amplitude(chain, system, x, external_two_λs)</code></pre><pre><code class="nohighlight hljs">-0.4304538612896391 + 0.13011589509996946im</code></pre><h2 id="7.-Numerical-result"><a class="docs-heading-anchor" href="#7.-Numerical-result">7. Numerical result</a><a id="7.-Numerical-result-1"></a><a class="docs-heading-anchor-permalink" href="#7.-Numerical-result" title="Permalink"></a></h2><pre><code class="language-julia hljs">println(&quot;m²(1,2) = &quot;, line_invariant(topology, x, (1, 2)))
+A = amplitude(chain, system, x, external_two_λs)</code></pre><h2 id="7.-Numerical-result"><a class="docs-heading-anchor" href="#7.-Numerical-result">7. Numerical result</a><a id="7.-Numerical-result-1"></a><a class="docs-heading-anchor-permalink" href="#7.-Numerical-result" title="Permalink"></a></h2><pre><code class="language-julia hljs">println(&quot;m²(1,2) = &quot;, line_invariant(topology, x, (1, 2)))
 println(&quot;m²((1,2),3) = &quot;, line_invariant(topology, x, ((1, 2), 3)))
 println(&quot;angles at (1,2) = &quot;, vertex_angles(topology, x, (1, 2)))
 println(&quot;summed amplitude = &quot;, A)
 
 @assert isfinite(real(A))
-@assert isfinite(imag(A))
-
-A</code></pre><pre><code class="nohighlight hljs">m²(1,2) = 4.04114526493613
-m²((1,2),3) = 17.382477652475433
-angles at (1,2) = (cosθ = 0.8746538492596709, ϕ = -2.849013640395373)
-summed amplitude = -0.4304538612896391 + 0.13011589509996946im
-
--0.4304538612896391 + 0.13011589509996946im</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../notation/">« Internal notation</a><a class="docs-footer-nextpage" href="../api-reference/">API reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 5 June 2026 09:53">Friday 5 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+@assert isfinite(imag(A))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../notation/">« Internal notation</a><a class="docs-footer-nextpage" href="../api-reference/">API reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 5 June 2026 10:16">Friday 5 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
