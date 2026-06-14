@@ -1,5 +1,5 @@
 """
-    DecayTopology(relation; root, finals)
+    DecayTopology(relation; root, finals, child_order)
 
 Flat line-vertex incidence graph for a connected binary cascade tree.
 
@@ -12,7 +12,8 @@ Rows of `relation` are lines and columns are vertices. The sign convention is:
 The root/mother line is included explicitly. Final-state lines are listed in
 `finals`. The ordered pair of outgoing children at each vertex is stored
 separately from the incidence matrix because helicity conventions depend on
-child order.
+child order. Prefer bracket notation for user-facing construction; when using
+the flat relation constructor, `child_order` must be supplied explicitly.
 """
 struct DecayTopology{Nl,Nv,Nf,T<:Integer,L,C}
     relation::SMatrix{Nl,Nv,T,L}
@@ -21,51 +22,11 @@ struct DecayTopology{Nl,Nv,Nf,T<:Integer,L,C}
     child_order::SMatrix{2,Nv,Int,C}
 end
 
-_line_range_from_relation(relation::AbstractMatrix) = Base.OneTo(size(relation, 1))
-_vertex_range_from_relation(relation::AbstractMatrix) = Base.OneTo(size(relation, 2))
-
-function _outgoing_line_inds(relation::AbstractMatrix, vertex_ind::Integer)
-    return [
-        line_ind for line_ind in _line_range_from_relation(relation) if
-        relation[line_ind, vertex_ind] == 1
-    ]
-end
-
-function _consumed_by(relation::AbstractMatrix, line_ind::Integer)
-    vertex_inds = [
-        vertex_ind for vertex_ind in _vertex_range_from_relation(relation) if
-        relation[line_ind, vertex_ind] == -1
-    ]
-    return isempty(vertex_inds) ? nothing : only(vertex_inds)
-end
-
-function _final_descendants_unordered(relation::AbstractMatrix, line_ind::Integer)
-    vertex_ind = _consumed_by(relation, line_ind)
-    vertex_ind === nothing && return [Int(line_ind)]
-    result = Int[]
-    for child in _outgoing_line_inds(relation, vertex_ind)
-        append!(result, _final_descendants_unordered(relation, child))
-    end
-    return result
-end
-
-function _default_child_order(relation::AbstractMatrix)
-    Nl, Nv = size(relation)
-    entries = Int[]
-    for vertex_ind in 1:Nv
-        children = _outgoing_line_inds(relation, vertex_ind)
-        children = sort(children; by = line_ind -> minimum(_final_descendants_unordered(relation, line_ind)))
-        length(children) == 2 || append!(children, fill(0, 2 - length(children)))
-        append!(entries, children[1:2])
-    end
-    return SMatrix{2,Nv,Int,2 * Nv}(Tuple(entries))
-end
-
 function DecayTopology(
     relation::SMatrix{Nl,Nv,T,L},
     root::Integer,
     finals::SVector{Nf,Int};
-    child_order::SMatrix{2,Nv,Int,C} = _default_child_order(relation),
+    child_order::SMatrix{2,Nv,Int,C},
     validate::Bool = true,
 ) where {Nl,Nv,Nf,T<:Integer,L,C}
     topology = DecayTopology{Nl,Nv,Nf,T,L,C}(relation, Int(root), finals, child_order)
@@ -77,16 +38,14 @@ function DecayTopology(
     relation::AbstractMatrix{T};
     root::Integer,
     finals,
-    child_order = nothing,
+    child_order,
     validate::Bool = true,
 ) where {T<:Integer}
     Nl, Nv = size(relation)
     final_tuple = Tuple(Int(line_ind) for line_ind in finals)
     final_lines = SVector{length(final_tuple),Int}(final_tuple)
     static_relation = SMatrix{Nl,Nv,T,Nl * Nv}(relation)
-    static_child_order =
-        child_order === nothing ? _default_child_order(static_relation) :
-        SMatrix{2,Nv,Int,2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
+    static_child_order = SMatrix{2,Nv,Int,2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
     return DecayTopology(static_relation, root, final_lines; child_order = static_child_order, validate)
 end
 
