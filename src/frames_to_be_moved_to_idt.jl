@@ -1,5 +1,7 @@
 abstract type AbstractInitialFrame end
 
+const _trivial_alignment_rotation = (ϕ = 0.0, θ = 0.0, ψ = 0.0)
+
 """
     HelicityRootFrame()
 

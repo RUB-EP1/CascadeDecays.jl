@@ -76,7 +76,7 @@ function relative_wigner_angles(
 )
     path_ref = helicity_frame_path(reference_topology, particle_index; initial_frame)
     path_other = helicity_frame_path(topology, particle_index; initial_frame)
-    path_ref == path_other && return (ϕ = 0.0, θ = 0.0, ψ = 0.0)
+    path_ref == path_other && return _trivial_alignment_rotation
     cmp = compare_instruction_paths(path_ref, path_other, objs; T = T)
     return wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
 end
