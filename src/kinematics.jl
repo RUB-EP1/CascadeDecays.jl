@@ -64,6 +64,9 @@ end
 line_invariant(topology::DecayTopology, x::CascadeKinematics, address) =
     line_invariant(x, line_ind_for(topology, address))
 
+line_invariant(x::CascadeKinematics, topology::DecayTopology, address) =
+    line_invariant(topology, x, address)
+
 function vertex_masses2(topology::DecayTopology, x::CascadeKinematics, vertex_ind::Integer)
     _check_kinematics(topology, x)
     l0, l1, l2 = vertex_line_inds(topology, vertex_ind)
@@ -72,6 +75,12 @@ end
 
 vertex_masses2(topology::DecayTopology, x::CascadeKinematics, address) =
     vertex_masses2(topology, x, vertex_ind_for(topology, address))
+
+vertex_masses2(x::CascadeKinematics, topology::DecayTopology, vertex_ind::Integer) =
+    vertex_masses2(topology, x, vertex_ind)
+
+vertex_masses2(x::CascadeKinematics, topology::DecayTopology, address) =
+    vertex_masses2(topology, x, address)
 
 function vertex_helicities(topology::DecayTopology, two_λs, vertex_ind::Integer)
     l0, l1, l2 = vertex_line_inds(topology, vertex_ind)
@@ -94,3 +103,6 @@ end
 
 vertex_angles(topology::DecayTopology, x::CascadeKinematics, address) =
     vertex_angles(x, vertex_ind_for(topology, address))
+
+vertex_angles(x::CascadeKinematics, topology::DecayTopology, address) =
+    vertex_angles(topology, x, address)

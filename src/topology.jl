@@ -1,5 +1,5 @@
 """
-    DecayTopology(relation; root, finals)
+    DecayTopology(relation; root, finals, child_order)
 
 Flat line-vertex incidence graph for a connected binary cascade tree.
 
@@ -10,21 +10,26 @@ Rows of `relation` are lines and columns are vertices. The sign convention is:
 - `0`: line is unrelated to the vertex
 
 The root/mother line is included explicitly. Final-state lines are listed in
-`finals`.
+`finals`. The ordered pair of outgoing children at each vertex is stored
+separately from the incidence matrix because helicity conventions depend on
+child order. Prefer bracket notation for user-facing construction; when using
+the flat relation constructor, `child_order` must be supplied explicitly.
 """
-struct DecayTopology{Nl,Nv,Nf,T<:Integer,L}
+struct DecayTopology{Nl,Nv,Nf,T<:Integer,L,C}
     relation::SMatrix{Nl,Nv,T,L}
     root::Int
     finals::SVector{Nf,Int}
+    child_order::SMatrix{2,Nv,Int,C}
 end
 
 function DecayTopology(
     relation::SMatrix{Nl,Nv,T,L},
     root::Integer,
     finals::SVector{Nf,Int};
+    child_order::SMatrix{2,Nv,Int,C},
     validate::Bool = true,
-) where {Nl,Nv,Nf,T<:Integer,L}
-    topology = DecayTopology{Nl,Nv,Nf,T,L}(relation, Int(root), finals)
+) where {Nl,Nv,Nf,T<:Integer,L,C}
+    topology = DecayTopology{Nl,Nv,Nf,T,L,C}(relation, Int(root), finals, child_order)
     validate && validate_topology(topology)
     return topology
 end
@@ -33,13 +38,15 @@ function DecayTopology(
     relation::AbstractMatrix{T};
     root::Integer,
     finals,
+    child_order,
     validate::Bool = true,
 ) where {T<:Integer}
     Nl, Nv = size(relation)
     final_tuple = Tuple(Int(line_ind) for line_ind in finals)
     final_lines = SVector{length(final_tuple),Int}(final_tuple)
     static_relation = SMatrix{Nl,Nv,T,Nl * Nv}(relation)
-    return DecayTopology(static_relation, root, final_lines; validate)
+    static_child_order = SMatrix{2,Nv,Int,2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
+    return DecayTopology(static_relation, root, final_lines; child_order = static_child_order, validate)
 end
 
 _bracket_leaf(x::Integer) = Int(x)
@@ -92,7 +99,8 @@ Construct a flat line-vertex incidence topology from binary bracket notation,
 for example `DecayTopology((((1, 2), 3), 4))`.
 
 The generated convention is final-state lines first, internal lines next in
-postorder, and the root/mother line last. Vertex columns are root-first.
+postorder, and the root/mother line last. Vertex columns are root-first, and
+the left/right order in each bracket pair is preserved.
 """
 function DecayTopology(tree::Tuple)
     final_labels = sort!(_collect_final_labels!(Int[], tree))
@@ -105,6 +113,7 @@ function DecayTopology(tree::Tuple)
     _assign_lines!(line_ind_for_address, Ref(nfinal + 1), tree)
     vertex_addresses = _collect_vertex_addresses_preorder!(Any[], tree)
     relation = zeros(Int, nlines, nvertices)
+    child_order = zeros(Int, 2, nvertices)
     for (vertex_ind, address) in pairs(vertex_addresses)
         parent = line_ind_for_address[address]
         child1 = line_ind_for_address[address[1]]
@@ -112,8 +121,9 @@ function DecayTopology(tree::Tuple)
         relation[parent, vertex_ind] = -1
         relation[child1, vertex_ind] = 1
         relation[child2, vertex_ind] = 1
+        child_order[:, vertex_ind] .= (child1, child2)
     end
-    return DecayTopology(relation; root = nlines, finals = Tuple(1:nfinal))
+    return DecayTopology(relation; root = nlines, finals = Tuple(1:nfinal), child_order)
 end
 
 relation(topology::DecayTopology) = topology.relation
@@ -125,6 +135,7 @@ root_line_ind(topology::DecayTopology) = topology.root
 Return the final-state line ids in canonical order (`1:nfinal`).
 """
 final_line_inds(topology::DecayTopology) = topology.finals
+
 nlines(::DecayTopology{Nl}) where {Nl} = Nl
 nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv
 nfinal(::DecayTopology{Nl,Nv,Nf}) where {Nl,Nv,Nf} = Nf
@@ -228,6 +239,8 @@ function validate_topology(topology::DecayTopology)
             throw(ArgumentError("vertex_ind $vertex_ind must have exactly one incoming line"))
         length(outgoing_line_inds(topology, vertex_ind)) == 2 ||
             throw(ArgumentError("vertex_ind $vertex_ind must have exactly two outgoing lines"))
+        sort(collect(topology.child_order[:, vertex_ind])) == outgoing_line_inds(topology, vertex_ind) ||
+            throw(ArgumentError("child_order for vertex_ind $vertex_ind must match outgoing lines"))
     end
 
     produced_by(topology, root_line_ind(topology)) === nothing ||
@@ -276,7 +289,7 @@ line id used by the flat topology. The root address resolves to `root_line_ind`.
 function line_ind_for(topology::DecayTopology, address)
     labels = _address_final_labels(address)
     for line_ind in _line_range(topology)
-        Tuple(final_descendants(topology, line_ind)) == labels && return Int(line_ind)
+        _final_descendants_tuple(topology, line_ind) == labels && return Int(line_ind)
     end
     throw(ArgumentError("address $address does not correspond to a line_ind in this topology"))
 end
@@ -312,11 +325,6 @@ function _line_ind_address(topology::DecayTopology, line_ind::Integer)
     return (_line_ind_address(topology, children[1]), _line_ind_address(topology, children[2]))
 end
 
-function _ordered_children(topology::DecayTopology, vertex_ind::Int)
-    children = outgoing_line_inds(topology, vertex_ind)
-    return sort(children; by = line_ind -> minimum(_final_descendants_unordered(topology, line_ind)))
-end
-
 function final_descendants(topology::DecayTopology, line_ind::Integer)
     _require_line_ind(topology, line_ind)
     vertex_ind = consumed_by(topology, line_ind)
@@ -331,19 +339,19 @@ end
 """
     child_line_inds(topology, vertex_ind)
 
-Return the two outgoing lines of topology vertex `vertex_ind` in canonical child
+Return the two outgoing lines of topology vertex `vertex_ind` in stored child
 order. This is the ordered pair that should be used for local two-body arguments.
 """
 function child_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
-    return _ordered_children(topology, Int(vertex_ind))
+    return topology.child_order[:, Int(vertex_ind)]
 end
 
 """
     vertex_line_inds(topology, vertex_ind)
 
-Return `(parent, child1, child2)` for a binary vertex. The children are ordered
-canonically by their final-state descendants.
+Return `(parent, child1, child2)` for a binary vertex. The children are returned
+in stored child order.
 """
 function vertex_line_inds(topology::DecayTopology, vertex_ind::Integer)
     parent = incoming_line_ind(topology, vertex_ind)
@@ -368,7 +376,56 @@ end
 """
     bracket(topology; labels=nothing)
 
-Reconstruct a compact bracket notation from the canonical flat topology.
+Reconstruct a compact bracket notation from the flat topology.
 """
 bracket(topology::DecayTopology; labels = nothing) =
     _bracket_for_line_ind(topology, root_line_ind(topology), labels)
+
+"""
+    bracket_notation(topology; labels=nothing)
+
+Return the compact nested-tuple notation for a topology, for example
+`"((1,2),3)"`.
+"""
+bracket_notation(topology::DecayTopology; labels = nothing) =
+    bracket(topology; labels)
+
+function _final_descendants_tuple(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return (Int(line_ind),)
+    child1, child2 = child_line_inds(topology, vertex_ind)
+    return (
+        _final_descendants_tuple(topology, child1)...,
+        _final_descendants_tuple(topology, child2)...,
+    )
+end
+
+_indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
+    _final_descendants_tuple(topology, line_ind)
+
+function _subtree_line_inds(topology::DecayTopology, line_ind::Integer)
+    line_inds = Int[Int(line_ind)]
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return line_inds
+    for child in child_line_inds(topology, vertex_ind)
+        append!(line_inds, _subtree_line_inds(topology, child))
+    end
+    return line_inds
+end
+
+function _child_containing_line_ind(topology::DecayTopology, vertex_ind::Integer, line_ind::Integer)
+    for child in child_line_inds(topology, vertex_ind)
+        descendants = final_descendants(topology, child)
+        if child == line_ind || line_ind in descendants || !isfinal_line_ind(topology, line_ind) && !isroot_line_ind(topology, line_ind) && line_ind in _subtree_line_inds(topology, child)
+            return child
+        end
+    end
+    throw(ArgumentError("line_ind $line_ind is not below vertex $vertex_ind"))
+end
+
+function _root_vertex_ind(topology::DecayTopology)
+    vertex_ind = consumed_by(topology, root_line_ind(topology))
+    vertex_ind === nothing && throw(ArgumentError("topology root line is not consumed by any vertex"))
+    return vertex_ind
+end

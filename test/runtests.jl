@@ -4,7 +4,16 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: @jp_str, NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins
+using ThreeBodyDecays:
+    @jp_str,
+    NoRecoupling,
+    RecouplingLS,
+    SpinParity,
+    ThreeBodyMasses,
+    ThreeBodySpins,
+    aligned_four_vectors,
+    cosθij,
+    x2σs
 
 struct TestVertex <: AbstractVertex
     name::Symbol
@@ -41,16 +50,8 @@ end
 end
 
 @testset "DecayTopology" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
+    topology = DecayTopology(((1, 2), 3))
 
-    @test validate_topology(topology)
     @test nlines(topology) == 5
     @test nvertices(topology) == 2
     @test nfinal(topology) == 3
@@ -60,7 +61,7 @@ end
     @test has_canonical_line_order(topology)
 
     @test outgoing_line_inds(topology, 1) == [3, 4]
-    @test child_line_inds(topology, 1) == [4, 3]
+    @test child_line_inds(topology, 1) == SVector(4, 3)
     @test final_descendants(topology, 4) == [1, 2]
     @test outgoing_line_inds(topology, 2) == [1, 2]
     @test child_line_inds(topology, 2) == [1, 2]
@@ -70,18 +71,11 @@ end
     @test produced_by(topology, 5) === nothing
     @test consumed_by(topology, 3) === nothing
 
-    @test bracket(topology) == "((1,2),3)"
+    @test bracket_notation(topology) == "((1,2),3)"
 end
 
 @testset "CascadeSystem and kinematic routing" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
+    topology = DecayTopology(((1, 2), 3))
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     chain = DecayChain(
         topology,
@@ -120,46 +114,63 @@ end
     )
 end
 
-@testset "DecayTopology validation" begin
-    invalid_vertex = [
-        0 1
-        0 0
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws ArgumentError DecayTopology(invalid_vertex; root = 5, finals = (1, 2, 3))
+function _fourvector_from_tuple(p)
+    return FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Float64(p[4]))
+end
 
-    invalid_final = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws ArgumentError DecayTopology(invalid_final; root = 5, finals = (1, 2, 4))
+@testset "KinematicTask from four-vectors" begin
+    ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
+    σs = x2σs([0.5, 0.3], ms; k = 3)
+    ref_topology = DecayTopology(((1, 2), 3))
+    alt_topology = DecayTopology(((3, 1), 2))
 
-    invalid_root = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws ArgumentError DecayTopology(invalid_root; root = 1, finals = (1, 2, 3))
-    @test_throws ArgumentError incoming_line_inds(DecayTopology(invalid_root; root = 5, finals = (1, 2, 3)), 3)
-    @test_throws ArgumentError produced_by(DecayTopology(invalid_root; root = 5, finals = (1, 2, 3)), 6)
+    objs_cm = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(σs, ms; k = 3))
+    event_transform(p) = p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4)
+    objs = Tuple(event_transform(p) for p in objs_cm)
+
+    task = KinematicTask(
+        (ref_topology, alt_topology);
+        reference_topology = ref_topology,
+        wigner_finals = (1, 3),
+        initial_frame = CurrentFrame(),
+    )
+    point = KinematicPoint(task, objs)
+    x_ref = kinematics_at(point, ref_topology)
+
+    @test length(task.programs) == 2
+    @test length(task.programs[1].vertex_programs) == nvertices(ref_topology)
+    program_show = sprint(show, task.programs[1].vertex_programs)
+    @test occursin("VertexPrograms with 2 measurements", program_show)
+    @test occursin("vertex ((1,2),3):", program_show)
+    @test occursin("vertex (1,2):", program_show)
+    @test bracket_notation(task.reference_topology) == "((1,2),3)"
+    @test line_invariant(x_ref, 1) ≈ mass(objs[1])^2
+    @test line_invariant(ref_topology, x_ref, (1, 2)) ≈ σs[3]
+    @test line_invariant(x_ref, ref_topology, (1, 2)) ≈ σs[3]
+    @test vertex_angles(x_ref, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(x_ref, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
+    @test vertex_angles(x_ref, ref_topology, (1, 2)).ϕ ≈ 0.5
+    @test vertex_angles(x_ref, ref_topology, (1, 2)).cosθ ≈ cosθij(σs, ms^2; k = 3)
+
+    ref_alignments = alignment_angles_at(point, ref_topology)
+    alt_alignments = alignment_angles_at(point, alt_topology)
+    @test length(ref_alignments) == 3
+    @test length(alt_alignments) == 3
+    @test ref_alignments[1] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test ref_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test ref_alignments[3] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[1] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+
+    boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
+    x_helicity = CascadeKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
+    @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
 
 @testset "DecayChain payload mapping" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
+    topology = DecayTopology(((1, 2), 3))
     chain = DecayChain(
         topology,
         (ConstantLineshape(1.0),),
@@ -171,7 +182,7 @@ end
     @test chain.topology === topology
     @test nfinal(chain) == 3
     @test chain.propagator_two_js == SVector(2)
-    @test bracket(chain) == "((1,2),3)"
+    @test bracket_notation(chain) == "((1,2),3)"
     @test final_descendants(chain, 4) == [1, 2]
     @test chain.propagators[1](2.0) == 1.0
 
@@ -259,16 +270,7 @@ end
 end
 
 @testset "Canonical routing on larger tree" begin
-    relation = [
-        0 0 1
-        0 0 1
-        0 1 0
-        1 0 0
-        0 1 -1
-        1 -1 0
-        -1 0 0
-    ]
-    topology = DecayTopology(relation; root = 7, finals = (1, 2, 3, 4))
+    topology = DecayTopology((((1, 2), 3), 4))
     system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
     x = CascadeKinematics(
         topology,
@@ -291,7 +293,7 @@ end
     @test has_canonical_line_order(topology)
     @test outgoing_line_inds(topology, 1) == [4, 6]
     @test child_line_inds(topology, 1) == [6, 4]
-    @test bracket(topology) == "(((1,2),3),4)"
+    @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
     @test vertex_masses2(topology, x, 2) == (2.3, 1.2, 9.0)
@@ -329,7 +331,7 @@ end
     @test CascadeDecays.relation(topology) == SMatrix{7,3,Int,21}(relation)
     @test nfinal(topology) == 4
     @test nvertices(topology) == 3
-    @test bracket(topology) == "(((1,2),3),4)"
+    @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test_throws ArgumentError DecayTopology(((1, 3), 4))
     @test_throws ArgumentError DecayTopology((1, (2, (3, 3))))
@@ -349,8 +351,8 @@ end
         SystemSpins(0, 0, 0, 0; two_h0 = 0),
         SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
     )
-    programs = helicity_angle_programs(topology)
-    x = cascade_kinematics(topology, system, objs)
+    programs = CascadeDecays.helicity_angle_programs(topology)
+    x = CascadeKinematics(topology, objs)
 
     @test length(programs) == 3
     @test length.(programs) == (2, 3, 4)
@@ -397,14 +399,7 @@ end
 include("threebody_compat_tests.jl")
 
 @testset "LS decay-chain builders" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
+    topology = DecayTopology(((1, 2), 3))
     system = CascadeSystem(
         SystemSpins(0, 0, 0; two_h0 = 0),
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),

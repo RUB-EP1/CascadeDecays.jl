@@ -43,6 +43,7 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Internal notation" => "notation.md",
+        "Kinematic tasks" => "kinematic-task.md",
         "Tutorial" => "tutorial.md",
         "API reference" => "api-reference.md",
     ],

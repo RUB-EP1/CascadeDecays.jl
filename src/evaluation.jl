@@ -1,56 +1,3 @@
-_indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
-    Tuple(final_descendants(topology, line_ind))
-
-_neg_indices(indices::Tuple) = Tuple(-i for i in indices)
-
-function _child_containing_line_ind(topology::DecayTopology, vertex_ind::Integer, line_ind::Integer)
-    for child in child_line_inds(topology, vertex_ind)
-        descendants = final_descendants(topology, child)
-        if child == line_ind || line_ind in descendants || !isfinal_line_ind(topology, line_ind) && !isroot_line_ind(topology, line_ind) && line_ind in _subtree_line_inds(topology, child)
-            return child
-        end
-    end
-    throw(ArgumentError("line_ind $line_ind is not below vertex $vertex_ind"))
-end
-
-function _subtree_line_inds(topology::DecayTopology, line_ind::Integer)
-    line_inds = Int[Int(line_ind)]
-    vertex_ind = consumed_by(topology, line_ind)
-    vertex_ind === nothing && return line_inds
-    for child in child_line_inds(topology, vertex_ind)
-        append!(line_inds, _subtree_line_inds(topology, child))
-    end
-    return line_inds
-end
-
-function _root_vertex_ind(topology::DecayTopology)
-    vertex_ind = consumed_by(topology, root_line_ind(topology))
-    vertex_ind === nothing && throw(ArgumentError("topology root line is not consumed by any vertex"))
-    return vertex_ind
-end
-
-abstract type AbstractInitialFrame end
-
-"""
-    HelicityRootFrame()
-
-Start generated helicity-angle programs by transforming to the root/system
-helicity frame. This is the default for fully general four-vectors.
-"""
-struct HelicityRootFrame <: AbstractInitialFrame end
-
-"""
-    CurrentFrame()
-
-Start generated helicity-angle programs in the current axes. Use this when the
-input four-vectors are already expressed in the intended system frame.
-"""
-struct CurrentFrame <: AbstractInitialFrame end
-
-_initial_frame_program(topology::DecayTopology, ::HelicityRootFrame) =
-    (ToHelicityFrame(_indices_for_line_ind(topology, root_line_ind(topology))),)
-_initial_frame_program(::DecayTopology, ::CurrentFrame) = ()
-
 """
     helicity_angle_program(topology, vertex_ind; initial_frame=HelicityRootFrame())
 
@@ -108,28 +55,6 @@ helicity_angle_programs(
 
 function _sum_objects(objs, indices::Tuple)
     return reduce(+, (objs[i] for i in indices))
-end
-
-"""
-    cascade_kinematics(topology, system, objs; initial_frame=HelicityRootFrame())
-
-Compute a `CascadeKinematics` input from final-state four-vectors `objs`.
-Internal invariant masses are derived from final-state descendants, and vertex
-angles are computed with generated helicity-angle programs.
-"""
-function cascade_kinematics(
-    topology::DecayTopology,
-    system::CascadeSystem,
-    objs;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-)
-    internal_masses2 = Tuple(mass(_sum_objects(objs, _indices_for_line_ind(topology, line_ind)))^2 for line_ind in internal_line_inds(topology))
-    programs = helicity_angle_programs(topology; initial_frame)
-    angle_results = map(programs) do program
-        _, result = apply_decay_instruction(program, objs)
-        only(values(result))
-    end
-    return CascadeKinematics(topology, system; internal_masses2, vertex_angles=Tuple(angle_results))
 end
 
 function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)

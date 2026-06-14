@@ -30,7 +30,7 @@ end
     @test vertex_angles(topology, hand_x, (1, 2)) == (cosθ = expected_inner_cosθ, ϕ = 0.0)
 
     objs = _fourvector_from_tuple.(aligned_four_vectors(σs, ms; k = 3))
-    generated_x = cascade_kinematics(topology, system, objs)
+    generated_x = CascadeKinematics(topology, objs)
 
     @test line_invariant(topology, generated_x, (1, 2)) ≈ σs[3]
     @test vertex_angles(topology, generated_x, ((1, 2), 3)).cosθ ≈ 1.0
@@ -46,7 +46,7 @@ end
     θ = deg2rad(10.0)
     ϕ = deg2rad(20.0)
     rotated_objs = map(p -> p |> Ry(θ) |> Rz(ϕ), objs)
-    generated_x = cascade_kinematics(topology, system, rotated_objs; initial_frame = CurrentFrame())
+    generated_x = CascadeKinematics(topology, rotated_objs; initial_frame = CurrentFrame())
     root_angles = vertex_angles(topology, generated_x, ((1, 2), 3))
 
     @test root_angles.cosθ ≈ cos(θ)
