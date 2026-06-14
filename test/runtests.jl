@@ -153,7 +153,10 @@ end
 
     @test length(task.programs) == 2
     @test length(task.programs[1].vertex_programs) == nvertices(ref_topology)
-    @test occursin("VertexPrograms with 2 measurements", sprint(show, task.programs[1].vertex_programs))
+    program_show = sprint(show, task.programs[1].vertex_programs)
+    @test occursin("VertexPrograms with 2 measurements", program_show)
+    @test occursin("vertex ((1,2),3):", program_show)
+    @test occursin("vertex (1,2):", program_show)
     @test bracket_notation(task.reference_topology) == "((1,2),3)"
     @test line_invariant(x_ref, 1) ≈ mass(objs[1])^2
     @test line_invariant(ref_topology, x_ref, (1, 2)) ≈ σs[3]

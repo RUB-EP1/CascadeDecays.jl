@@ -1,15 +1,21 @@
-struct VertexPrograms{P}
+struct VertexPrograms{P,L}
     programs::P
+    labels::L
 end
 
 Base.length(programs::VertexPrograms) = length(programs.programs)
 Base.getindex(programs::VertexPrograms, i::Integer) = programs.programs[i]
 Base.iterate(programs::VertexPrograms, state...) = iterate(programs.programs, state...)
 
+function _compact_vertex_label(address)
+    address isa Integer && return string(address)
+    return "(" * _compact_vertex_label(address[1]) * "," * _compact_vertex_label(address[2]) * ")"
+end
+
 function Base.show(io::IO, programs::VertexPrograms)
     print(io, "VertexPrograms with ", length(programs), " measurements")
-    for (i, program) in enumerate(programs)
-        print(io, "\n  vertex ", i, ": ")
+    for (label, program) in zip(programs.labels, programs)
+        print(io, "\n  vertex ", label, ": ")
         show(io, program)
     end
 end
@@ -63,7 +69,10 @@ function KinematicTask(
     end
     programs = ntuple(length(topologies)) do i
         t = topologies[i]
-        vertex_programs = VertexPrograms(helicity_angle_programs(t; initial_frame))
+        vertex_programs = VertexPrograms(
+            helicity_angle_programs(t; initial_frame),
+            ntuple(v -> _compact_vertex_label(vertex_address(t, v)), nvertices(t)),
+        )
         if isempty(wigner_finals)
             return TopologyPrograms(vertex_programs, ())
         end
