@@ -27,7 +27,7 @@ export produced_by, consumed_by
 export internal_line_inds, propagating_line_inds
 export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
-export bracket_notation, validate_topology
+export bracket_notation
 include("topology.jl")
 
 # quantum numbers

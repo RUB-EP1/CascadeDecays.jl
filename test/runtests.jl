@@ -59,7 +59,6 @@ end
     ]
     topology = DecayTopology(relation; root = 5, finals = (1, 2, 3))
 
-    @test validate_topology(topology)
     @test nlines(topology) == 5
     @test nvertices(topology) == 2
     @test nfinal(topology) == 3
