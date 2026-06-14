@@ -72,16 +72,6 @@ function helicity_frame_path(
 end
 
 """
-    helicity_frame_paths(topology; initial_frame=HelicityRootFrame())
-
-Return one helicity-frame path per final-state particle in canonical order.
-"""
-helicity_frame_paths(
-    topology::DecayTopology;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-) = ntuple(i -> helicity_frame_path(topology, i; initial_frame), nfinal(topology))
-
-"""
     relative_wigner_angles(reference_topology, topology, particle_index, objs; T=Float64)
 
 Compare helicity-frame instruction paths for final-state particle
@@ -103,52 +93,12 @@ function relative_wigner_angles(
     return wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
 end
 
-function _root_relative_wigner_angles(
-    reference_topology::DecayTopology,
-    topology::DecayTopology,
-    objs;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-    T::Type{<:Real}=Float64,
-)
-    path_ref = _initial_frame_program(reference_topology, initial_frame)
-    path_other = _initial_frame_program(topology, initial_frame)
-    path_ref == path_other && return _trivial_alignment_rotation
-    cmp = compare_instruction_paths(path_ref, path_other, objs; T = T)
-    return wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
-end
-
-"""
-    external_wigner_angles(reference_topology, topology, objs; initial_frame=HelicityRootFrame())
-
-Precompute relative Wigner angles for every external axis of `topology` in
-[`external_line_inds`](@ref) order: final-state particles followed by the root.
-"""
-function external_wigner_angles(
-    reference_topology::DecayTopology,
-    topology::DecayTopology,
-    objs;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-)
-    final_angles = ntuple(nfinal(topology)) do i
-        relative_wigner_angles(
-            reference_topology,
-            topology,
-            i,
-            objs;
-            initial_frame,
-        )
-    end
-    root_angles = _root_relative_wigner_angles(
-        reference_topology,
-        topology,
-        objs;
-        initial_frame,
-    )
-    return (final_angles..., root_angles)
-end
-
 _wigner_d_matrix(two_j::Integer, angles::WignerAngles) =
     conj.(wigner_d_zyz_matrix(two_j, angles.α, angles.cosβ, angles.γ))
+
+function _external_axis_line_inds(topology::DecayTopology)
+    return (Tuple(final_line_inds(topology))..., root_line_ind(topology))
+end
 
 function _external_wigner_matrices(
     chain::DecayChain,
@@ -158,7 +108,7 @@ function _external_wigner_matrices(
     final_lines = final_line_inds(chain.topology)
     length(angles) == length(final_lines) ||
         throw(ArgumentError("angles must have one entry per final-state particle"))
-    ext_lines = external_line_inds(chain.topology)
+    ext_lines = _external_axis_line_inds(chain.topology)
     two_js = line_two_js(chain, system)
     return ntuple(length(ext_lines)) do i
         line = ext_lines[i]
@@ -180,7 +130,7 @@ for Ne in 1:8
     F_ref = Expr(:ref, :F, extp_syms...)
     A_ref = Expr(:ref, :A, ext_syms...)
     tullio_rhs = reduce((a, b) -> :($a * $b), D_refs; init = F_ref)
-    @eval function _apply_external_wigner_rotations(
+    @eval function _contract_external_wigner_rotations(
         F::AbstractArray{Ta,$Ne},
         Ds::Tuple,
     ) where {Ta}
@@ -192,11 +142,11 @@ for Ne in 1:8
     end
 end
 
-function _apply_external_wigner_rotations(F::AbstractArray{Ta,Ne}, Ds::Tuple) where {Ta,Ne}
+function _contract_external_wigner_rotations(F::AbstractArray{Ta,Ne}, Ds::Tuple) where {Ta,Ne}
     throw(ArgumentError("unsupported external axis count Ne=$Ne for Wigner contraction"))
 end
 
-function apply_external_wigner_rotations(
+function _apply_external_wigner_rotations(
     F::AbstractArray,
     chain::DecayChain,
     system::CascadeSystem,
@@ -204,5 +154,5 @@ function apply_external_wigner_rotations(
 ) where {Nf}
     Ds = _external_wigner_matrices(chain, system, angles)
     all(D -> size(D) == (1, 1), Ds) && return F
-    return _apply_external_wigner_rotations(F, Ds)
+    return _contract_external_wigner_rotations(F, Ds)
 end

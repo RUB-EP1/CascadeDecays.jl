@@ -136,15 +136,6 @@ Return the final-state line ids in canonical order (`1:nfinal`).
 """
 final_line_inds(topology::DecayTopology) = topology.finals
 
-"""
-    external_line_inds(topology)
-
-Return every external line id in evaluation order: final-state lines followed by
-the root/mother line.
-"""
-external_line_inds(topology::DecayTopology) =
-    (Tuple(final_line_inds(topology))..., root_line_ind(topology))
-
 nlines(::DecayTopology{Nl}) where {Nl} = Nl
 nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv
 nfinal(::DecayTopology{Nl,Nv,Nf}) where {Nl,Nv,Nf} = Nf

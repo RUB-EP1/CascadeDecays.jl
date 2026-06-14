@@ -396,7 +396,6 @@ end
     @test routed_vertex_amplitude(negative_phase, masses2, (0, -1, -1), spins, angles) == -1
 end
 
-include("threebody_compat_tests.jl")
 include("lc2pkpi_compat_tests.jl")
 
 @testset "LS decay-chain builders" begin

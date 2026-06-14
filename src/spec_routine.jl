@@ -238,7 +238,7 @@ function amplitude(
     x = kinematics_at(point, chain.topology)
     A = _vertex_helicity_amplitude(chain, system, x)
     if !isempty(point.task.wigner_finals)
-        A = apply_external_wigner_rotations(
+        A = _apply_external_wigner_rotations(
             A,
             chain,
             system,

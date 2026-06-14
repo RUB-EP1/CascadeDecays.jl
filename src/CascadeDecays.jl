@@ -28,7 +28,7 @@ export produced_by, consumed_by
 export internal_line_inds, propagating_line_inds
 export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
-export bracket, bracket_notation, external_line_inds
+export bracket_notation
 include("topology.jl")
 
 # quantum numbers
@@ -61,10 +61,8 @@ include("chain.jl")
 
 # kinematic frames and path comparisons
 export HelicityRootFrame, CurrentFrame
-export WignerAngles
 include("frames_to_be_moved_to_idt.jl")
-export helicity_frame_path, helicity_frame_paths, relative_wigner_angles
-export external_wigner_angles, apply_external_wigner_rotations
+export helicity_frame_path, relative_wigner_angles
 include("wigner_rotations.jl")
 
 # evaluation
@@ -75,12 +73,6 @@ include("evaluation.jl")
 export KinematicTask, KinematicPoint
 export kinematics_at, alignment_angles_at
 include("spec_routine.jl")
-
-# cascade container
-export CascadeDecay
-export reference_topology, cascade_system, couplings
-export unpolarized_intensity
-include("cascade_decay.jl")
 
 # LS coupling
 export possible_vertex_ls, minimal_vertex_coupling
