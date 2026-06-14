@@ -150,8 +150,9 @@ relative_wigner_angles(
 )
 ```
 
-Here `wigner_finals = (1, 3)` requested spin-frame alignments for particles 1
-and 3. Other external axes, including the root, remain the identity rotation.
+Here `wigner_finals = (1, 3)` requested spin-frame alignments for final
+particles 1 and 3. The result is indexed by final-particle order; unrequested
+final particles carry the identity rotation.
 
 ```@example kin_task
 alignment_angles_at(point, topologies[2])

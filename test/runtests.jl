@@ -167,12 +167,12 @@ end
 
     ref_alignments = alignment_angles_at(point, ref_topology)
     alt_alignments = alignment_angles_at(point, alt_topology)
+    @test length(ref_alignments) == 3
+    @test length(alt_alignments) == 3
     @test ref_alignments[1] == (α = 0.0, cosβ = 1.0, γ = 0.0)
     @test ref_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
     @test ref_alignments[3] == (α = 0.0, cosβ = 1.0, γ = 0.0)
-    @test ref_alignments[4] == (α = 0.0, cosβ = 1.0, γ = 0.0)
     @test alt_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
-    @test alt_alignments[4] == (α = 0.0, cosβ = 1.0, γ = 0.0)
     @test alt_alignments[1] != (α = 0.0, cosβ = 1.0, γ = 0.0)
     @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 

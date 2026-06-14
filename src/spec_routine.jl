@@ -138,9 +138,8 @@ kinematics_at(point::KinematicPoint, topology::DecayTopology) =
     alignment_angles_at(point, topology)
 
 Return the relative Wigner alignment angles stored in `point` for `topology`.
-Axes follow [`external_line_inds`](@ref): final particles first, then the root.
-Final particles not requested by `point.task.wigner_finals` carry the identity
-rotation.
+Axes follow final-state particle order. Final particles not requested by
+`point.task.wigner_finals` carry the identity rotation.
 """
 alignment_angles_at(point::KinematicPoint, topology::DecayTopology) =
     point.alignments[_topology_slot(point.task, topology)]
@@ -169,11 +168,10 @@ function kinematic_point(task::KinematicTask, objs)
     alignments = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
         progs = task.programs[i]
-        ext_lines = external_line_inds(t)
-        Ne = length(ext_lines)
+        Nf = nfinal(t)
         alignments_tuple =
             if isempty(task.wigner_finals)
-                ntuple(_ -> _trivial_wigner, Val(Ne))
+                ntuple(_ -> _trivial_wigner, Val(Nf))
             else
             initial_frame = _effective_initial_frame(t, objs, task.initial_frame)
             alignment_paths =
@@ -185,11 +183,8 @@ function kinematic_point(task::KinematicTask, objs)
                         helicity_frame_path(t, final_ind; initial_frame),
                     )
                 end
-                ntuple(Val(Ne)) do axis
-                    line = ext_lines[axis]
-                    requested = findfirst(eachindex(task.wigner_finals)) do k
-                        final_line_inds(t)[task.wigner_finals[k]] == line
-                    end
+                ntuple(Val(Nf)) do final_ind
+                    requested = findfirst(==(final_ind), task.wigner_finals)
                     requested === nothing && return _trivial_wigner
                     path_ref, path_t = alignment_paths[requested]
                     if path_ref == path_t
@@ -200,7 +195,7 @@ function kinematic_point(task::KinematicTask, objs)
                     return (α = zyz.ϕ, cosβ = cos(zyz.θ), γ = zyz.ψ)
                 end
             end
-        return SVector{Ne,WignerAngles}(alignments_tuple)
+        return SVector{Nf,WignerAngles}(alignments_tuple)
     end
     return KinematicPoint(task, kinematics, alignments)
 end
