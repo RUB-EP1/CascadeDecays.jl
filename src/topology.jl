@@ -394,7 +394,7 @@ order. This is the ordered pair that should be used for local two-body arguments
 """
 function child_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
-    return collect(topology.child_order[:, Int(vertex_ind)])
+    return topology.child_order[:, Int(vertex_ind)]
 end
 
 """
@@ -430,6 +430,15 @@ Reconstruct a compact bracket notation from the flat topology.
 """
 bracket(topology::DecayTopology; labels = nothing) =
     _bracket_for_line_ind(topology, root_line_ind(topology), labels)
+
+"""
+    bracket_notation(topology; labels=nothing)
+
+Return the compact nested-tuple notation for a topology, for example
+`"((1,2),3)"`.
+"""
+bracket_notation(topology::DecayTopology; labels = nothing) =
+    bracket(topology; labels)
 
 _indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
     Tuple(final_descendants(topology, line_ind))

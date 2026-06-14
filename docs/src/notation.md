@@ -64,7 +64,7 @@ Final-state labels `1…4` and bracket tree (right child = spectator at each ste
 
 ```julia
 topology = DecayTopology(((1, (2, 3)), 4))
-# bracket(topology) == "((1,(2,3)),4)"
+# bracket_notation(topology) == "((1,(2,3)),4)"
 ```
 
 ### Line numbering
@@ -93,8 +93,8 @@ At each vertex index, [`vertex_line_inds`](@ref) returns `(parent, child1, child
 The `child1, child2` order is exactly the left/right order written in the bracket tree. For example:
 
 ```julia
-bracket(DecayTopology(((3, 1), 2))) == "((3,1),2)"
-bracket(DecayTopology(((1, 3), 2))) == "((1,3),2)"
+bracket_notation(DecayTopology(((3, 1), 2))) == "((3,1),2)"
+bracket_notation(DecayTopology(((1, 3), 2))) == "((1,3),2)"
 DecayTopology(((3, 1), 2)) != DecayTopology(((1, 3), 2))
 ```
 

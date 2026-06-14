@@ -55,19 +55,22 @@ function _helicity_step_instruction(topology::DecayTopology, vertex_ind::Integer
 end
 
 """
-    helicity_frame_path(topology, line_ind; initial_frame=HelicityRootFrame())
+    helicity_frame_path(topology, particle_index; initial_frame=HelicityRootFrame())
 
 Build an `InstructionalDecayTrees.jl` instruction path that defines the helicity
-quantization frame for external line `line_ind`.
+quantization frame for final-state particle `particle_index`. A final particle
+is represented internally by a topology line; this method keeps that line id out
+of the user-facing API.
 """
 function helicity_frame_path(
     topology::DecayTopology,
-    line_ind::Integer;
+    particle_index::Integer;
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
+    particle_index in Base.OneTo(nfinal(topology)) ||
+        throw(ArgumentError("particle_index $particle_index is outside 1:$(nfinal(topology))"))
+    line_ind = final_line_inds(topology)[particle_index]
     _require_line_ind(topology, line_ind)
-    isfinal_line_ind(topology, line_ind) || line_ind == root_line_ind(topology) ||
-        throw(ArgumentError("helicity_frame_path requires a final or root line_ind"))
     program = _initial_frame_program(topology, initial_frame)
     for step in _path_steps_to_line(topology, line_ind)
         program = (
@@ -79,22 +82,22 @@ function helicity_frame_path(
 end
 
 """
-    relative_wigner_angles(reference_topology, topology, line_ind, objs; T=Float64)
+    relative_wigner_angles(reference_topology, topology, particle_index, objs; T=Float64)
 
-Compare helicity-frame instruction paths for `line_ind` and return ZYZ Wigner angles
-`(ϕ, θ, ψ)` of the rotation from the reference topology frame to the `topology`
-frame.
+Compare helicity-frame instruction paths for final-state particle
+`particle_index` and return ZYZ Wigner angles `(ϕ, θ, ψ)` of the rotation from
+the reference topology frame to the `topology` frame.
 """
 function relative_wigner_angles(
     reference_topology::DecayTopology,
     topology::DecayTopology,
-    line_ind::Integer,
+    particle_index::Integer,
     objs;
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
     T::Type{<:Real}=Float64,
 )
-    path_ref = helicity_frame_path(reference_topology, line_ind; initial_frame)
-    path_other = helicity_frame_path(topology, line_ind; initial_frame)
+    path_ref = helicity_frame_path(reference_topology, particle_index; initial_frame)
+    path_other = helicity_frame_path(topology, particle_index; initial_frame)
     path_ref == path_other && return (ϕ = 0.0, θ = 0.0, ψ = 0.0)
     cmp = compare_instruction_paths(path_ref, path_other, objs; T = T)
     return wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)

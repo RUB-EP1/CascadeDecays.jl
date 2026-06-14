@@ -1,6 +1,22 @@
-struct TopologyPrograms
-    vertex_programs::Tuple
-    alignment_paths::Tuple
+struct VertexPrograms{P}
+    programs::P
+end
+
+Base.length(programs::VertexPrograms) = length(programs.programs)
+Base.getindex(programs::VertexPrograms, i::Integer) = programs.programs[i]
+Base.iterate(programs::VertexPrograms, state...) = iterate(programs.programs, state...)
+
+function Base.show(io::IO, programs::VertexPrograms)
+    print(io, "VertexPrograms with ", length(programs), " measurements")
+    for (i, program) in enumerate(programs)
+        print(io, "\n  vertex ", i, ": ")
+        show(io, program)
+    end
+end
+
+struct TopologyPrograms{V,A}
+    vertex_programs::V
+    alignment_paths::A
 end
 
 const _REST_FRAME_RTOL = 1e-12
@@ -9,7 +25,7 @@ const _REST_FRAME_RTOL = 1e-12
     KinematicTask(topologies; reference_topology, wigner_finals, initial_frame)
 
 Reusable kinematic specification: topologies, reference frame for alignment,
-which final indices to measure at evaluate, and precompiled IDT programs.
+which final indices to align, and precompiled IDT programs.
 `initial_frame` is stored so evaluation can fall back to `CurrentFrame()` when
 the reconstructed parent momentum is numerically already at rest.
 """
@@ -21,6 +37,14 @@ struct KinematicTask{Tops,Ref,F,Frame,Progs}
     programs::Progs
 end
 
+"""
+    KinematicPoint
+
+Evaluated kinematic data for one event and one [`KinematicTask`](@ref). It
+stores one [`CascadeKinematics`](@ref) object per task topology, plus one
+external-axis alignment tuple per topology for the final particles requested by
+`task.wigner_finals`.
+"""
 struct KinematicPoint{Task,Kins,Aligns}
     task::Task
     kinematics::Kins
@@ -39,7 +63,7 @@ function KinematicTask(
     end
     programs = ntuple(length(topologies)) do i
         t = topologies[i]
-        vertex_programs = helicity_angle_programs(t; initial_frame)
+        vertex_programs = VertexPrograms(helicity_angle_programs(t; initial_frame))
         if isempty(wigner_finals)
             return TopologyPrograms(vertex_programs, ())
         end
@@ -47,10 +71,9 @@ function KinematicTask(
             final_ind = wigner_finals[k]
             final_ind in Base.OneTo(nfinal(t)) ||
                 throw(ArgumentError("wigner_finals[$k]=$final_ind outside 1:$(nfinal(t)) for topology $i"))
-            line = final_line_inds(t)[final_ind]
             (
-                helicity_frame_path(reference_topology, line; initial_frame),
-                helicity_frame_path(t, line; initial_frame),
+                helicity_frame_path(reference_topology, final_ind; initial_frame),
+                helicity_frame_path(t, final_ind; initial_frame),
             )
         end
         return TopologyPrograms(vertex_programs, alignment_paths)
@@ -95,19 +118,35 @@ function _topology_slot(task::KinematicTask, topology::DecayTopology)
     return idx
 end
 
+"""
+    kinematics_at(point, topology)
+
+Return the [`CascadeKinematics`](@ref) stored in `point` for `topology`.
+This is a retrieval helper; all kinematic values were computed when the
+[`KinematicPoint`](@ref) was built.
+"""
 kinematics_at(point::KinematicPoint, topology::DecayTopology) =
     point.kinematics[_topology_slot(point.task, topology)]
 
+"""
+    alignment_angles_at(point, topology)
+
+Return the relative Wigner alignment angles stored in `point` for `topology`.
+Axes follow [`external_line_inds`](@ref): final particles first, then the root.
+Final particles not requested by `point.task.wigner_finals` carry the identity
+rotation.
+"""
 alignment_angles_at(point::KinematicPoint, topology::DecayTopology) =
     point.alignments[_topology_slot(point.task, topology)]
 
 """
-    evaluate(task, objs, system)
+    kinematic_point(task, objs, system)
 
-Evaluate one kinematic point for external four-vectors `objs` and return per-topology
-kinematics plus requested relative Wigner alignment angles.
+Build one [`KinematicPoint`](@ref) for external four-vectors `objs`. The point
+stores one [`CascadeKinematics`](@ref) per task topology plus requested relative
+Wigner alignment angles.
 """
-function evaluate(task::KinematicTask, objs, system::CascadeSystem)
+function kinematic_point(task::KinematicTask, objs, system::CascadeSystem)
     kinematics = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
         progs = task.programs[i]
@@ -135,39 +174,42 @@ function evaluate(task::KinematicTask, objs, system::CascadeSystem)
         progs = task.programs[i]
         ext_lines = external_line_inds(t)
         Ne = length(ext_lines)
-        alignments = fill(_trivial_wigner, Ne)
-        if !isempty(task.wigner_finals)
+        alignments_tuple =
+            if isempty(task.wigner_finals)
+                ntuple(_ -> _trivial_wigner, Val(Ne))
+            else
             initial_frame = _effective_initial_frame(t, objs, task.initial_frame)
             alignment_paths =
                 initial_frame === task.initial_frame ? progs.alignment_paths :
                 ntuple(length(task.wigner_finals)) do k
                     final_ind = task.wigner_finals[k]
-                    line = final_line_inds(t)[final_ind]
                     (
-                        helicity_frame_path(task.reference_topology, line; initial_frame),
-                        helicity_frame_path(t, line; initial_frame),
+                        helicity_frame_path(task.reference_topology, final_ind; initial_frame),
+                        helicity_frame_path(t, final_ind; initial_frame),
                     )
                 end
-            for (k, final_ind) in enumerate(task.wigner_finals)
-                path_ref, path_t = alignment_paths[k]
-                angles =
-                    path_ref == path_t ? _trivial_wigner :
-                    begin
-                        cmp = compare_instruction_paths(path_ref, path_t, objs)
-                        zyz = wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
-                        (α = zyz.ϕ, cosβ = cos(zyz.θ), γ = zyz.ψ)
+                ntuple(Val(Ne)) do axis
+                    line = ext_lines[axis]
+                    requested = findfirst(eachindex(task.wigner_finals)) do k
+                        final_line_inds(t)[task.wigner_finals[k]] == line
                     end
-                line = final_line_inds(t)[final_ind]
-                axis = findfirst(==(line), ext_lines)
-                axis === nothing &&
-                    throw(ArgumentError("final line $line is not an external line of topology"))
-                alignments[axis] = angles
+                    requested === nothing && return _trivial_wigner
+                    path_ref, path_t = alignment_paths[requested]
+                    if path_ref == path_t
+                        return _trivial_wigner
+                    end
+                    cmp = compare_instruction_paths(path_ref, path_t, objs)
+                    zyz = wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
+                    return (α = zyz.ϕ, cosβ = cos(zyz.θ), γ = zyz.ψ)
+                end
             end
-        end
-        return SVector{Ne,WignerAngles}(alignments)
+        return SVector{Ne,WignerAngles}(alignments_tuple)
     end
     return KinematicPoint(task, kinematics, alignments)
 end
+
+evaluate(task::KinematicTask, objs, system::CascadeSystem) =
+    kinematic_point(task, objs, system)
 
 """
     cascade_kinematics(topology, system, objs; initial_frame=HelicityRootFrame())
@@ -181,5 +223,5 @@ function cascade_kinematics(
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
     task = KinematicTask((topology,); initial_frame = initial_frame)
-    return evaluate(task, objs, system).kinematics[1]
+    return kinematic_point(task, objs, system).kinematics[1]
 end

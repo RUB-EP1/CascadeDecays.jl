@@ -54,7 +54,7 @@ task = KinematicTask(
     initial_frame = CurrentFrame(),
 )
 
-bracket.(task.topologies)
+bracket_notation.(task.topologies)
 ```
 
 The generated programs are ordinary `InstructionalDecayTrees.jl` instruction
@@ -64,15 +64,16 @@ tuples. They are stored per topology and per vertex.
 task.programs[1].vertex_programs
 ```
 
-The public path helper exposes the frame path for one external line. This is
-often the simplest way to check why two topology conventions need a relative
-rotation.
+The public path helper exposes the frame path for one final-state particle.
+Internally that particle is a topology line, but the API takes the particle
+index. Comparing these paths is exactly how the relative Wigner alignment angles
+are obtained.
 
 ```@example kin_task
-line = final_line_inds(topologies[2])[1]
+particle_index = 1
 (
-    reference = helicity_frame_path(topologies[1], line; initial_frame = CurrentFrame()),
-    target = helicity_frame_path(topologies[2], line; initial_frame = CurrentFrame()),
+    reference = helicity_frame_path(topologies[1], particle_index; initial_frame = CurrentFrame()),
+    target = helicity_frame_path(topologies[2], particle_index; initial_frame = CurrentFrame()),
 )
 ```
 
@@ -86,27 +87,28 @@ mother-system axes. In this example the aligned event is rotated as
 aligned = Tuple(fourvector(p) for p in aligned_four_vectors(σs, ms; k = 3))
 current_event = Tuple(p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4) for p in aligned)
 
-point = evaluate(task, current_event, system)
+point = kinematic_point(task, current_event, system)
 x12_3 = kinematics_at(point, topologies[1])
 
 (
-    root = vertex_angles(topologies[1], x12_3, ((1, 2), 3)),
-    isobar = vertex_angles(topologies[1], x12_3, (1, 2)),
-    σ12 = line_invariant(topologies[1], x12_3, (1, 2)),
+    root = vertex_angles(x12_3, topologies[1], ((1, 2), 3)),
+    isobar = vertex_angles(x12_3, topologies[1], (1, 2)),
+    σ12 = line_invariant(x12_3, topologies[1], (1, 2)),
 )
 ```
 
-The point stores one [`CascadeKinematics`](@ref) object per topology. Vertex
-addresses are usually the most readable way to explore the same event in a
-different topology.
+The `point` object is the evaluated event in the task convention. It stores one
+[`CascadeKinematics`](@ref) object per topology and one set of requested
+relative Wigner alignment angles per topology. [`kinematics_at`](@ref) is only a
+retrieval convenience: it selects the `CascadeKinematics` entry associated with
+the requested topology.
 
 ```@example kin_task
 x31_2 = kinematics_at(point, topologies[2])
 (
-    topology = bracket(topologies[2]),
-    root_lines = vertex_line_inds(topologies[2], vertex_ind_for(topologies[2], ((3, 1), 2))),
-    root_angles = vertex_angles(topologies[2], x31_2, ((3, 1), 2)),
-    isobar_masses2 = vertex_masses2(topologies[2], x31_2, (3, 1)),
+    topology = bracket_notation(topologies[2]),
+    root_angles = vertex_angles(x31_2, topologies[2], ((3, 1), 2)),
+    isobar_masses2 = vertex_masses2(x31_2, topologies[2], (3, 1)),
 )
 ```
 
@@ -123,10 +125,10 @@ helicity_event = Tuple(
 )
 
 helicity_task = KinematicTask(topologies; initial_frame = HelicityRootFrame())
-helicity_point = evaluate(helicity_task, helicity_event, system)
+helicity_point = kinematic_point(helicity_task, helicity_event, system)
 helicity_x = kinematics_at(helicity_point, topologies[1])
 
-vertex_angles(topologies[1], helicity_x, ((1, 2), 3))
+vertex_angles(helicity_x, topologies[1], ((1, 2), 3))
 ```
 
 If the summed mother momentum is already numerically at rest, the task falls
@@ -141,17 +143,16 @@ Relative Wigner angles can be inspected directly for a chosen external line.
 relative_wigner_angles(
     topologies[1],
     topologies[2],
-    final_line_inds(topologies[2])[1],
+    1,
     current_event;
     initial_frame = CurrentFrame(),
 )
 ```
 
-When `wigner_finals` is set, [`evaluate`](@ref) stores alignment angles for only
-those requested final particles. Other external axes, including the root, remain
-the identity rotation.
+When `wigner_finals` is set, [`kinematic_point`](@ref) stores alignment angles
+for only those requested final particles. Other external axes, including the
+root, remain the identity rotation.
 
 ```@example kin_task
 alignment_angles_at(point, topologies[2])
 ```
-

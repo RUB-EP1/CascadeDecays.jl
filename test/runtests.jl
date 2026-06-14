@@ -69,7 +69,7 @@ end
     @test has_canonical_line_order(topology)
 
     @test outgoing_line_inds(topology, 1) == [3, 4]
-    @test child_line_inds(topology, 1) == [4, 3]
+    @test child_line_inds(topology, 1) == SVector(4, 3)
     @test final_descendants(topology, 4) == [1, 2]
     @test outgoing_line_inds(topology, 2) == [1, 2]
     @test child_line_inds(topology, 2) == [1, 2]
@@ -80,6 +80,7 @@ end
     @test consumed_by(topology, 3) === nothing
 
     @test bracket(topology) == "((1,2),3)"
+    @test bracket_notation(topology) == "((1,2),3)"
 end
 
 @testset "CascadeSystem and kinematic routing" begin
@@ -150,17 +151,19 @@ end
         wigner_finals = (1, 3),
         initial_frame = CurrentFrame(),
     )
-    point = evaluate(task, objs, system)
+    point = kinematic_point(task, objs, system)
     x_ref = kinematics_at(point, ref_topology)
 
     @test length(task.programs) == 2
     @test length(task.programs[1].vertex_programs) == nvertices(ref_topology)
-    @test bracket(task.reference_topology) == "((1,2),3)"
+    @test occursin("VertexPrograms with 2 measurements", sprint(show, task.programs[1].vertex_programs))
+    @test bracket_notation(task.reference_topology) == "((1,2),3)"
     @test line_invariant(ref_topology, x_ref, (1, 2)) ≈ σs[3]
-    @test vertex_angles(ref_topology, x_ref, ((1, 2), 3)).ϕ ≈ 0.4
-    @test vertex_angles(ref_topology, x_ref, ((1, 2), 3)).cosθ ≈ cos(0.3)
-    @test vertex_angles(ref_topology, x_ref, (1, 2)).ϕ ≈ 0.5
-    @test vertex_angles(ref_topology, x_ref, (1, 2)).cosθ ≈ cosθij(σs, ms^2; k = 3)
+    @test line_invariant(x_ref, ref_topology, (1, 2)) ≈ σs[3]
+    @test vertex_angles(x_ref, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(x_ref, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
+    @test vertex_angles(x_ref, ref_topology, (1, 2)).ϕ ≈ 0.5
+    @test vertex_angles(x_ref, ref_topology, (1, 2)).cosθ ≈ cosθij(σs, ms^2; k = 3)
 
     ref_alignments = alignment_angles_at(point, ref_topology)
     alt_alignments = alignment_angles_at(point, alt_topology)
@@ -175,8 +178,8 @@ end
 
     boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
     x_helicity = cascade_kinematics(ref_topology, system, boosted_objs; initial_frame = HelicityRootFrame())
-    @test vertex_angles(ref_topology, x_helicity, ((1, 2), 3)).ϕ ≈ 0.4
-    @test vertex_angles(ref_topology, x_helicity, ((1, 2), 3)).cosθ ≈ cos(0.3)
+    @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
 
 @testset "DecayTopology validation" begin

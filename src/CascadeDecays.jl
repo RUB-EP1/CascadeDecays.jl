@@ -27,7 +27,7 @@ export produced_by, consumed_by
 export internal_line_inds, propagating_line_inds
 export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
-export bracket, validate_topology, external_line_inds
+export bracket, bracket_notation, validate_topology, external_line_inds
 include("topology.jl")
 
 # quantum numbers
@@ -69,7 +69,7 @@ export routed_vertex_amplitude, routed_propagator_product, amplitude
 include("evaluation.jl")
 
 # kinematic task / point
-export KinematicTask, KinematicPoint, evaluate
+export KinematicTask, KinematicPoint, kinematic_point
 export kinematics_at, alignment_angles_at, cascade_kinematics
 include("spec_routine.jl")
 
