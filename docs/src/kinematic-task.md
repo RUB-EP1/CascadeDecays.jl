@@ -29,8 +29,7 @@ using CascadeDecays
 fourvector(p) = FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Float64(p[4]))
 
 ms = ThreeBodyMasses(0.93827208816, 0.493677, 0.13957039; m0 = 2.28646)
-σs = x2σs([0.42, 0.31], ms; k = 3)
-nothing
+σs = x2σs([0.42, 0.31], ms; k = 3);
 ```
 
 ## From Topologies To A Task
@@ -54,6 +53,10 @@ task = KinematicTask(
 
 bracket_notation.(task.topologies)
 ```
+
+The `wigner_finals` option is only needed for final-state particles with spin.
+For those particles, relative Wigner alignment angles are part of the evaluated
+kinematics and are stored in the [`KinematicPoint`](@ref).
 
 The generated programs are ordinary `InstructionalDecayTrees.jl` instruction
 tuples. They are stored per topology and per vertex.
@@ -147,9 +150,8 @@ relative_wigner_angles(
 )
 ```
 
-When `wigner_finals` is set, [`kinematic_point`](@ref) stores alignment angles
-for only those requested final particles. Other external axes, including the
-root, remain the identity rotation.
+Here `wigner_finals = (1, 3)` requested spin-frame alignments for particles 1
+and 3. Other external axes, including the root, remain the identity rotation.
 
 ```@example kin_task
 alignment_angles_at(point, topologies[2])
