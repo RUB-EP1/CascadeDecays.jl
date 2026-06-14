@@ -28,6 +28,14 @@ Counts for a tree with `n` final-state particles:
 
 Bracket addresses such as `(2, 3)` or `((1, (2, 3)), 4)` are user-facing keys. They resolve to a `line_ind` or `vertex_ind` via [`line_ind_for`](@ref) and [`vertex_ind_for`](@ref).
 
+!!! warning "Bracket child order is physical"
+    The two children in every bracket pair are ordered. `DecayTopology(((3, 1), 2))`
+    and `DecayTopology(((1, 3), 2))` are different topologies, even though they
+    contain the same final-state labels. The order defines `child1` and `child2`
+    in [`vertex_line_inds`](@ref), and therefore fixes local helicity conventions,
+    particle-2 phases, and Wigner-rotation paths. Do not treat bracket pairs as
+    unordered sets.
+
 ## Example
 
 ```math
@@ -81,6 +89,14 @@ Vertex indices are the **columns** of the incidence matrix, in **root-first preo
 | 3 | `(2, 3)` | K*0 → K− + π+ |
 
 At each vertex index, [`vertex_line_inds`](@ref) returns `(parent, child1, child2)` as line ids. For example index 2: parent line 6 (X0), children lines 1 (ψ) and 5 (K*0).
+
+The `child1, child2` order is exactly the left/right order written in the bracket tree. For example:
+
+```julia
+bracket(DecayTopology(((3, 1), 2))) == "((3,1),2)"
+bracket(DecayTopology(((1, 3), 2))) == "((1,3),2)"
+DecayTopology(((3, 1), 2)) != DecayTopology(((1, 3), 2))
+```
 
 ### Incidence matrix
 

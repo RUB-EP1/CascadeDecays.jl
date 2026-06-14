@@ -4,7 +4,16 @@ using FourVectors
 using HadronicLineshapes
 using StaticArrays
 using Test
-using ThreeBodyDecays: @jp_str, NoRecoupling, RecouplingLS, SpinParity, ThreeBodyMasses, ThreeBodySpins
+using ThreeBodyDecays:
+    @jp_str,
+    NoRecoupling,
+    RecouplingLS,
+    SpinParity,
+    ThreeBodyMasses,
+    ThreeBodySpins,
+    aligned_four_vectors,
+    cosθij,
+    x2σs
 
 struct TestVertex <: AbstractVertex
     name::Symbol
@@ -118,6 +127,56 @@ end
         internal_masses2 = (),
         vertex_angles = ((cosθ = 0.5, ϕ = 0.1), (cosθ = -0.2, ϕ = 0.3)),
     )
+end
+
+function _fourvector_from_tuple(p)
+    return FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Float64(p[4]))
+end
+
+@testset "KinematicTask from four-vectors" begin
+    ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
+    σs = x2σs([0.5, 0.3], ms; k = 3)
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(ms))
+    ref_topology = DecayTopology(((1, 2), 3))
+    alt_topology = DecayTopology(((3, 1), 2))
+
+    objs_cm = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(σs, ms; k = 3))
+    event_transform(p) = p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4)
+    objs = Tuple(event_transform(p) for p in objs_cm)
+
+    task = KinematicTask(
+        (ref_topology, alt_topology);
+        reference_topology = ref_topology,
+        wigner_finals = (1, 3),
+        initial_frame = CurrentFrame(),
+    )
+    point = evaluate(task, objs, system)
+    x_ref = kinematics_at(point, ref_topology)
+
+    @test length(task.programs) == 2
+    @test length(task.programs[1].vertex_programs) == nvertices(ref_topology)
+    @test bracket(task.reference_topology) == "((1,2),3)"
+    @test line_invariant(ref_topology, x_ref, (1, 2)) ≈ σs[3]
+    @test vertex_angles(ref_topology, x_ref, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(ref_topology, x_ref, ((1, 2), 3)).cosθ ≈ cos(0.3)
+    @test vertex_angles(ref_topology, x_ref, (1, 2)).ϕ ≈ 0.5
+    @test vertex_angles(ref_topology, x_ref, (1, 2)).cosθ ≈ cosθij(σs, ms^2; k = 3)
+
+    ref_alignments = alignment_angles_at(point, ref_topology)
+    alt_alignments = alignment_angles_at(point, alt_topology)
+    @test ref_alignments[1] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test ref_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test ref_alignments[3] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test ref_alignments[4] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[2] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[4] == (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[1] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+
+    boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
+    x_helicity = cascade_kinematics(ref_topology, system, boosted_objs; initial_frame = HelicityRootFrame())
+    @test vertex_angles(ref_topology, x_helicity, ((1, 2), 3)).ϕ ≈ 0.4
+    @test vertex_angles(ref_topology, x_helicity, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
 
 @testset "DecayTopology validation" begin
