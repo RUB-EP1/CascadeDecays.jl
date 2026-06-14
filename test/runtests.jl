@@ -397,6 +397,7 @@ end
 end
 
 include("threebody_compat_tests.jl")
+include("lc2pkpi_compat_tests.jl")
 
 @testset "LS decay-chain builders" begin
     topology = DecayTopology(((1, 2), 3))
