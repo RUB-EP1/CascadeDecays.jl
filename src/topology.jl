@@ -289,7 +289,7 @@ line id used by the flat topology. The root address resolves to `root_line_ind`.
 function line_ind_for(topology::DecayTopology, address)
     labels = _address_final_labels(address)
     for line_ind in _line_range(topology)
-        Tuple(final_descendants(topology, line_ind)) == labels && return Int(line_ind)
+        _final_descendants_tuple(topology, line_ind) == labels && return Int(line_ind)
     end
     throw(ArgumentError("address $address does not correspond to a line_ind in this topology"))
 end
@@ -390,8 +390,19 @@ Return the compact nested-tuple notation for a topology, for example
 bracket_notation(topology::DecayTopology; labels = nothing) =
     bracket(topology; labels)
 
+function _final_descendants_tuple(topology::DecayTopology, line_ind::Integer)
+    _require_line_ind(topology, line_ind)
+    vertex_ind = consumed_by(topology, line_ind)
+    vertex_ind === nothing && return (Int(line_ind),)
+    child1, child2 = child_line_inds(topology, vertex_ind)
+    return (
+        _final_descendants_tuple(topology, child1)...,
+        _final_descendants_tuple(topology, child2)...,
+    )
+end
+
 _indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
-    Tuple(final_descendants(topology, line_ind))
+    _final_descendants_tuple(topology, line_ind)
 
 function _subtree_line_inds(topology::DecayTopology, line_ind::Integer)
     line_inds = Int[Int(line_ind)]

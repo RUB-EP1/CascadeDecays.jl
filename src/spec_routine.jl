@@ -106,8 +106,8 @@ function _root_momentum(topology::DecayTopology, objs)
     return _sum_objects(objs, _indices_for_line_ind(topology, root_line_ind(topology)))
 end
 
-function _line_masses2_from_objects(topology::DecayTopology, objs)
-    return ntuple(nlines(topology)) do line_ind
+function _line_masses2_from_objects(topology::DecayTopology{Nl}, objs) where {Nl}
+    return ntuple(Val(Nl)) do line_ind
         mass(_sum_objects(objs, _indices_for_line_ind(topology, line_ind)))^2
     end
 end
