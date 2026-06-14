@@ -137,7 +137,6 @@ end
 @testset "KinematicTask from four-vectors" begin
     ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
     σs = x2σs([0.5, 0.3], ms; k = 3)
-    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(ms))
     ref_topology = DecayTopology(((1, 2), 3))
     alt_topology = DecayTopology(((3, 1), 2))
 
@@ -151,13 +150,14 @@ end
         wigner_finals = (1, 3),
         initial_frame = CurrentFrame(),
     )
-    point = kinematic_point(task, objs, system)
+    point = kinematic_point(task, objs)
     x_ref = kinematics_at(point, ref_topology)
 
     @test length(task.programs) == 2
     @test length(task.programs[1].vertex_programs) == nvertices(ref_topology)
     @test occursin("VertexPrograms with 2 measurements", sprint(show, task.programs[1].vertex_programs))
     @test bracket_notation(task.reference_topology) == "((1,2),3)"
+    @test line_invariant(x_ref, 1) ≈ mass(objs[1])^2
     @test line_invariant(ref_topology, x_ref, (1, 2)) ≈ σs[3]
     @test line_invariant(x_ref, ref_topology, (1, 2)) ≈ σs[3]
     @test vertex_angles(x_ref, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
@@ -177,7 +177,7 @@ end
     @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 
     boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
-    x_helicity = cascade_kinematics(ref_topology, system, boosted_objs; initial_frame = HelicityRootFrame())
+    x_helicity = cascade_kinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
@@ -412,7 +412,7 @@ end
         SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
     )
     programs = helicity_angle_programs(topology)
-    x = cascade_kinematics(topology, system, objs)
+    x = cascade_kinematics(topology, objs)
 
     @test length(programs) == 3
     @test length.(programs) == (2, 3, 4)

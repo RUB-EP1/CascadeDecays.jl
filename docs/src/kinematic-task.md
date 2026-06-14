@@ -20,7 +20,6 @@ using FourVectors
 using InstructionalDecayTrees
 using ThreeBodyDecays:
     ThreeBodyMasses,
-    ThreeBodySpins,
     aligned_four_vectors,
     cosθij,
     x2σs
@@ -31,7 +30,6 @@ fourvector(p) = FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Floa
 
 ms = ThreeBodyMasses(0.93827208816, 0.493677, 0.13957039; m0 = 2.28646)
 σs = x2σs([0.42, 0.31], ms; k = 3)
-system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(ms))
 nothing
 ```
 
@@ -87,7 +85,7 @@ mother-system axes. In this example the aligned event is rotated as
 aligned = Tuple(fourvector(p) for p in aligned_four_vectors(σs, ms; k = 3))
 current_event = Tuple(p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4) for p in aligned)
 
-point = kinematic_point(task, current_event, system)
+point = kinematic_point(task, current_event)
 x12_3 = kinematics_at(point, topologies[1])
 
 (
@@ -125,7 +123,7 @@ helicity_event = Tuple(
 )
 
 helicity_task = KinematicTask(topologies; initial_frame = HelicityRootFrame())
-helicity_point = kinematic_point(helicity_task, helicity_event, system)
+helicity_point = kinematic_point(helicity_task, helicity_event)
 helicity_x = kinematics_at(helicity_point, topologies[1])
 
 vertex_angles(helicity_x, topologies[1], ((1, 2), 3))

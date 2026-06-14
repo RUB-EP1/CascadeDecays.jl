@@ -97,6 +97,12 @@ function _root_momentum(topology::DecayTopology, objs)
     return _sum_objects(objs, _indices_for_line_ind(topology, root_line_ind(topology)))
 end
 
+function _line_masses2_from_objects(topology::DecayTopology, objs)
+    return ntuple(nlines(topology)) do line_ind
+        mass(_sum_objects(objs, _indices_for_line_ind(topology, line_ind)))^2
+    end
+end
+
 function _effectively_at_rest(p; rtol::Real=_REST_FRAME_RTOL)
     scale = max(abs(p.E), one(float(abs(p.E))))
     return p.px^2 + p.py^2 + p.pz^2 <= (rtol * scale)^2
@@ -140,13 +146,13 @@ alignment_angles_at(point::KinematicPoint, topology::DecayTopology) =
     point.alignments[_topology_slot(point.task, topology)]
 
 """
-    kinematic_point(task, objs, system)
+    kinematic_point(task, objs)
 
 Build one [`KinematicPoint`](@ref) for external four-vectors `objs`. The point
 stores one [`CascadeKinematics`](@ref) per task topology plus requested relative
 Wigner alignment angles.
 """
-function kinematic_point(task::KinematicTask, objs, system::CascadeSystem)
+function kinematic_point(task::KinematicTask, objs)
     kinematics = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
         progs = task.programs[i]
@@ -154,20 +160,11 @@ function kinematic_point(task::KinematicTask, objs, system::CascadeSystem)
         vertex_programs =
             initial_frame === task.initial_frame ? progs.vertex_programs :
             helicity_angle_programs(t; initial_frame)
-        internal_masses2 = Tuple(
-            mass(_sum_objects(objs, _indices_for_line_ind(t, line_ind)))^2 for
-            line_ind in internal_line_inds(t)
-        )
         angle_results = map(vertex_programs) do program
             _, result = apply_decay_instruction(program, objs)
             only(values(result))
         end
-        CascadeKinematics(
-            t,
-            system;
-            internal_masses2,
-            vertex_angles = Tuple(angle_results),
-        )
+        CascadeKinematics(_line_masses2_from_objects(t, objs), Tuple(angle_results))
     end
     alignments = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
@@ -208,20 +205,19 @@ function kinematic_point(task::KinematicTask, objs, system::CascadeSystem)
     return KinematicPoint(task, kinematics, alignments)
 end
 
-evaluate(task::KinematicTask, objs, system::CascadeSystem) =
-    kinematic_point(task, objs, system)
+evaluate(task::KinematicTask, objs) =
+    kinematic_point(task, objs)
 
 """
-    cascade_kinematics(topology, system, objs; initial_frame=HelicityRootFrame())
+    cascade_kinematics(topology, objs; initial_frame=HelicityRootFrame())
 
 Compute a single-topology [`CascadeKinematics`](@ref) from external four-vectors.
 """
 function cascade_kinematics(
     topology::DecayTopology,
-    system::CascadeSystem,
     objs;
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
     task = KinematicTask((topology,); initial_frame = initial_frame)
-    return kinematic_point(task, objs, system).kinematics[1]
+    return kinematic_point(task, objs).kinematics[1]
 end
