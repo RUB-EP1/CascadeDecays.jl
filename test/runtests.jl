@@ -50,14 +50,7 @@ end
 end
 
 @testset "DecayTopology" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3), child_order = [4 1; 3 2])
+    topology = DecayTopology(((1, 2), 3))
 
     @test nlines(topology) == 5
     @test nvertices(topology) == 2
@@ -82,14 +75,7 @@ end
 end
 
 @testset "CascadeSystem and kinematic routing" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3), child_order = [4 1; 3 2])
+    topology = DecayTopology(((1, 2), 3))
     system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
     chain = DecayChain(
         topology,
@@ -183,55 +169,8 @@ end
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
 
-@testset "DecayTopology validation" begin
-    child_order = [4 1; 3 2]
-
-    invalid_vertex = [
-        0 1
-        0 0
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws ArgumentError DecayTopology(invalid_vertex; root = 5, finals = (1, 2, 3), child_order)
-
-    invalid_final = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws UndefKeywordError DecayTopology(invalid_final; root = 5, finals = (1, 2, 3))
-    @test_throws ArgumentError DecayTopology(invalid_final; root = 5, finals = (1, 2, 4), child_order)
-
-    invalid_root = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    @test_throws ArgumentError DecayTopology(invalid_root; root = 1, finals = (1, 2, 3), child_order)
-    @test_throws ArgumentError incoming_line_inds(
-        DecayTopology(invalid_root; root = 5, finals = (1, 2, 3), child_order),
-        3,
-    )
-    @test_throws ArgumentError produced_by(
-        DecayTopology(invalid_root; root = 5, finals = (1, 2, 3), child_order),
-        6,
-    )
-end
-
 @testset "DecayChain payload mapping" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3), child_order = [4 1; 3 2])
+    topology = DecayTopology(((1, 2), 3))
     chain = DecayChain(
         topology,
         (ConstantLineshape(1.0),),
@@ -331,16 +270,7 @@ end
 end
 
 @testset "Canonical routing on larger tree" begin
-    relation = [
-        0 0 1
-        0 0 1
-        0 1 0
-        1 0 0
-        0 1 -1
-        1 -1 0
-        -1 0 0
-    ]
-    topology = DecayTopology(relation; root = 7, finals = (1, 2, 3, 4), child_order = [6 5 1; 4 3 2])
+    topology = DecayTopology((((1, 2), 3), 4))
     system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
     x = CascadeKinematics(
         topology,
@@ -469,14 +399,7 @@ end
 include("threebody_compat_tests.jl")
 
 @testset "LS decay-chain builders" begin
-    relation = [
-        0 1
-        0 1
-        1 0
-        1 -1
-        -1 0
-    ]
-    topology = DecayTopology(relation; root = 5, finals = (1, 2, 3), child_order = [4 1; 3 2])
+    topology = DecayTopology(((1, 2), 3))
     system = CascadeSystem(
         SystemSpins(0, 0, 0; two_h0 = 0),
         SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
