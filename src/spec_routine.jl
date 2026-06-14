@@ -145,13 +145,13 @@ alignment_angles_at(point::KinematicPoint, topology::DecayTopology) =
     point.alignments[_topology_slot(point.task, topology)]
 
 """
-    kinematic_point(task, objs)
+    KinematicPoint(task, objs)
 
 Build one [`KinematicPoint`](@ref) for external four-vectors `objs`. The point
 stores one [`CascadeKinematics`](@ref) per task topology plus requested relative
 Wigner alignment angles.
 """
-function kinematic_point(task::KinematicTask, objs)
+function KinematicPoint(task::KinematicTask, objs)
     kinematics = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
         progs = task.programs[i]
@@ -200,19 +200,22 @@ function kinematic_point(task::KinematicTask, objs)
     return KinematicPoint(task, kinematics, alignments)
 end
 
-evaluate(task::KinematicTask, objs) =
-    kinematic_point(task, objs)
+kinematic_point(task::KinematicTask, objs) =
+    KinematicPoint(task, objs)
 
 """
-    cascade_kinematics(topology, objs; initial_frame=HelicityRootFrame())
+    CascadeKinematics(topology, objs; initial_frame=HelicityRootFrame())
 
 Compute a single-topology [`CascadeKinematics`](@ref) from external four-vectors.
 """
-function cascade_kinematics(
+function CascadeKinematics(
     topology::DecayTopology,
     objs;
     initial_frame::AbstractInitialFrame=HelicityRootFrame(),
 )
     task = KinematicTask((topology,); initial_frame = initial_frame)
-    return kinematic_point(task, objs).kinematics[1]
+    return KinematicPoint(task, objs).kinematics[1]
 end
+
+cascade_kinematics(topology::DecayTopology, objs; initial_frame::AbstractInitialFrame=HelicityRootFrame()) =
+    CascadeKinematics(topology, objs; initial_frame)

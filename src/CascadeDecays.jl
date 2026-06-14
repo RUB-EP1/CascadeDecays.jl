@@ -27,7 +27,7 @@ export produced_by, consumed_by
 export internal_line_inds, propagating_line_inds
 export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
-export bracket, bracket_notation, validate_topology, external_line_inds
+export bracket_notation, validate_topology
 include("topology.jl")
 
 # quantum numbers
@@ -59,18 +59,18 @@ export line_two_js
 include("chain.jl")
 
 # kinematic frames and path comparisons
-export AbstractInitialFrame, HelicityRootFrame, CurrentFrame
+export HelicityRootFrame, CurrentFrame
+include("frames_to_be_moved_to_idt.jl")
 export helicity_frame_path, relative_wigner_angles
 include("wigner_rotations.jl")
 
 # evaluation
-export helicity_angle_program, helicity_angle_programs
 export routed_vertex_amplitude, routed_propagator_product, amplitude
 include("evaluation.jl")
 
 # kinematic task / point
-export KinematicTask, KinematicPoint, kinematic_point
-export kinematics_at, alignment_angles_at, cascade_kinematics
+export KinematicTask, KinematicPoint
+export kinematics_at, alignment_angles_at
 include("spec_routine.jl")
 
 # LS coupling

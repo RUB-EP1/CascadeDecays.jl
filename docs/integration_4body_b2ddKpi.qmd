@@ -85,7 +85,7 @@ next, and root last.
 topology = DecayTopology((((1, 2), 3), 4))
 
 @assert has_canonical_line_order(topology)
-@assert bracket(topology) == "(((1,2),3),4)"
+@assert bracket_notation(topology) == "(((1,2),3),4)"
 ```
 
 ## 3. Static system information
@@ -131,7 +131,7 @@ The initial configuration of four-vectors is assumed to be already aligned so
 that the subsequent helicity-angle measurements are performed in the desired
 convention.
 
-After that, `cascade_kinematics(...)` evaluates the generated programs on the
+After that, `CascadeKinematics(...)` evaluates the generated programs on the
 event four-vectors and assembles the full kinematic input object.
 
 Here we inspect the local decay `(1,2)`, which corresponds to
@@ -139,7 +139,7 @@ Here we inspect the local decay `(1,2)`, which corresponds to
 
 ```{julia}
 #| label: kinematics
-programs = helicity_angle_programs(topology)
+programs = CascadeDecays.helicity_angle_programs(topology)
 
 for (label, program) in (
     ("(((1,2),3),4)", programs[1]),
@@ -150,7 +150,7 @@ for (label, program) in (
     foreach(step -> println("  ", format_instruction(step)), program)
 end
 
-x = cascade_kinematics(topology, objs)
+x = CascadeKinematics(topology, objs)
 
 root_angles = vertex_angles(topology, x, (((1, 2), 3), 4))
 psi_angles = vertex_angles(topology, x, ((1, 2), 3))

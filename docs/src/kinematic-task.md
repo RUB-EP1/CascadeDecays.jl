@@ -88,7 +88,7 @@ mother-system axes. In this example the aligned event is rotated as
 aligned = Tuple(fourvector(p) for p in aligned_four_vectors(σs, ms; k = 3))
 current_event = Tuple(p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4) for p in aligned)
 
-point = kinematic_point(task, current_event)
+point = KinematicPoint(task, current_event)
 x12_3 = kinematics_at(point, topologies[1])
 
 (
@@ -126,7 +126,7 @@ helicity_event = Tuple(
 )
 
 helicity_task = KinematicTask(topologies; initial_frame = HelicityRootFrame())
-helicity_point = kinematic_point(helicity_task, helicity_event)
+helicity_point = KinematicPoint(helicity_task, helicity_event)
 helicity_x = kinematics_at(helicity_point, topologies[1])
 
 vertex_angles(helicity_x, topologies[1], ((1, 2), 3))

@@ -9,28 +9,6 @@ Identity rotation: `(α=0, cosβ=1, γ=0)`.
 const WignerAngles = NamedTuple{(:α, :cosβ, :γ), NTuple{3, Float64}}
 const _trivial_wigner = (α = 0.0, cosβ = 1.0, γ = 0.0)
 
-abstract type AbstractInitialFrame end
-
-"""
-    HelicityRootFrame()
-
-Start generated helicity-angle programs by transforming to the root/system
-helicity frame. This is the default for fully general four-vectors.
-"""
-struct HelicityRootFrame <: AbstractInitialFrame end
-
-"""
-    CurrentFrame()
-
-Start generated helicity-angle programs in the current axes. Use this when the
-input four-vectors are already expressed in the intended system frame.
-"""
-struct CurrentFrame <: AbstractInitialFrame end
-
-_initial_frame_program(topology::DecayTopology, ::HelicityRootFrame) =
-    (ToHelicityFrame(_indices_for_line_ind(topology, root_line_ind(topology))),)
-_initial_frame_program(::DecayTopology, ::CurrentFrame) = ()
-
 function _path_steps_to_line(topology::DecayTopology, line_ind::Integer)
     line_ind == root_line_ind(topology) && return ()
     steps = NamedTuple{(:vertex_ind, :child_line),Tuple{Int,Int}}[]

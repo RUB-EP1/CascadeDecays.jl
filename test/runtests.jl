@@ -79,7 +79,6 @@ end
     @test produced_by(topology, 5) === nothing
     @test consumed_by(topology, 3) === nothing
 
-    @test bracket(topology) == "((1,2),3)"
     @test bracket_notation(topology) == "((1,2),3)"
 end
 
@@ -150,7 +149,7 @@ end
         wigner_finals = (1, 3),
         initial_frame = CurrentFrame(),
     )
-    point = kinematic_point(task, objs)
+    point = KinematicPoint(task, objs)
     x_ref = kinematics_at(point, ref_topology)
 
     @test length(task.programs) == 2
@@ -177,7 +176,7 @@ end
     @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 
     boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
-    x_helicity = cascade_kinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
+    x_helicity = CascadeKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
@@ -233,7 +232,7 @@ end
     @test chain.topology === topology
     @test nfinal(chain) == 3
     @test chain.propagator_two_js == SVector(2)
-    @test bracket(chain) == "((1,2),3)"
+    @test bracket_notation(chain) == "((1,2),3)"
     @test final_descendants(chain, 4) == [1, 2]
     @test chain.propagators[1](2.0) == 1.0
 
@@ -353,7 +352,7 @@ end
     @test has_canonical_line_order(topology)
     @test outgoing_line_inds(topology, 1) == [4, 6]
     @test child_line_inds(topology, 1) == [6, 4]
-    @test bracket(topology) == "(((1,2),3),4)"
+    @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
     @test vertex_masses2(topology, x, 2) == (2.3, 1.2, 9.0)
@@ -391,7 +390,7 @@ end
     @test CascadeDecays.relation(topology) == SMatrix{7,3,Int,21}(relation)
     @test nfinal(topology) == 4
     @test nvertices(topology) == 3
-    @test bracket(topology) == "(((1,2),3),4)"
+    @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test_throws ArgumentError DecayTopology(((1, 3), 4))
     @test_throws ArgumentError DecayTopology((1, (2, (3, 3))))
@@ -411,8 +410,8 @@ end
         SystemSpins(0, 0, 0, 0; two_h0 = 0),
         SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
     )
-    programs = helicity_angle_programs(topology)
-    x = cascade_kinematics(topology, objs)
+    programs = CascadeDecays.helicity_angle_programs(topology)
+    x = CascadeKinematics(topology, objs)
 
     @test length(programs) == 3
     @test length.(programs) == (2, 3, 4)

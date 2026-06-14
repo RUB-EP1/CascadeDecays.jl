@@ -119,6 +119,8 @@ Return the internal line ids that carry propagators, in propagator-index order.
 """
 propagating_line_inds(chain::DecayChain) = chain.propagating_line_inds
 bracket(chain::DecayChain; labels = nothing) = bracket(chain.topology; labels)
+bracket_notation(chain::DecayChain; labels = nothing) =
+    bracket_notation(chain.topology; labels)
 vertex_line_inds(chain::DecayChain, vertex_ind::Integer) = vertex_line_inds(chain.topology, vertex_ind)
 child_line_inds(chain::DecayChain, vertex_ind::Integer) = child_line_inds(chain.topology, vertex_ind)
 final_descendants(chain::DecayChain, line_ind::Integer) = final_descendants(chain.topology, line_ind)
