@@ -200,9 +200,6 @@ function KinematicPoint(task::KinematicTask, objs)
     return KinematicPoint(task, kinematics, alignments)
 end
 
-kinematic_point(task::KinematicTask, objs) =
-    KinematicPoint(task, objs)
-
 """
     CascadeKinematics(topology, objs; initial_frame=HelicityRootFrame())
 
@@ -216,6 +213,3 @@ function CascadeKinematics(
     task = KinematicTask((topology,); initial_frame = initial_frame)
     return KinematicPoint(task, objs).kinematics[1]
 end
-
-cascade_kinematics(topology::DecayTopology, objs; initial_frame::AbstractInitialFrame=HelicityRootFrame()) =
-    CascadeKinematics(topology, objs; initial_frame)

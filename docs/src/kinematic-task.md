@@ -58,6 +58,18 @@ The `wigner_finals` option is only needed for final-state particles with spin.
 For those particles, relative Wigner alignment angles are part of the evaluated
 kinematics and are stored in the [`KinematicPoint`](@ref).
 
+There are three kinematic objects in this workflow:
+
+- [`KinematicTask`](@ref) is the reusable specification generated from the
+  topologies. It owns the topology list, initial-frame convention, generated
+  vertex programs, and requested Wigner-alignment paths.
+- [`CascadeKinematics`](@ref) is the evaluated kinematics for one topology and
+  one event. It stores the line masses squared and the local helicity angles
+  used by amplitude evaluation.
+- [`KinematicPoint`](@ref) is the evaluated event for the whole task. It stores
+  one `CascadeKinematics` object per topology, plus the requested relative
+  Wigner rotations.
+
 The generated programs are ordinary `InstructionalDecayTrees.jl` instruction
 tuples. They are stored per topology and per vertex.
 
