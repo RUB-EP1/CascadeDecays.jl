@@ -16,6 +16,7 @@ using CascadeDecays:
     consumed_by,
     final_descendants,
     helicity_angle_programs,
+    internal_line_inds,
     isfinal_line_ind,
     nfinal,
     root_line_ind,
@@ -30,7 +31,6 @@ export three_body_topology,
     three_body_root_vertex,
     three_body_refζs,
     three_body_σs,
-    default_three_body_reference_topology,
     reference_plane_orientation
 
 """
@@ -76,8 +76,6 @@ function three_body_σs(objs)
     )
 end
 
-default_three_body_reference_topology() = three_body_topology(1)
-
 _spatial_norm2(p) = p.px^2 + p.py^2 + p.pz^2
 _rest_scale2(p) = max(abs(p.E), one(float(abs(p.E))))^2
 _effectively_at_rest(p; rtol = 1e-12) = _spatial_norm2(p) <= rtol^2 * _rest_scale2(p)
@@ -86,16 +84,7 @@ function _sum_line_momentum(topology::DecayTopology, objs, line_ind::Integer)
     return sum(i -> objs[i], final_descendants(topology, line_ind))
 end
 
-function _root_isobar_line(topology::DecayTopology)
-    root_vertex = consumed_by(topology, root_line_ind(topology))
-    root_vertex === nothing &&
-        throw(ArgumentError("reference topology root is not consumed by any vertex"))
-    root_children = child_line_inds(topology, root_vertex)
-    isobar_line = findfirst(line -> !isfinal_line_ind(topology, line), root_children)
-    isobar_line === nothing &&
-        throw(ArgumentError("reference topology root has no isobar child"))
-    return root_children[isobar_line]
-end
+_root_isobar_line(topology::DecayTopology) = only(internal_line_inds(topology))
 
 function reference_plane_orientation(
     reference_topology::DecayTopology,
@@ -104,17 +93,28 @@ function reference_plane_orientation(
 )
     nfinal(reference_topology) == 3 ||
         throw(ArgumentError("reference plane orientation requires a three-final topology"))
-    isobar_line = _root_isobar_line(reference_topology)
+    return _reference_plane_orientation(reference_topology, objs, initial_frame)
+end
+
+function _reference_plane_orientation(
+    reference_topology::DecayTopology,
+    objs,
+    initial_frame::HelicityRootFrame,
+)
     parent = sum(objs)
-    effective_frame =
-        initial_frame isa HelicityRootFrame && _effectively_at_rest(parent) ? CurrentFrame() :
-        initial_frame
-    if effective_frame isa HelicityRootFrame
-        isobar = _sum_line_momentum(reference_topology, objs, isobar_line)
-        isobar_cm = transform_to_cmf(isobar, parent)
-        return (α = azimuthal_angle(parent), cosβ = cos_theta(parent), γ = azimuthal_angle(isobar_cm))
-    end
-    angle_results = map(helicity_angle_programs(reference_topology; initial_frame = effective_frame)) do program
+    _effectively_at_rest(parent) &&
+        return _reference_plane_orientation(reference_topology, objs, CurrentFrame())
+    isobar = _sum_line_momentum(reference_topology, objs, _root_isobar_line(reference_topology))
+    isobar_cm = transform_to_cmf(isobar, parent)
+    return (α = azimuthal_angle(parent), cosβ = cos_theta(parent), γ = azimuthal_angle(isobar_cm))
+end
+
+function _reference_plane_orientation(
+    reference_topology::DecayTopology,
+    objs,
+    initial_frame::AbstractInitialFrame,
+)
+    angle_results = map(helicity_angle_programs(reference_topology; initial_frame)) do program
         _, result = apply_decay_instruction(program, objs)
         only(values(result))
     end

@@ -61,7 +61,7 @@ function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
     throw(MethodError(routed_vertex_amplitude, (vertex, masses2, helicities, spins, angles)))
 end
 
-function _vertex_ls_amplitude_value(
+function _vertex_coupling_value(
     vertex::Vertex,
     masses2,
     two_λ1::Integer,
@@ -74,7 +74,7 @@ function _vertex_ls_amplitude_value(
            vertex.ff(masses2...)
 end
 
-function _vertex_dv_amplitude_value(
+function _rotated_vertex_amplitude_value(
     vertex::Vertex,
     masses2,
     two_λ0::Integer,
@@ -82,15 +82,13 @@ function _vertex_dv_amplitude_value(
     two_λ2::Integer,
     spins::NTuple{3,Integer},
     angles,
-    apply_decay_rotation::Bool,
 )
-    ls = _vertex_ls_amplitude_value(vertex, masses2, two_λ1, two_λ2, spins)
-    apply_decay_rotation || return ls
+    coupling = _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
     two_j0 = spins[1]
     two_Δλ = two_λ1 - two_λ2
-    abs(two_Δλ) <= two_j0 || return zero(ls)
+    abs(two_Δλ) <= two_j0 || return zero(coupling)
     rotation = conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
-    return rotation * ls
+    return rotation * coupling
 end
 
 function routed_vertex_amplitude(
@@ -101,7 +99,7 @@ function routed_vertex_amplitude(
     angles,
 )
     two_λ0, two_λ1, two_λ2 = helicities
-    return _vertex_dv_amplitude_value(vertex, masses2, two_λ0, two_λ1, two_λ2, spins, angles, true)
+    return _rotated_vertex_amplitude_value(vertex, masses2, two_λ0, two_λ1, two_λ2, spins, angles)
 end
 
 function _particle_two_phase(two_j2::Integer, two_λ2::Integer)
@@ -170,7 +168,7 @@ function _vertex_factor(
     angles = vertex_angles(x, vertex_ind)
     vertex = chain.vertices[vertex_ind]
     V = [
-        _vertex_dv_amplitude_value(
+        _rotated_vertex_amplitude_value(
             vertex,
             masses2,
             two_λ0,
@@ -178,7 +176,6 @@ function _vertex_factor(
             two_λ2,
             spins,
             angles,
-            true,
         )
         for two_λ0 in (-two_j0):2:two_j0,
             two_λ1 in (-two_j1):2:two_j1,
@@ -195,15 +192,36 @@ function _multiply_vertex_into_lines!(
     V::AbstractArray,
     lines::NTuple{3,Int},
 ) where {T,N}
-    line_order = Tuple(sortperm(collect(lines)))
+    line_order = _sortperm3(lines)
     sorted_lines = ntuple(i -> lines[line_order[i]], Val(3))
-    Vp = permutedims(V, line_order)
+    Vp = PermutedDimsArray(V, line_order)
     expand_sizes = ntuple(Val(N)) do d
         axis = findfirst(==(d), sorted_lines)
         axis === nothing ? 1 : size(Vp, axis)
     end
     F .*= reshape(Vp, expand_sizes)
     return F
+end
+
+function _sortperm3(lines::NTuple{3,Int})
+    a, b, c = lines
+    if a <= b
+        if b <= c
+            return (1, 2, 3)
+        elseif a <= c
+            return (1, 3, 2)
+        else
+            return (3, 1, 2)
+        end
+    else
+        if a <= c
+            return (2, 1, 3)
+        elseif b <= c
+            return (2, 3, 1)
+        else
+            return (3, 2, 1)
+        end
+    end
 end
 
 """
@@ -222,7 +240,7 @@ function line_amplitude_tensor(
     # manually proceed with the first vertex to get the element type
     first_vertex_ind = 1
     V, lines = _vertex_factor(chain, system, x, first_vertex_ind)
-    T = promote_type(ComplexF64, typeof(V |> first))
+    T = complex(typeof(first(V)))
     F = ones(T, line_sizes...)
     _multiply_vertex_into_lines!(F, V, lines)
     # do the rest of the vertices

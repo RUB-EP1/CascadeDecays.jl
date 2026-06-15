@@ -93,7 +93,7 @@ function relative_wigner_angles(
     return wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
 end
 
-_wigner_d_matrix(two_j::Integer, angles::WignerAngles) =
+_wigner_d_matrix_conj(two_j::Integer, angles::WignerAngles) =
     conj.(wigner_d_zyz_matrix(two_j, angles.α, angles.cosβ, angles.γ))
 
 function _external_axis_line_inds(topology::DecayTopology)
@@ -112,11 +112,9 @@ function _external_wigner_matrices(
     two_js = line_two_js(chain, system)
     return ntuple(length(ext_lines)) do i
         line = ext_lines[i]
-        wigner_angles =
-            line == root_line_ind(chain.topology) ? _trivial_wigner :
-            angles[findfirst(==(line), final_lines)]
+        wigner_angles = i <= Nf ? angles[i] : _trivial_wigner
         two_j = two_js[line]
-        two_j == 0 ? ones(Float64, 1, 1) : _wigner_d_matrix(two_j, wigner_angles)
+        two_j == 0 ? ones(Float64, 1, 1) : _wigner_d_matrix_conj(two_j, wigner_angles)
     end
 end
 
@@ -127,6 +125,7 @@ for Ne in 1:8
     extp_syms = Tuple(Symbol(:_λp, k) for k in 1:Ne)
     D_refs = [:($(Symbol(:D, k))[$(extp_syms[k]), $(ext_syms[k])]) for k in 1:Ne]
     D_unpack = map(k -> :($(Symbol(:D, k)) = Ds[$k]), 1:Ne)
+    D_eltypes = map(k -> :(eltype($(Symbol(:D, k)))), 1:Ne)
     F_ref = Expr(:ref, :F, extp_syms...)
     A_ref = Expr(:ref, :A, ext_syms...)
     tullio_rhs = reduce((a, b) -> :($a * $b), D_refs; init = F_ref)
@@ -136,7 +135,8 @@ for Ne in 1:8
     ) where {Ta}
         length(Ds) == $Ne || throw(ArgumentError("expected $Ne Wigner matrices"))
         $(D_unpack...)
-        A = zeros(Ta, size(F)...)
+        Tout = promote_type(Ta, $(D_eltypes...))
+        A = zeros(Tout, size(F)...)
         @tullio $A_ref := $tullio_rhs
         return A
     end

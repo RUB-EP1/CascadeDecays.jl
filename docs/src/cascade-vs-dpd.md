@@ -2,7 +2,7 @@
 CurrentModule = CascadeDecays
 ```
 
-# CascadeDecays vs Dalitz-Plot Decomposition (TBD)
+# [CascadeDecays vs Dalitz-Plot Decomposition (TBD)](@id cascade_vs_dpd)
 
 This note compares the `CascadeDecays.jl` helicity-frame construction with the
 Dalitz-plot decomposition implemented in `ThreeBodyDecays.jl` (TBD).
