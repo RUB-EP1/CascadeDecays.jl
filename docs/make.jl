@@ -18,6 +18,12 @@ const QUARTO_PAGES = [
         title = "# [Building a full model for a decay](@id lb2lc3pi_model)",
         copy_assets = true,
     ),
+    (
+        qmd = "cascade-vs-dpd.qmd",
+        page = "cascade-vs-dpd.md",
+        edit_url = "../cascade-vs-dpd.qmd",
+        title = "# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)",
+    ),
 ]
 
 gfm_path(qmd::AbstractString) = joinpath(DOCS, replace(qmd, r"\.qmd$" => ".md"))
