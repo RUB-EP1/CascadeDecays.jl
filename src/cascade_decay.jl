@@ -42,3 +42,25 @@ end
 reference_topology(cascade::CascadeDecay) = cascade.reference_topology
 cascade_system(cascade::CascadeDecay) = cascade.system
 couplings(cascade::CascadeDecay) = cascade.couplings
+
+"""
+    amplitude(cascade, point::KinematicPoint)
+
+Coherent helicity amplitude `sum(cᵢ * Aᵢ)` for all chains in `cascade`.
+"""
+function amplitude(cascade::CascadeDecay, point::KinematicPoint)
+    point.task.reference_topology == cascade.reference_topology ||
+        throw(ArgumentError("point task reference_topology must match cascade reference_topology"))
+    return sum(
+        c * amplitude(chain, cascade.system, point)
+        for (c, chain) in zip(cascade.couplings, cascade.chains)
+    )
+end
+
+"""
+    unpolarized_intensity(cascade, point::KinematicPoint)
+
+Return `sum(abs2, amplitude(cascade, point))`.
+"""
+unpolarized_intensity(cascade::CascadeDecay, point::KinematicPoint) =
+    sum(abs2, amplitude(cascade, point))

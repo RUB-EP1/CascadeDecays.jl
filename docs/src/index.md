@@ -11,6 +11,8 @@
 
 The main user-facing walkthrough is the tutorial page generated from the Quarto source in `docs/integration_4body_b2ddKpi.qmd`.
 
+For a practical multi-channel model construction sketch, see [Lb to Lc 3pi model](@ref lb2lc3pi_model).
+
 For a three-body cross-check against `ThreeBodyDecays.jl`, including reference-topology Wigner rotations and overall sign conventions, see [CascadeDecays vs DPD](@ref cascade_vs_dpd).
 
 For line ids, vertex indices, and the incidence matrix, see [Internal notation](@ref notation).

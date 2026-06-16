@@ -223,6 +223,27 @@ end
     @test weighted.chains === (chain, chain)
     @test couplings(weighted) == SVector(2.0 + 0.0im, 0.0 + 3.0im)
 
+    amp_masses = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+    amp_σs = x2σs([0.45, 0.35], amp_masses; k = 3)
+    amp_objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(amp_σs, amp_masses; k = 3))
+    amp_topology = DecayTopology(((1, 2), 3))
+    amp_system = CascadeSystem(
+        SystemSpins(0, 0, 0; two_h0 = 0),
+        SystemMasses(amp_masses),
+    )
+    amp_chain = DecayChain(
+        amp_topology;
+        propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
+        vertices = (
+            (((1, 2), 3) => Vertex(NoRecoupling(0, 0))),
+            ((1, 2) => Vertex(NoRecoupling(0, 0))),
+        ),
+    )
+    amp_point = KinematicPoint(KinematicTask((amp_topology,); reference_topology = amp_topology), amp_objs)
+    amp_cascade = CascadeDecay((amp_chain, amp_chain), amp_system, amp_topology; couplings = (2, 3.0im))
+    @test amplitude(amp_cascade, amp_point) ≈ (2.0 + 3.0im) .* amplitude(amp_chain, amp_system, amp_point)
+    @test unpolarized_intensity(amp_cascade, amp_point) ≈ sum(abs2, amplitude(amp_cascade, amp_point))
+
     @test_throws ArgumentError CascadeDecay((), system, topology)
     @test_throws ArgumentError CascadeDecay((chain,), system, topology; couplings = (1, 2))
 end

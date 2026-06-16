@@ -1,0 +1,218 @@
+```@meta
+CurrentModule = CascadeDecays
+```
+
+# [``\Lambda_b^0 \to \Lambda_c^+ \pi^+ \pi^- \pi^-`` model setup](@id lb2lc3pi_model)
+
+This page is a practical model-construction sketch. The task is to build a
+small coherent model for
+
+```math
+\Lambda_b^0 \to \Lambda_c^+ \pi^+ \pi^- \pi^-
+```
+
+with final-state labels
+
+- `1`: ``\Lambda_c^+``
+- `2`: ``\pi^+``
+- `3`: ``\pi^-``
+- `4`: ``\pi^-``
+- root: ``\Lambda_b^0``
+
+The model has four channels:
+
+1. ``\Lambda_b^0 \to a_1 \Lambda_c^+``, ``a_1 \to \rho(23)\pi^-_4``
+2. ``\Lambda_b^0 \to a_1 \Lambda_c^+``, ``a_1 \to \rho(24)\pi^-_3``
+3. ``\Lambda_b^0 \to \Lambda_c^{**}\pi^-_4``, ``\Lambda_c^{**}\to\Sigma_c(12)\pi^-_3``
+4. ``\Lambda_b^0 \to \Lambda_c^{**}\pi^-_3``, ``\Lambda_c^{**}\to\Sigma_c(12)\pi^-_4``
+
+The two `a1` channels and the two ``\Sigma_c`` channels are written explicitly
+so a fitter can tie or release their couplings later.
+
+## Procedural Construction
+
+```@example lb2lc3pi_model
+using CascadeDecays
+using HadronicLineshapes
+using ThreeBodyDecays: @jp_str
+
+# External particles, in the final-state order used by the topology labels.
+m_pi_plus = 0.13957039
+m_pi_minus = 0.13957039
+m_lc = 2.28646
+m_lb = 5.61960
+
+system = CascadeSystem(
+    SystemSpinParities("1/2+", "0-", "0-", "0-"; jp0 = "1/2+"),
+    SystemMasses(m_lc, m_pi_plus, m_pi_minus, m_pi_minus; m0 = m_lb),
+)
+
+# Placeholder resonance parameters. Replace these with the values used in the
+# analysis model or expose them as fit parameters.
+rho_770 = BreitWigner(0.77526, 0.1491)
+a1_1260 = BreitWigner(1.23, 0.42)
+sigmac_2455 = BreitWigner(2.45397, 0.00189)
+lcstar = BreitWigner(2.86, 0.067)
+
+# 1. a1 -> rho(23) pi4
+topology_a1_23 = DecayTopology((1, ((2, 3), 4)))
+propagators_a1_23 = (
+    ((2, 3), 4) => Propagator(jp"1+", a1_1260),
+    (2, 3) => Propagator(jp"1-", rho_770),
+)
+chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, system, propagators_a1_23)
+
+# 2. a1 -> rho(24) pi3
+topology_a1_24 = DecayTopology((1, ((2, 4), 3)))
+propagators_a1_24 = (
+    ((2, 4), 3) => Propagator(jp"1+", a1_1260),
+    (2, 4) => Propagator(jp"1-", rho_770),
+)
+chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, system, propagators_a1_24)
+
+# 3. Lc** -> Sigma_c(12) pi3, with pi4 as the spectator
+topology_sigmac_123 = DecayTopology((((1, 2), 3), 4))
+propagators_sigmac_123 = (
+    ((1, 2), 3) => Propagator(jp"3/2+", lcstar),
+    (1, 2) => Propagator(jp"1/2+", sigmac_2455),
+)
+chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, system, propagators_sigmac_123)
+
+# 4. Lc** -> Sigma_c(12) pi4, with pi3 as the spectator
+topology_sigmac_124 = DecayTopology((((1, 2), 4), 3))
+propagators_sigmac_124 = (
+    ((1, 2), 4) => Propagator(jp"3/2+", lcstar),
+    (1, 2) => Propagator(jp"1/2+", sigmac_2455),
+)
+chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, system, propagators_sigmac_124)
+```
+
+At this point all channels are ordinary `DecayChain` values. The construction is
+explicit but repetitive: each channel needs a bracket topology, a tuple of
+bracket-addressed propagators, and one call to `minimal_ls_decay_chain`. This is
+useful for auditing the model, but it also shows where a future convenience layer
+could reduce boilerplate for charge-reflected channels.
+
+The two ``a_1`` chains should share a production coupling if the two identical
+``\pi^-`` assignments are symmetrized. The two ``\Sigma_c`` chains are handled
+the same way. For now the tying is done by passing the same coefficient object in
+the two corresponding positions.
+
+```@example lb2lc3pi_model
+
+# The current CascadeDecay object is a clean container: it stores chains, shared
+# system information, a reference topology, and complex channel coefficients.
+c_a1 = 1.0 + 0.0im
+c_sigmac = 1.0 + 0.0im
+
+model = CascadeDecay(
+    (chain_a1_23, chain_a1_24, chain_sigmac_123, chain_sigmac_124),
+    system,
+    topology_a1_23;
+    couplings = (c_a1, c_a1, c_sigmac, c_sigmac),
+)
+
+(
+    nchannels = length(model.chains),
+    reference = bracket_notation(reference_topology(model)),
+    couplings = Tuple(couplings(model)),
+)
+```
+
+The result is a static model description. Each `DecayChain` has the same
+external system, but its own topology and Breit-Wigner propagators. The
+`minimal_ls_decay_chain` calls choose the first allowed LS coupling at every
+binary vertex from the supplied spin-parity assignments.
+
+## Quick Toy Spectra
+
+The same objects are enough for quick model-shape checks. Here `RemboOnDiet`
+generates flat four-body phase-space events. Each event is weighted by
+
+```math
+w = J_{\mathrm{PS}}\; I_{\mathrm{unpolarized}},
+```
+
+where `J_PS` is the phase-space weight returned by `RemboOnDiet` and
+`I_unpolarized` is `unpolarized_intensity(model, point)`.
+
+```@example lb2lc3pi_model
+using FourVectors
+using Plots
+using Random
+using RemboOnDiet
+
+theme(:boxed)
+
+const N_TOY_EVENTS = 10_000
+
+rng = MersenneTwister(0x4C3B3)
+generator = PhaseSpaceGenerator(
+    [m_lc, m_pi_plus, m_pi_minus, m_pi_minus],
+    m_lb,
+)
+
+task = KinematicTask(
+    (topology_a1_23, topology_a1_24, topology_sigmac_123, topology_sigmac_124);
+    reference_topology = reference_topology(model),
+    wigner_finals = (1,),
+)
+
+function invmass(point, inds)
+    p = reduce(+, (point.momenta[i] for i in inds))
+    return mass(p)
+end
+
+toy_events = [rand(rng, generator) for _ in 1:N_TOY_EVENTS]
+toy_weights = map(toy_events) do event
+    point = KinematicPoint(task, Tuple(event.momenta))
+    phase_space_weight(event) * unpolarized_intensity(model, point)
+end
+
+function sym_values(events, weights, combinations)
+    values = Float64[]
+    repeated_weights = Float64[]
+    for (event, weight) in zip(events, weights)
+        for inds in combinations
+            push!(values, invmass(event, inds))
+            push!(repeated_weights, weight)
+        end
+    end
+    return values, repeated_weights
+end
+
+mass_pi_pi, weight_pi_pi = sym_values(toy_events, toy_weights, ((2, 3), (2, 4)))
+mass_3pi = [invmass(event, (2, 3, 4)) for event in toy_events]
+mass_lc_pi_pi, weight_lc_pi_pi = sym_values(toy_events, toy_weights, ((1, 2, 3), (1, 2, 4)))
+mass_lc_pi, weight_lc_pi = sym_values(toy_events, toy_weights, ((1, 3), (1, 4)))
+
+plot(
+    stephist(mass_pi_pi; weights = weight_pi_pi, bins = 50, fill = 0, fillalpha = 0.3, label = "", xlabel = "m(pi+ pi-) [GeV]"),
+    stephist(mass_3pi; weights = toy_weights, bins = 50, fill = 0, fillalpha = 0.3, label = "", xlabel = "m(3pi) [GeV]"),
+    stephist(mass_lc_pi_pi; weights = weight_lc_pi_pi, bins = 50, fill = 0, fillalpha = 0.3, label = "", xlabel = "m(Lc+ pi+ pi-) [GeV]"),
+    stephist(mass_lc_pi; weights = weight_lc_pi, bins = 50, fill = 0, fillalpha = 0.3, label = "", xlabel = "m(Lc+ pi-) [GeV]"),
+    layout = (2, 2),
+    size = (900, 650),
+    ylabel = "weighted entries",
+)
+```
+
+There is no ``\Lambda_c^+\pi^+\pi^+`` spectrum for this final state; the
+three-body baryonic plot above uses the two available
+``\Lambda_c^+\pi^+\pi^-`` combinations.
+
+## What The Example Exposes
+
+This example is intentionally procedural. It makes the current API friction
+visible:
+
+- resonance labels live in variable names, not in the model object;
+- the two symmetrized channel pairs are tied by manually repeating couplings;
+- every topology and propagator list is written by hand;
+- there is no helper yet for “build all charge permutations of this subdecay”;
+- `CascadeDecay` is currently a container, not yet the high-level evaluation
+  interface for coherent sums.
+
+Those are useful pressure points for the next convenience layer. The low-level
+objects are explicit enough to audit, but a production analysis will likely want
+a small channel builder on top of them.
