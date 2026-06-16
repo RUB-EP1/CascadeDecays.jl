@@ -30,6 +30,7 @@ Pkg.instantiate()
 
 - Run tests with `julia --project=. test/runtests.jl`.
 - Build the docs with `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` followed by `julia --project=docs docs/make.jl` (requires [Quarto](https://quarto.org/)).
+- Validate cross-references with `julia --project=docs docs/validate_crossrefs.jl` after building the docs.
 - Render Quarto tutorials locally with `bash docs/render-tutorials.sh` (from the repo root) or `quarto render docs/<tutorial>.qmd --to gfm`.
 - When editing a tutorial, set cell output explicitly: the document default is `output: false`, so add `#| output: true` only on cells that should print tables or show return values; end other cells with `nothing` to avoid leaking the last expression.
 - Quarto sources live in `docs/*.qmd` and are compiled into `docs/src/*.md` by `docs/make.jl`.

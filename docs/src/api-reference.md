@@ -1,4 +1,4 @@
-# API reference
+# [API reference](@id api_reference)
 
 ```@meta
 CurrentModule = CascadeDecays
