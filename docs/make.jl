@@ -2,28 +2,42 @@ using CascadeDecays
 using Documenter
 
 const DOCS = @__DIR__
-const TUTORIAL_QMD = joinpath(DOCS, "integration_4body_b2ddKpi.qmd")
-const TUTORIAL_GFM = joinpath(DOCS, "integration_4body_b2ddKpi.md")
-const TUTORIAL = joinpath(DOCS, "src", "tutorial.md")
-const LB2LC3PI_QMD = joinpath(DOCS, "lb2lc3pi-model.qmd")
-const LB2LC3PI_GFM = joinpath(DOCS, "lb2lc3pi-model.md")
-const LB2LC3PI_PAGE = joinpath(DOCS, "src", "lb2lc3pi-model.md")
 
-function render_quarto_gfm!(qmd_path::AbstractString, gfm_path::AbstractString)
+# Quarto notebooks rendered into Documenter pages under src/.
+const QUARTO_PAGES = [
+    (
+        qmd = "integration_4body_b2ddKpi.qmd",
+        page = "tutorial.md",
+        edit_url = "../integration_4body_b2ddKpi.qmd",
+    ),
+    (
+        qmd = "lb2lc3pi-model.qmd",
+        page = "lb2lc3pi-model.md",
+        edit_url = "../lb2lc3pi-model.qmd",
+        title = "# [``\\Lambda_b^0 \\to \\Lambda_c^+ \\pi^+ \\pi^- \\pi^-`` model setup](@id lb2lc3pi_model)",
+        copy_assets = true,
+    ),
+]
+
+gfm_path(qmd::AbstractString) = joinpath(DOCS, replace(qmd, r"\.qmd$" => ".md"))
+page_path(page::AbstractString) = joinpath(DOCS, "src", page)
+
+function render_quarto_gfm!(qmd::AbstractString)
     cd(DOCS) do
-        run(`quarto render $(basename(qmd_path)) --to gfm`)
+        run(`quarto render $qmd --to gfm`)
     end
-    isfile(gfm_path) || error("expected Quarto output at $(gfm_path)")
+    path = gfm_path(qmd)
+    isfile(path) || error("expected Quarto output at $(path)")
+    return path
 end
 
 function copy_quarto_assets!(gfm_path::AbstractString, page_path::AbstractString)
     asset_dir = splitext(basename(gfm_path))[1] * "_files"
     source = joinpath(dirname(gfm_path), asset_dir)
     destination = joinpath(dirname(page_path), asset_dir)
-    isdir(source) || return nothing
+    isdir(source) || return
     isdir(destination) && rm(destination; recursive = true)
     cp(source, destination)
-    return nothing
 end
 
 function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractString, title = nothing)
@@ -36,6 +50,20 @@ function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractStri
     return meta * body
 end
 
+function build_quarto_page!(spec)
+    gfm = render_quarto_gfm!(spec.qmd)
+    dest = page_path(spec.page)
+    get(spec, :copy_assets, false) && copy_quarto_assets!(gfm, dest)
+    write(
+        dest,
+        documenter_quarto_page(gfm; edit_url = spec.edit_url, title = get(spec, :title, nothing)),
+    )
+end
+
+function build_quarto_pages!()
+    foreach(build_quarto_page!, QUARTO_PAGES)
+end
+
 DocMeta.setdocmeta!(
     CascadeDecays,
     :DocTestSetup,
@@ -43,19 +71,7 @@ DocMeta.setdocmeta!(
     recursive = true,
 )
 
-render_quarto_gfm!(TUTORIAL_QMD, TUTORIAL_GFM)
-write(TUTORIAL, documenter_quarto_page(TUTORIAL_GFM; edit_url = "../integration_4body_b2ddKpi.qmd"))
-
-render_quarto_gfm!(LB2LC3PI_QMD, LB2LC3PI_GFM)
-copy_quarto_assets!(LB2LC3PI_GFM, LB2LC3PI_PAGE)
-write(
-    LB2LC3PI_PAGE,
-    documenter_quarto_page(
-        LB2LC3PI_GFM;
-        edit_url = "../lb2lc3pi-model.qmd",
-        title = "# [``\\Lambda_b^0 \\to \\Lambda_c^+ \\pi^+ \\pi^- \\pi^-`` model setup](@id lb2lc3pi_model)",
-    ),
-)
+build_quarto_pages!()
 
 makedocs(;
     modules = [CascadeDecays],
