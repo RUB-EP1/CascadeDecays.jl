@@ -201,10 +201,7 @@ $a_1$ channels alone, and the two $\Lambda_c^{**}$ channels alone.
 ```{julia}
 #| label: toy-events
 
-function invmass(point, inds)
-    p = reduce(+, (point.momenta[i] for i in inds))
-    return mass(p)
-end
+invmass(objs, inds) = mass(sum(i -> objs[i], inds))
 
 toy_events = [rand(rng, generator) for _ in 1:N_TOY_EVENTS]
 toy_weights_total = map(toy_events) do event
@@ -231,19 +228,42 @@ function sym_values(events, weights, combinations)
     values = Float64[]
     repeated_weights = Float64[]
     for (event, weight) in zip(events, weights)
+        objs = event.momenta
         for inds in combinations
-            push!(values, invmass(event, inds))
+            push!(values, invmass(objs, inds))
             push!(repeated_weights, weight)
         end
     end
     return values, repeated_weights
 end
 
+function dalitz_values(events, weights, x_inds, y_combinations)
+    xs = Float64[]
+    ys = Float64[]
+    repeated_weights = Float64[]
+    for (event, weight) in zip(events, weights)
+        objs = event.momenta
+        x = invmass(objs, x_inds)
+        for y_inds in y_combinations
+            push!(xs, x)
+            push!(ys, invmass(objs, y_inds))
+            push!(repeated_weights, weight)
+        end
+    end
+    return xs, ys, repeated_weights
+end
+
+function reflect_dalitz(events, weights, inds_a, inds_b)
+    x, y, w = dalitz_values(events, weights, inds_a, (inds_b,))
+    x_refl, y_refl, w_refl = dalitz_values(events, weights, inds_b, (inds_a,))
+    return vcat(x, x_refl), vcat(y, y_refl), vcat(w, w_refl)
+end
+
 mass_pi_pi, weight_pi_pi_total = sym_values(toy_events, toy_weights_total, ((2, 3), (2, 4)))
 _, weight_pi_pi_a1 = sym_values(toy_events, toy_weights_a1, ((2, 3), (2, 4)))
 _, weight_pi_pi_lcstar = sym_values(toy_events, toy_weights_lcstar, ((2, 3), (2, 4)))
 
-mass_3pi = [invmass(event, (2, 3, 4)) for event in toy_events]
+mass_3pi = [invmass(event.momenta, (2, 3, 4)) for event in toy_events]
 weight_3pi_total = toy_weights_total
 weight_3pi_a1 = toy_weights_a1
 weight_3pi_lcstar = toy_weights_lcstar
@@ -285,6 +305,74 @@ plot(
 There is no $\Lambda_c^+\pi^+\pi^+$ spectrum for this final state; the
 three-body baryonic plot above uses the two available
 $\Lambda_c^+\pi^+\pi^-$ combinations.
+
+Two Dalitz projections probe the same symmetrization more directly. The
+$\Lambda_c^+\pi^+\pi^-$ plot uses $m(\Lambda_c^+\pi^+)$ against
+$m(\Lambda_c^+\pi^-)$ with double entry over the two identical $\pi^-$ labels.
+The $\Lambda_c^+\pi^-\pi^-$ plot uses the two $\Lambda_c^+\pi^-$ combinations
+and their reflection $(x, y) \leftrightarrow (y, x)$ to visualize symmetry
+under exchange of the identical pions.
+
+```{julia}
+#| label: dalitz-data
+
+x_lc_pi, y_lc_pim, weight_lc_pi_pim_total = dalitz_values(
+    toy_events,
+    toy_weights_total,
+    (1, 2),
+    ((1, 3), (1, 4)),
+)
+_, _, weight_lc_pi_pim_a1 = dalitz_values(
+    toy_events,
+    toy_weights_a1,
+    (1, 2),
+    ((1, 3), (1, 4)),
+)
+_, _, weight_lc_pi_pim_lcstar = dalitz_values(
+    toy_events,
+    toy_weights_lcstar,
+    (1, 2),
+    ((1, 3), (1, 4)),
+)
+
+x_pim_pim, y_pim_pim, weight_pim_pim_total = reflect_dalitz(toy_events, toy_weights_total, (1, 3), (1, 4))
+_, _, weight_pim_pim_a1 = reflect_dalitz(toy_events, toy_weights_a1, (1, 3), (1, 4))
+_, _, weight_pim_pim_lcstar = reflect_dalitz(toy_events, toy_weights_lcstar, (1, 3), (1, 4))
+```
+
+```{julia}
+#| label: dalitz-plots
+#| output: true
+
+function dalitz_projection(xs, ys, weights_a1, weights_lcstar, weights_total; xlabel, ylabel)
+    histogram2d(xs, ys; weights = weights_a1, bins = (40, 40), c = :blues, alpha = 0.35, colorbar = false, xlabel, ylabel, label = "a1")
+    histogram2d!(xs, ys; weights = weights_lcstar, bins = (40, 40), c = :reds, alpha = 0.35, colorbar = false, label = "Lc**")
+    histogram2d!(xs, ys; weights = weights_total, bins = (40, 40), c = :grays, alpha = 0.8, colorbar = false, label = "total")
+end
+
+plot(
+    dalitz_projection(
+        x_lc_pi,
+        y_lc_pim,
+        weight_lc_pi_pim_a1,
+        weight_lc_pi_pim_lcstar,
+        weight_lc_pi_pim_total;
+        xlabel = "m(Lc+ pi+) [GeV]",
+        ylabel = "m(Lc+ pi-) [GeV]",
+    ),
+    dalitz_projection(
+        x_pim_pim,
+        y_pim_pim,
+        weight_pim_pim_a1,
+        weight_pim_pim_lcstar,
+        weight_pim_pim_total;
+        xlabel = "m(Lc+ pi-_A) [GeV]",
+        ylabel = "m(Lc+ pi-_B) [GeV]",
+    ),
+    layout = (1, 2),
+    size = (900, 400),
+)
+```
 
 ## What The Example Exposes
 
