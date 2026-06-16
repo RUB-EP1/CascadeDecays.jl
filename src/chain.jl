@@ -129,17 +129,20 @@ vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex_ind::Integer) =
 vertex_helicities(chain::DecayChain, two_λs, vertex_ind::Integer) =
     vertex_helicities(chain.topology, two_λs, vertex_ind)
 
-function line_two_js(chain::DecayChain, system::CascadeSystem)
+function line_two_js(chain::DecayChain{Nf,Np}, system::CascadeSystem) where {Nf,Np}
     _check_system(chain.topology, system)
-    spins = MVector{nlines(chain),Int}(undef)
-    for (i, line_ind) in pairs(final_line_inds(chain))
-        spins[line_ind] = final_two_js(system)[i]
-    end
-    for (i, line_ind) in pairs(propagating_line_inds(chain))
-        spins[line_ind] = chain.propagator_two_js[i]
-    end
-    spins[root_line_ind(chain)] = root_two_j(system)
-    return SVector(spins)
+    final_inds = Tuple(final_line_inds(chain))
+    prop_inds = Tuple(propagating_line_inds(chain))
+    final_js = final_two_js(system)
+    prop_js = chain.propagator_two_js
+    root_j = root_two_j(system)
+    return SVector(ntuple(Val(Nf + Np + 1)) do line_ind
+        i = findfirst(==(line_ind), final_inds)
+        i !== nothing && return Int(final_js[i])
+        i = findfirst(==(line_ind), prop_inds)
+        i !== nothing && return Int(prop_js[i])
+        return Int(root_j)
+    end)
 end
 
 function vertex_spins(chain::DecayChain, system::CascadeSystem, vertex_ind::Integer)
