@@ -13,7 +13,7 @@ using CascadeDecays:
     SystemMasses,
     SystemSpinParities,
     amplitude,
-    cascade_kinematics,
+    CascadeKinematics,
     minimal_ls_decay_chain
 using FourVectors
 using HadronicLineshapes
@@ -87,7 +87,7 @@ let
     end
 
     x = let point = events[1]
-        cascade_kinematics(cascade_chain.topology, system, Tuple(point.momenta))
+        CascadeKinematics(cascade_chain.topology, Tuple(point.momenta))
     end
     σ1 = mandelstam_lc(events[1])
 
@@ -108,7 +108,7 @@ let
     end
 
     x = let point = events[1]
-        cascade_kinematics(cascade_chain.topology, system, Tuple(point.momenta))
+        CascadeKinematics(cascade_chain.topology, Tuple(point.momenta))
     end
     σ1 = mandelstam_lc(events[1])
 

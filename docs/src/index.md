@@ -6,8 +6,8 @@
 
 - Define a cascade with `DecayTopology(...)`.
 - Attach propagators and vertices with `DecayChain(...)`.
-- Build runtime kinematics with `CascadeKinematics(topology, objs)`.
-- Evaluate amplitudes with `amplitude(chain, system, x)` (full external-helicity array) or `amplitude(..., external_two_λs)` (one component).
+- Build runtime kinematics with `CascadeKinematics(topology, objs)` or a reusable `KinematicTask` / `KinematicPoint` workflow.
+- Evaluate amplitudes with `amplitude(chain, system, x)` (full external-helicity array) or `amplitude(..., external_two_λs)` (one component). Use `amplitude(chain, system, point)` when relative Wigner alignments between topologies are required.
 
 The main user-facing walkthrough is the tutorial page generated from the Quarto source in `docs/integration_4body_b2ddKpi.qmd`.
 

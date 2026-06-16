@@ -554,6 +554,9 @@ end
     @test amplitude(chain, system, point) == amplitude(chain, system, x)
 end
 
+include("threebody_compat_tests.jl")
+include("lc2pkpi_compat_tests.jl")
+
 @testset "LS decay-chain builders" begin
     topology = DecayTopology(((1, 2), 3))
     system = CascadeSystem(
@@ -614,4 +617,8 @@ end
     @test isempty(resonance_couplings[1].second)
     @test isempty(resonance_couplings[2].second)
     @test_throws ArgumentError minimal_ls_decay_chain(topology, weak_system, spin_only_resonance)
+end
+
+if !isnothing(Base.find_package("Pluto"))
+    include("pluto_notebook_tests.jl")
 end

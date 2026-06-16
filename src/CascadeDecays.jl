@@ -28,7 +28,7 @@ export produced_by, consumed_by
 export internal_line_inds, propagating_line_inds
 export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
 export has_canonical_line_order
-export bracket_notation
+export bracket, bracket_notation, validate_topology, external_line_inds
 include("topology.jl")
 
 # quantum numbers
@@ -61,11 +61,13 @@ include("chain.jl")
 
 # kinematic frames and path comparisons
 export HelicityRootFrame, CurrentFrame
+export WignerAngles
 include("frames_to_be_moved_to_idt.jl")
 export helicity_frame_path, relative_wigner_angles
 include("wigner_rotations.jl")
 
 # evaluation
+export helicity_angle_program, helicity_angle_programs
 export routed_vertex_amplitude, routed_propagator_product, amplitude
 include("evaluation.jl")
 
