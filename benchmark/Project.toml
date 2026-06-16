@@ -8,11 +8,10 @@ ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
 CascadeDecays = {path = ".."}
-FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
 RemboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 
 [compat]
-FourVectors = "0.3.1"
+FourVectors = "0.3.4"
 HadronicLineshapes = "0.4.2"
 RemboOnDiet = "0.1.1"
 StaticArrays = "1"

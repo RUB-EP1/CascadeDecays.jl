@@ -1,7 +1,8 @@
-# [Internal notation](@id notation)
+# [Topology and numbering](@id notation)
 
 ```@meta
 CurrentModule = CascadeDecays
+EditURL = "../src/notation.md"
 ```
 
 Short reference for indices and the flat topology used inside `CascadeDecays.jl`.

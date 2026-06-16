@@ -9,13 +9,20 @@ const QUARTO_PAGES = [
         qmd = "integration_4body_b2ddKpi.qmd",
         page = "tutorial.md",
         edit_url = "../integration_4body_b2ddKpi.qmd",
+        title = "# [Using a decay chain](@id tutorial)",
     ),
     (
         qmd = "lb2lc3pi-model.qmd",
         page = "lb2lc3pi-model.md",
         edit_url = "../lb2lc3pi-model.qmd",
-        title = "# [``\\Lambda_b^0 \\to \\Lambda_c^+ \\pi^+ \\pi^- \\pi^-`` model setup](@id lb2lc3pi_model)",
+        title = "# [Building a full model for a decay](@id lb2lc3pi_model)",
         copy_assets = true,
+    ),
+    (
+        qmd = "cascade-vs-dpd.qmd",
+        page = "cascade-vs-dpd.md",
+        edit_url = "../cascade-vs-dpd.qmd",
+        title = "# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)",
     ),
 ]
 
@@ -86,11 +93,11 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
-        "Internal notation" => "notation.md",
-        "Kinematic tasks" => "kinematic-task.md",
-        "Tutorial" => "tutorial.md",
-        "Lb to Lc 3pi model" => "lb2lc3pi-model.md",
-        "CascadeDecays vs DPD" => "cascade-vs-dpd.md",
+        "Topology and numbering" => "notation.md",
+        "Routing four-vectors" => "kinematic-task.md",
+        "Using a decay chain" => "tutorial.md",
+        "Building a full model for a decay" => "lb2lc3pi-model.md",
+        "Cross-checking with ThreeBodyDecays" => "cascade-vs-dpd.md",
         "API reference" => "api-reference.md",
     ],
 )
