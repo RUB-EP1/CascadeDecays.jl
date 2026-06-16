@@ -45,6 +45,7 @@ makedocs(;
         "Internal notation" => "notation.md",
         "Kinematic tasks" => "kinematic-task.md",
         "Tutorial" => "tutorial.md",
+        "CascadeDecays vs DPD" => "cascade-vs-dpd.md",
         "API reference" => "api-reference.md",
     ],
 )

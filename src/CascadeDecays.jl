@@ -5,6 +5,7 @@ using FourVectors
 using InstructionalDecayTrees
 using Tullio
 
+import PartialWaveFunctions: wignerD_doublearg
 import ThreeBodyDecays
 import ThreeBodyDecays: SpinParity, RecouplingLS, ⊗
 

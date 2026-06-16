@@ -61,6 +61,36 @@ function routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
     throw(MethodError(routed_vertex_amplitude, (vertex, masses2, helicities, spins, angles)))
 end
 
+function _vertex_coupling_value(
+    vertex::Vertex,
+    masses2,
+    two_λ1::Integer,
+    two_λ2::Integer,
+    spins::NTuple{3,Integer},
+)
+    two_j2 = spins[3]
+    return _particle_two_phase(two_j2, two_λ2) *
+           ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins) *
+           vertex.ff(masses2...)
+end
+
+function _rotated_vertex_amplitude_value(
+    vertex::Vertex,
+    masses2,
+    two_λ0::Integer,
+    two_λ1::Integer,
+    two_λ2::Integer,
+    spins::NTuple{3,Integer},
+    angles,
+)
+    coupling = _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
+    two_j0 = spins[1]
+    two_Δλ = two_λ1 - two_λ2
+    abs(two_Δλ) <= two_j0 || return zero(coupling)
+    rotation = conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
+    return rotation * coupling
+end
+
 function routed_vertex_amplitude(
     vertex::Vertex,
     masses2,
@@ -68,15 +98,8 @@ function routed_vertex_amplitude(
     spins,
     angles,
 )
-    two_j0, _, _ = spins
     two_λ0, two_λ1, two_λ2 = helicities
-    recoupling =
-        _particle_two_phase(spins[3], two_λ2) *
-        ThreeBodyDecays.amplitude(vertex.h, (two_λ1, two_λ2), spins)
-    formfactor = vertex.ff(masses2...)
-    two_Δλ = two_λ1 - two_λ2
-    rotation = conj(ThreeBodyDecays.wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
-    return rotation * recoupling * formfactor
+    return _rotated_vertex_amplitude_value(vertex, masses2, two_λ0, two_λ1, two_λ2, spins, angles)
 end
 
 function _particle_two_phase(two_j2::Integer, two_λ2::Integer)
@@ -144,9 +167,24 @@ function _vertex_factor(
     spins = (two_j0, two_j1, two_j2)
     angles = vertex_angles(x, vertex_ind)
     vertex = chain.vertices[vertex_ind]
+    couplings = [
+        _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
+        for two_λ1 in _helicity_range(two_j1),
+            two_λ2 in _helicity_range(two_j2)
+    ]
     V = [
-        routed_vertex_amplitude(vertex, masses2, (two_λ0, two_λ1, two_λ2), spins, angles)
-        for two_λ0 in (-two_j0):2:two_j0, two_λ1 in (-two_j1):2:two_j1, two_λ2 in (-two_j2):2:two_j2
+        begin
+            c = couplings[_helicity_index(two_λ1, two_j1), _helicity_index(two_λ2, two_j2)]
+            two_Δλ = two_λ1 - two_λ2
+            if abs(two_Δλ) <= two_j0
+                conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0)) * c
+            else
+                zero(c)
+            end
+        end
+        for two_λ0 in _helicity_range(two_j0),
+            two_λ1 in _helicity_range(two_j1),
+            two_λ2 in _helicity_range(two_j2)
     ]
     return V, (l0, l1, l2)
 end
@@ -154,14 +192,43 @@ end
 function _multiply_vertex_into_lines!(
     F::AbstractArray{T,N},
     V::AbstractArray,
-    lines::NTuple{3,Int},
-) where {T,N}
-    l0, l1, l2 = lines
+    lines::NTuple{Nl,Int},
+) where {T,N,Nl}
+    _multiply_vertex_into_lines!(F, V, lines, _sortperm_val(lines))
+end
+
+@generated function _permuted_dims(V::AbstractArray, ::Val{perm}) where {perm}
+    iperm = invperm(perm)
+    return :(PermutedDimsArray{eltype(V),ndims(V),$perm,$iperm,typeof(V)}(V))
+end
+
+@inline function _multiply_vertex_into_lines!(
+    F::AbstractArray{T,N},
+    V::AbstractArray,
+    lines::NTuple{Nl,Int},
+    vp::Val{perm},
+) where {T,N,Nl,perm}
+    sorted_lines = ntuple(i -> lines[perm[i]], Val(Nl))
+    Vp = _permuted_dims(V, vp)
     expand_sizes = ntuple(Val(N)) do d
-        d == l0 ? size(V, 1) : d == l1 ? size(V, 2) : d == l2 ? size(V, 3) : 1
+        axis = findfirst(==(d), sorted_lines)
+        axis === nothing ? 1 : size(Vp, axis)
     end
-    F .*= reshape(V, expand_sizes)
+    F .*= reshape(Vp, expand_sizes)
     return F
+end
+
+function _sortperm_val(lines::NTuple{3,Int})
+    a, b, c = lines
+    if a <= b
+        b <= c && return Val((1, 2, 3))
+        a <= c && return Val((1, 3, 2))
+        return Val((3, 1, 2))
+    else
+        a <= c && return Val((2, 1, 3))
+        b <= c && return Val((2, 3, 1))
+        return Val((3, 2, 1))
+    end
 end
 
 """
@@ -180,7 +247,7 @@ function line_amplitude_tensor(
     # manually proceed with the first vertex to get the element type
     first_vertex_ind = 1
     V, lines = _vertex_factor(chain, system, x, first_vertex_ind)
-    T = typeof(V |> first)
+    T = complex(typeof(first(V)))
     F = ones(T, line_sizes...)
     _multiply_vertex_into_lines!(F, V, lines)
     # do the rest of the vertices
@@ -233,7 +300,7 @@ function external_helicity_amplitude(
     F::AbstractArray,
     chain::DecayChain{Nf,Np},
 ) where {Nf,Np}
-    ext_dims = (Tuple(final_line_inds(chain))..., root_line_ind(chain))
+    ext_dims = _external_axis_line_inds(chain.topology)
     int_dims = Tuple(propagating_line_inds(chain))
     return external_helicity_amplitude(F, ext_dims, int_dims, Val(Nf + 1), Val(Np))
 end
@@ -260,6 +327,18 @@ function external_helicity_amplitude(
     return _tullio_sum_internal(Fp, Val(Ne), Val(Ni))
 end
 
+function _vertex_helicity_amplitude(
+    chain::DecayChain{Nf,Np},
+    system::CascadeSystem,
+    x::CascadeKinematics,
+) where {Nf,Np}
+    P_prod = routed_propagator_product(chain, x)
+    # sqrt(2j+1) per propagating line matches ThreeBodyDecays.aligned_amplitude normalisation
+    spin_norm = prod(sqrt(two_j + 1) for two_j in chain.propagator_two_js; init = one(Float64))
+    F = external_helicity_amplitude(line_amplitude_tensor(chain, system, x), chain)
+    return spin_norm * P_prod * F
+end
+
 """
     amplitude(chain, system, x)
 
@@ -276,10 +355,7 @@ function amplitude(
     system::CascadeSystem,
     x::CascadeKinematics,
 ) where {Nf,Np}
-    P_prod = routed_propagator_product(chain, x)
-    F = line_amplitude_tensor(chain, system, x)
-    A = external_helicity_amplitude(F, chain)
-    return P_prod * A
+    return _vertex_helicity_amplitude(chain, system, x)
 end
 
 """

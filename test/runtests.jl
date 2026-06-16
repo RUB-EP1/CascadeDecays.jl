@@ -396,7 +396,28 @@ end
     @test routed_vertex_amplitude(negative_phase, masses2, (0, -1, -1), spins, angles) == -1
 end
 
-include("threebody_compat_tests.jl")
+@testset "KinematicPoint amplitude dispatch" begin
+    ms = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+    σs = x2σs([0.45, 0.35], ms; k = 3)
+    objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(σs, ms; k = 3))
+    topology = DecayTopology(((1, 2), 3))
+    system = CascadeSystem(
+        SystemSpins(0, 0, 0; two_h0 = 0),
+        SystemMasses(ms),
+    )
+    chain = DecayChain(
+        topology;
+        propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
+        vertices = (
+            (((1, 2), 3) => Vertex(NoRecoupling(0, 0))),
+            ((1, 2) => Vertex(NoRecoupling(0, 0))),
+        ),
+    )
+    point = KinematicPoint(KinematicTask((topology,); reference_topology = topology), objs)
+    x = kinematics_at(point, topology)
+
+    @test amplitude(chain, system, point) == amplitude(chain, system, x)
+end
 
 @testset "LS decay-chain builders" begin
     topology = DecayTopology(((1, 2), 3))

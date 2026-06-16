@@ -222,3 +222,38 @@ function CascadeKinematics(
     task = KinematicTask((topology,); initial_frame = initial_frame)
     return KinematicPoint(task, objs).kinematics[1]
 end
+
+"""
+    amplitude(chain, system, point::KinematicPoint)
+
+Chain-local helicity amplitude in the topology of `chain`, followed by external
+Wigner rotations on the final-state axes listed in `point.task.wigner_finals`
+(relative to `point.task.reference_topology`).
+"""
+function amplitude(
+    chain::DecayChain{Nf,Np},
+    system::CascadeSystem,
+    point::KinematicPoint,
+) where {Nf,Np}
+    x = kinematics_at(point, chain.topology)
+    A = _vertex_helicity_amplitude(chain, system, x)
+    if !isempty(point.task.wigner_finals)
+        A = _apply_external_wigner_rotations(
+            A,
+            chain,
+            system,
+            alignment_angles_at(point, chain.topology),
+        )
+    end
+    return A
+end
+
+function amplitude(
+    chain::DecayChain,
+    system::CascadeSystem,
+    point::KinematicPoint,
+    external_two_λs::SystemSpins,
+)
+    A = amplitude(chain, system, point)
+    return A[_external_amplitude_indices(chain, system, external_two_λs)...]
+end
