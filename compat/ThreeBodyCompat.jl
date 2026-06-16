@@ -78,7 +78,7 @@ end
 
 _spatial_norm2(p) = p.px^2 + p.py^2 + p.pz^2
 _rest_scale2(p) = max(abs(p.E), one(float(abs(p.E))))^2
-_effectively_at_rest(p; rtol = 1e-12) = _spatial_norm2(p) <= rtol^2 * _rest_scale2(p)
+_effectively_at_rest(p; rtol = 1.0e-12) = _spatial_norm2(p) <= rtol^2 * _rest_scale2(p)
 
 function _sum_line_momentum(topology::DecayTopology, objs, line_ind::Integer)
     return sum(i -> objs[i], final_descendants(topology, line_ind))
@@ -87,20 +87,20 @@ end
 _root_isobar_line(topology::DecayTopology) = only(internal_line_inds(topology))
 
 function reference_plane_orientation(
-    reference_topology::DecayTopology,
-    objs;
-    initial_frame::AbstractInitialFrame=CurrentFrame(),
-)
+        reference_topology::DecayTopology,
+        objs;
+        initial_frame::AbstractInitialFrame = CurrentFrame(),
+    )
     nfinal(reference_topology) == 3 ||
         throw(ArgumentError("reference plane orientation requires a three-final topology"))
     return _reference_plane_orientation(reference_topology, objs, initial_frame)
 end
 
 function _reference_plane_orientation(
-    reference_topology::DecayTopology,
-    objs,
-    initial_frame::HelicityRootFrame,
-)
+        reference_topology::DecayTopology,
+        objs,
+        initial_frame::HelicityRootFrame,
+    )
     parent = sum(objs)
     _effectively_at_rest(parent) &&
         return _reference_plane_orientation(reference_topology, objs, CurrentFrame())
@@ -110,10 +110,10 @@ function _reference_plane_orientation(
 end
 
 function _reference_plane_orientation(
-    reference_topology::DecayTopology,
-    objs,
-    initial_frame::AbstractInitialFrame,
-)
+        reference_topology::DecayTopology,
+        objs,
+        initial_frame::AbstractInitialFrame,
+    )
     angle_results = map(helicity_angle_programs(reference_topology; initial_frame)) do program
         _, result = apply_decay_instruction(program, objs)
         only(values(result))

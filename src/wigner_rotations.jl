@@ -1,4 +1,4 @@
-const _WIGNER_DECODE_ATOL = 1e-10
+const _WIGNER_DECODE_ATOL = 1.0e-10
 
 """
     WignerAngles
@@ -54,10 +54,10 @@ is represented internally by a topology line; this method keeps that line id out
 of the user-facing API.
 """
 function helicity_frame_path(
-    topology::DecayTopology,
-    particle_index::Integer;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-)
+        topology::DecayTopology,
+        particle_index::Integer;
+        initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    )
     particle_index in Base.OneTo(nfinal(topology)) ||
         throw(ArgumentError("particle_index $particle_index is outside 1:$(nfinal(topology))"))
     line_ind = final_line_inds(topology)[particle_index]
@@ -80,13 +80,13 @@ Compare helicity-frame instruction paths for final-state particle
 the reference topology frame to the `topology` frame.
 """
 function relative_wigner_angles(
-    reference_topology::DecayTopology,
-    topology::DecayTopology,
-    particle_index::Integer,
-    objs;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-    T::Type{<:Real}=Float64,
-)
+        reference_topology::DecayTopology,
+        topology::DecayTopology,
+        particle_index::Integer,
+        objs;
+        initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+        T::Type{<:Real} = Float64,
+    )
     path_ref = helicity_frame_path(reference_topology, particle_index; initial_frame)
     path_other = helicity_frame_path(topology, particle_index; initial_frame)
     path_ref == path_other && return _trivial_alignment_rotation
@@ -102,10 +102,10 @@ function _external_axis_line_inds(topology::DecayTopology)
 end
 
 function _external_wigner_matrices(
-    chain::DecayChain,
-    system::CascadeSystem,
-    angles::SVector{Nf,WignerAngles},
-) where {Nf}
+        chain::DecayChain,
+        system::CascadeSystem,
+        angles::SVector{Nf, WignerAngles},
+    ) where {Nf}
     final_lines = final_line_inds(chain.topology)
     length(angles) == length(final_lines) ||
         throw(ArgumentError("angles must have one entry per final-state particle"))
@@ -130,9 +130,9 @@ for Ne in 1:8
     A_ref = Expr(:ref, :A, ext_syms...)
     tullio_rhs = reduce((a, b) -> :($a * $b), D_refs; init = F_ref)
     @eval function _contract_external_wigner_rotations(
-        F::AbstractArray{Ta,$Ne},
-        Ds::Tuple,
-    ) where {Ta}
+            F::AbstractArray{Ta, $Ne},
+            Ds::Tuple,
+        ) where {Ta}
         length(Ds) == $Ne || throw(ArgumentError("expected $Ne Wigner matrices"))
         $(D_unpack...)
         @tullio $A_ref := $tullio_rhs
@@ -140,16 +140,16 @@ for Ne in 1:8
     end
 end
 
-function _contract_external_wigner_rotations(F::AbstractArray{Ta,Ne}, Ds::Tuple) where {Ta,Ne}
+function _contract_external_wigner_rotations(F::AbstractArray{Ta, Ne}, Ds::Tuple) where {Ta, Ne}
     throw(ArgumentError("unsupported external axis count Ne=$Ne for Wigner contraction"))
 end
 
 function _apply_external_wigner_rotations(
-    F::AbstractArray,
-    chain::DecayChain,
-    system::CascadeSystem,
-    angles::SVector{Nf,WignerAngles},
-) where {Nf}
+        F::AbstractArray,
+        chain::DecayChain,
+        system::CascadeSystem,
+        angles::SVector{Nf, WignerAngles},
+    ) where {Nf}
     Ds = _external_wigner_matrices(chain, system, angles)
     all(D -> size(D) == (1, 1), Ds) && return F
     return _contract_external_wigner_rotations(F, Ds)
