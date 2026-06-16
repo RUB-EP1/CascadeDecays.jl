@@ -202,6 +202,31 @@ end
     )
 end
 
+@testset "CascadeDecay constructor" begin
+    topology = DecayTopology(((1, 2), 3))
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(1, 2, 3; m0 = 3))
+    chain = DecayChain(
+        topology,
+        (ConstantLineshape(1.0),),
+        (TestVertex(:mother), TestVertex(:isobar)),
+        (4,),
+        (0,),
+    )
+
+    cascade = CascadeDecay((chain,), system, topology)
+    @test cascade.chains === (chain,)
+    @test cascade_system(cascade) === system
+    @test reference_topology(cascade) === topology
+    @test couplings(cascade) == SVector(1.0 + 0.0im)
+
+    weighted = CascadeDecay((chain, chain), system, topology; couplings = (2, 3.0im))
+    @test weighted.chains === (chain, chain)
+    @test couplings(weighted) == SVector(2.0 + 0.0im, 0.0 + 3.0im)
+
+    @test_throws ArgumentError CascadeDecay((), system, topology)
+    @test_throws ArgumentError CascadeDecay((chain,), system, topology; couplings = (1, 2))
+end
+
 @testset "Bracket-addressed DecayChain constructor" begin
     topology = DecayTopology((((1, 2), 3), 4))
     chain = DecayChain(

@@ -74,6 +74,11 @@ export KinematicTask, KinematicPoint
 export kinematics_at, alignment_angles_at
 include("spec_routine.jl")
 
+# cascade container
+export CascadeDecay
+export reference_topology, cascade_system, couplings
+include("cascade_decay.jl")
+
 # LS coupling
 export possible_vertex_ls, minimal_vertex_coupling
 export possible_vertex_couplings, minimal_vertex_couplings
