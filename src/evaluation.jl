@@ -192,11 +192,24 @@ end
 function _multiply_vertex_into_lines!(
     F::AbstractArray{T,N},
     V::AbstractArray,
-    lines::NTuple{3,Int},
-) where {T,N}
-    line_order = _sortperm3(lines)
-    sorted_lines = ntuple(i -> lines[line_order[i]], Val(3))
-    Vp = PermutedDimsArray(V, line_order)
+    lines::NTuple{Nl,Int},
+) where {T,N,Nl}
+    _multiply_vertex_into_lines!(F, V, lines, _sortperm_val(lines))
+end
+
+@generated function _permuted_dims(V::AbstractArray, ::Val{perm}) where {perm}
+    iperm = invperm(perm)
+    return :(PermutedDimsArray{eltype(V),ndims(V),$perm,$iperm,typeof(V)}(V))
+end
+
+@inline function _multiply_vertex_into_lines!(
+    F::AbstractArray{T,N},
+    V::AbstractArray,
+    lines::NTuple{Nl,Int},
+    vp::Val{perm},
+) where {T,N,Nl,perm}
+    sorted_lines = ntuple(i -> lines[perm[i]], Val(Nl))
+    Vp = _permuted_dims(V, vp)
     expand_sizes = ntuple(Val(N)) do d
         axis = findfirst(==(d), sorted_lines)
         axis === nothing ? 1 : size(Vp, axis)
@@ -205,24 +218,16 @@ function _multiply_vertex_into_lines!(
     return F
 end
 
-function _sortperm3(lines::NTuple{3,Int})
+function _sortperm_val(lines::NTuple{3,Int})
     a, b, c = lines
     if a <= b
-        if b <= c
-            return (1, 2, 3)
-        elseif a <= c
-            return (1, 3, 2)
-        else
-            return (3, 1, 2)
-        end
+        b <= c && return Val((1, 2, 3))
+        a <= c && return Val((1, 3, 2))
+        return Val((3, 1, 2))
     else
-        if a <= c
-            return (2, 1, 3)
-        elseif b <= c
-            return (2, 3, 1)
-        else
-            return (3, 2, 1)
-        end
+        a <= c && return Val((2, 1, 3))
+        b <= c && return Val((2, 3, 1))
+        return Val((3, 2, 1))
     end
 end
 
