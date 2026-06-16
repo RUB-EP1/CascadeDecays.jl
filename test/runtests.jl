@@ -217,11 +217,12 @@ end
     @test cascade.chains === (chain,)
     @test cascade_system(cascade) === system
     @test reference_topology(cascade) === topology
-    @test couplings(cascade) == SVector(1.0 + 0.0im)
+    @test couplings(cascade) == (1.0 + 0.0im,)
+    @test cascade.names == ("chain_1",)
 
     weighted = CascadeDecay((chain, chain), system, topology; couplings = (2, 3.0im))
     @test weighted.chains === (chain, chain)
-    @test couplings(weighted) == SVector(2.0 + 0.0im, 0.0 + 3.0im)
+    @test couplings(weighted) == (2.0 + 0.0im, 0.0 + 3.0im)
 
     amp_masses = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
     amp_σs = x2σs([0.45, 0.35], amp_masses; k = 3)
@@ -293,17 +294,17 @@ end
         couplings = (1.0, 2.0im),
         names = ("a1->rhopi", "a1->kk"),
     )
-    @test model.names == SVector("a1->rhopi", "a1->kk")
+    @test model.names == ("a1->rhopi", "a1->kk")
     @test length(model) == 2
     @test collect(model)[1].name == "a1->rhopi"
-    @test model[1].names == SVector("a1->rhopi")
-    @test model[1].couplings == SVector(1.0)
-    @test model[[2]].names == SVector("a1->kk")
-    @test model[model.names .== "a1->rhopi"].names == SVector("a1->rhopi")
+    @test model[1].names == ("a1->rhopi",)
+    @test model[1].couplings == (1.0,)
+    @test model[[2]].names == ("a1->kk",)
+    @test model[model.names .== "a1->rhopi"].names == ("a1->rhopi",)
     @test model["a1->kk"].chains === (chain_b,)
 
     default_names = CascadeDecay((chain_a, chain_b), system, topology).names
-    @test default_names == SVector("chain_1", "chain_2")
+    @test default_names == ("chain_1", "chain_2")
 
     show_text = sprint(show, model)
     @test occursin("a1->rhopi", show_text)

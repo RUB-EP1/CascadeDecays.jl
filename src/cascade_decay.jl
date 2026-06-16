@@ -4,25 +4,18 @@
 Container for a coherent set of decay chains that share one system and reference
 topology. Each chain has a coupling coefficient and a string name for selection
 and display.
+
+`chains` is stored as a concretely typed tuple of [`DecayChain`](@ref) objects.
+`couplings` and `names` are homogeneous `NTuple`s of one numeric type and
+`String`, respectively. Vector inputs are accepted at the constructor boundary
+and converted immediately.
 """
 struct CascadeDecay{Nc,Ch<:Tuple{Vararg{DecayChain}},S,T,C}
     chains::Ch
-    couplings::SVector{Nc,C}
-    names::SVector{Nc,String}
+    couplings::NTuple{Nc,C}
+    names::NTuple{Nc,String}
     system::S
     reference_topology::T
-end
-
-function _chain_tuple(chains::Union{Tuple{Vararg{DecayChain}},AbstractVector{<:DecayChain}})
-    return chains isa Tuple ? chains : (chains...,)
-end
-
-function _coupling_tuple(couplings::Union{Tuple{Vararg{Number}},AbstractVector{<:Number}})
-    return couplings isa Tuple ? couplings : (couplings...,)
-end
-
-function _name_tuple(names::Union{Tuple{Vararg{AbstractString}},AbstractVector{<:AbstractString}})
-    return Tuple(String(name) for name in names)
 end
 
 function _validate_cascade_inputs(
@@ -45,31 +38,39 @@ function _default_chain_names(chains::Tuple{Vararg{DecayChain}})
     return ntuple(i -> _default_chain_name(chains[i], i), length(chains))
 end
 
-function _validate_chain_names(chains, names)
+function _validate_chain_names(chains::Tuple, names::Tuple)
     length(names) == length(chains) ||
         throw(ArgumentError("names must have one entry per chain"))
 end
 
+function _coupling_tuple(couplings::Tuple{Vararg{Number}})
+    C = promote_type(map(typeof, couplings)...)
+    return ntuple(i -> convert(C, couplings[i]), length(couplings))
+end
+
+function _name_tuple(names::Tuple{Vararg{AbstractString}})
+    return ntuple(i -> String(names[i]), length(names))
+end
+
 function CascadeDecay(
-    chains::Union{Tuple{Vararg{DecayChain}},AbstractVector{<:DecayChain}},
+    chains::Tuple{Vararg{DecayChain}},
     system::CascadeSystem,
     reference_topology::DecayTopology,
-    couplings::Union{Tuple{Vararg{Number}},AbstractVector{<:Number}},
-    names::Union{Tuple{Vararg{AbstractString}},AbstractVector{<:AbstractString}},
+    couplings::Tuple{Vararg{Number}},
+    names::Tuple{Vararg{AbstractString}},
 )
-    chain_tuple = _chain_tuple(chains)
+    isempty(chains) && throw(ArgumentError("chains must contain at least one DecayChain"))
+    length(couplings) == length(chains) ||
+        throw(ArgumentError("couplings must have one entry per chain"))
+    _validate_chain_names(chains, names)
+    _validate_cascade_inputs(reference_topology, system, chains)
     coupling_tuple = _coupling_tuple(couplings)
     names_tuple = _name_tuple(names)
-    isempty(chain_tuple) && throw(ArgumentError("chains must contain at least one DecayChain"))
-    length(coupling_tuple) == length(chain_tuple) ||
-        throw(ArgumentError("couplings must have one entry per chain"))
-    _validate_chain_names(chain_tuple, names_tuple)
-    _validate_cascade_inputs(reference_topology, system, chain_tuple)
-    C = promote_type(map(typeof, coupling_tuple)...)
-    return CascadeDecay{length(chain_tuple),typeof(chain_tuple),typeof(system),typeof(reference_topology),C}(
-        chain_tuple,
-        SVector{length(coupling_tuple),C}(coupling_tuple),
-        SVector{length(names_tuple),String}(names_tuple),
+    C = eltype(coupling_tuple)
+    return CascadeDecay{length(chains),typeof(chains),typeof(system),typeof(reference_topology),C}(
+        chains,
+        coupling_tuple,
+        names_tuple,
         system,
         reference_topology,
     )
@@ -87,17 +88,6 @@ function CascadeDecay(
 end
 
 function CascadeDecay(
-    chains::AbstractVector{<:DecayChain},
-    system::CascadeSystem,
-    reference_topology::DecayTopology,
-    couplings::AbstractVector{<:Number};
-    names::Union{Nothing,AbstractVector{<:AbstractString}}=nothing,
-)
-    name_tuple = isnothing(names) ? _default_chain_names(_chain_tuple(chains)) : names
-    return CascadeDecay(chains, system, reference_topology, couplings, name_tuple)
-end
-
-function CascadeDecay(
     chains::Tuple{Vararg{DecayChain}},
     system::CascadeSystem,
     reference_topology::DecayTopology;
@@ -105,6 +95,33 @@ function CascadeDecay(
     names::Union{Nothing,Tuple{Vararg{AbstractString}}}=nothing,
 )
     return CascadeDecay(chains, system, reference_topology, couplings; names)
+end
+
+function CascadeDecay(
+    chains::AbstractVector{<:DecayChain},
+    system::CascadeSystem,
+    reference_topology::DecayTopology,
+    couplings::AbstractVector{<:Number},
+    names::AbstractVector{<:AbstractString},
+)
+    return CascadeDecay(
+        (chains...,),
+        system,
+        reference_topology,
+        (couplings...,),
+        (String(name) for name in names...),
+    )
+end
+
+function CascadeDecay(
+    chains::AbstractVector{<:DecayChain},
+    system::CascadeSystem,
+    reference_topology::DecayTopology,
+    couplings::AbstractVector{<:Number};
+    names::Union{Nothing,AbstractVector{<:AbstractString}}=nothing,
+)
+    name_tuple = isnothing(names) ? _default_chain_names((chains...,)) : (String(name) for name in names...)
+    return CascadeDecay((chains...,), system, reference_topology, (couplings...,), name_tuple)
 end
 
 function CascadeDecay(
@@ -120,7 +137,6 @@ end
 reference_topology(cascade::CascadeDecay) = cascade.reference_topology
 cascade_system(cascade::CascadeDecay) = cascade.system
 couplings(cascade::CascadeDecay) = cascade.couplings
-names(cascade::CascadeDecay) = cascade.names
 
 Base.length(cascade::CascadeDecay) = length(cascade.chains)
 
@@ -138,18 +154,24 @@ end
 
 function _slice_cascade(cascade::CascadeDecay, inds::AbstractVector{<:Integer})
     isempty(inds) && throw(ArgumentError("cannot slice CascadeDecay to zero chains"))
-    chain_tuple = Tuple(cascade.chains[i] for i in inds)
+    n = length(inds)
+    chain_tuple = ntuple(i -> cascade.chains[inds[i]], n)
+    coupling_tuple = ntuple(i -> cascade.couplings[inds[i]], n)
+    names_tuple = ntuple(i -> cascade.names[inds[i]], n)
     return CascadeDecay(
         chain_tuple,
         cascade.system,
         cascade.reference_topology,
-        cascade.couplings[inds],
-        cascade.names[inds],
+        coupling_tuple,
+        names_tuple,
     )
 end
 
 Base.getindex(cascade::CascadeDecay, inds::AbstractVector{Bool}) =
     _slice_cascade(cascade, findall(inds))
+
+Base.getindex(cascade::CascadeDecay, inds::Tuple{Vararg{Bool}}) =
+    _slice_cascade(cascade, findall(identity, collect(inds)))
 
 Base.getindex(cascade::CascadeDecay, inds::AbstractVector{<:Integer}) =
     _slice_cascade(cascade, collect(inds))
@@ -213,7 +235,7 @@ function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay)
     cascade1.system == cascade2.system &&
         cascade1.reference_topology == cascade2.reference_topology ||
         throw(ArgumentError("merged models must share system and reference_topology"))
-    combined_names = vcat(cascade1.names, cascade2.names)
+    combined_names = (cascade1.names..., cascade2.names...)
     length(combined_names) == length(unique(combined_names)) ||
         throw(ArgumentError("merged models contain duplicate chain names"))
     chains = (cascade1.chains..., cascade2.chains...)
@@ -223,7 +245,7 @@ function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay)
         cascade1.system,
         cascade1.reference_topology,
         couplings,
-        Tuple(combined_names),
+        combined_names,
     )
 end
 

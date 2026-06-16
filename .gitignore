@@ -13,3 +13,4 @@ docs/lb2lc3pi-model_files/
 docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl
+docs/.DS_Store

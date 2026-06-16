@@ -331,6 +331,8 @@ plot(
     ),
     layout=(1, 2),
     size=(900, 400),
+    bottom_margin=5Plots.PlotMeasures.mm,
+    left_margin=5Plots.PlotMeasures.mm
 )
 ```
 
