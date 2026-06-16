@@ -169,8 +169,8 @@ function _vertex_factor(
     vertex = chain.vertices[vertex_ind]
     couplings = [
         _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
-        for two_λ1 in (-two_j1):2:two_j1,
-            two_λ2 in (-two_j2):2:two_j2
+        for two_λ1 in _helicity_range(two_j1),
+            two_λ2 in _helicity_range(two_j2)
     ]
     V = [
         begin
@@ -182,14 +182,11 @@ function _vertex_factor(
                 zero(c)
             end
         end
-        for two_λ0 in (-two_j0):2:two_j0,
-            two_λ1 in (-two_j1):2:two_j1,
-            two_λ2 in (-two_j2):2:two_j2
+        for two_λ0 in _helicity_range(two_j0),
+            two_λ1 in _helicity_range(two_j1),
+            two_λ2 in _helicity_range(two_j2)
     ]
-    return reshape(
-        V,
-        (_helicity_axis_length(two_j0), _helicity_axis_length(two_j1), _helicity_axis_length(two_j2)),
-    ), (l0, l1, l2)
+    return V, (l0, l1, l2)
 end
 
 function _multiply_vertex_into_lines!(
@@ -298,7 +295,7 @@ function external_helicity_amplitude(
     F::AbstractArray,
     chain::DecayChain{Nf,Np},
 ) where {Nf,Np}
-    ext_dims = (Tuple(final_line_inds(chain))..., root_line_ind(chain))
+    ext_dims = _external_axis_line_inds(chain.topology)
     int_dims = Tuple(propagating_line_inds(chain))
     return external_helicity_amplitude(F, ext_dims, int_dims, Val(Nf + 1), Val(Np))
 end
@@ -331,7 +328,8 @@ function _vertex_helicity_amplitude(
     x::CascadeKinematics,
 ) where {Nf,Np}
     P_prod = routed_propagator_product(chain, x)
-    spin_norm = prod(sqrt(two_j + 1) for two_j in chain.propagator_two_js)
+    # sqrt(2j+1) per propagating line matches ThreeBodyDecays.aligned_amplitude normalisation
+    spin_norm = prod(sqrt(two_j + 1) for two_j in chain.propagator_two_js; init = one(Float64))
     F = external_helicity_amplitude(line_amplitude_tensor(chain, system, x), chain)
     return spin_norm * P_prod * F
 end
