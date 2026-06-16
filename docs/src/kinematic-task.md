@@ -1,7 +1,8 @@
-# Kinematic Tasks And Points
+# [Routing four-vectors](@id kinematic_tasks)
 
 ```@meta
 CurrentModule = CascadeDecays
+EditURL = "../src/kinematic-task.md"
 ```
 
 [`KinematicTask`](@ref) is a reusable specification for turning one event,
@@ -32,7 +33,7 @@ ms = ThreeBodyMasses(0.93827208816, 0.493677, 0.13957039; m0 = 2.28646)
 σs = x2σs([0.42, 0.31], ms; k = 3);
 ```
 
-## From Topologies To A Task
+## From topologies to a task
 
 A task can be generated directly from topologies. The first topology is used as
 the reference unless `reference_topology` is supplied explicitly.
@@ -90,7 +91,7 @@ particle_index = 1
 )
 ```
 
-## Current-Frame Four-Vectors
+## Current-frame four-vectors
 
 Use [`CurrentFrame`](@ref) when the event is already expressed in the desired
 mother-system axes. In this example the aligned event is rotated as
@@ -125,7 +126,7 @@ x31_2 = kinematics_at(point, topologies[2])
 )
 ```
 
-## Helicity-Root Four-Vectors
+## Helicity-root four-vectors
 
 Use [`HelicityRootFrame`](@ref) for fully general four-vectors. The event is
 first rotated in the mother rest frame and then boosted and reoriented as
@@ -148,7 +149,7 @@ If the summed mother momentum is already numerically at rest, the task falls
 back to the current axes so that aligned rest-frame events keep their visible
 orientation.
 
-## Relative Paths And Requested Alignments
+## Relative paths and requested alignments
 
 Relative Wigner angles can be inspected directly for a chosen external line.
 

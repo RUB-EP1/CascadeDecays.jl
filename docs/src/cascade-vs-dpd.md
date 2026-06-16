@@ -1,8 +1,9 @@
 ```@meta
 CurrentModule = CascadeDecays
+EditURL = "../src/cascade-vs-dpd.md"
 ```
 
-# [CascadeDecays vs Dalitz-Plot Decomposition (TBD)](@id cascade_vs_dpd)
+# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)
 
 This note compares the `CascadeDecays.jl` helicity-frame construction with the
 Dalitz-plot decomposition implemented in `ThreeBodyDecays.jl` (TBD).

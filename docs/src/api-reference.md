@@ -2,6 +2,7 @@
 
 ```@meta
 CurrentModule = CascadeDecays
+EditURL = "../src/api-reference.md"
 ```
 
 ```@autodocs

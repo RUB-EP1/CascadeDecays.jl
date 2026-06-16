@@ -1,5 +1,5 @@
 ---
-title: "Four-body integration: `B⁺ → ψ(4040) K⁺`, `ψ(4040) → Dₓ⁺ D⁻`, `Dₓ⁺ → D⁰ π⁺`"
+title: "Using a decay chain"
 engine: julia
 format:
   gfm: default
@@ -8,8 +8,9 @@ execute:
   output: false
 ---
 
-This tutorial demonstrates how the current `CascadeDecays.jl` internals
-route kinematic variables through a flat cascade topology.
+This tutorial demonstrates how `CascadeDecays.jl` routes kinematic variables
+through a flat cascade topology and evaluates a [`DecayChain`](@ref) amplitude
+end to end. The worked example is B⁺ → D⁰D⁻π⁺K⁺ via ψ(4040).
 
 The input event is taken from:
 

@@ -1,5 +1,5 @@
 ---
-title: "Λ_b^0 → Λ_c^+ π^+ π^- π^- model setup"
+title: "Building a full model for a decay"
 engine: julia
 format:
   gfm: default
@@ -8,8 +8,8 @@ execute:
   output: false
 ---
 
-This page is a practical model-construction sketch. The task is to build a
-small coherent model for
+This page is a practical model-construction sketch. It builds a small coherent
+[`CascadeDecay`](@ref) model for
 
 ```math
 \Lambda_b^0 \to \Lambda_c^+ \pi^+ \pi^- \pi^-
@@ -33,7 +33,7 @@ The model has four channels:
 The two $a_1$ channels and the two $\Sigma_c$ channels are written explicitly
 so a fitter can tie or release their couplings later.
 
-## Procedural Construction
+## Procedural construction
 
 ```{julia}
 #| label: setup
@@ -141,7 +141,7 @@ external system, but its own topology and Breit-Wigner propagators. The
 `minimal_ls_decay_chain` calls choose the first allowed LS coupling at every
 binary vertex from the supplied spin-parity assignments.
 
-## Quick Toy Spectra
+## Quick toy spectra
 
 The same objects are enough for quick model-shape checks. Here `RemboOnDiet`
 generates flat four-body phase-space events. Each event is weighted by
@@ -336,7 +336,7 @@ plot(
 )
 ```
 
-## What The Example Exposes
+## What the example exposes
 
 This example is intentionally procedural. It makes the current API friction
 visible:
