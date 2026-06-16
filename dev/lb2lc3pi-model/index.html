@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lb to Lc 3pi model · CascadeDecays.jl</title><meta name="title" content="Lb to Lc 3pi model · CascadeDecays.jl"/><meta property="og:title" content="Lb to Lc 3pi model · CascadeDecays.jl"/><meta property="twitter:title" content="Lb to Lc 3pi model · CascadeDecays.jl"/><meta name="description" content="Documentation for CascadeDecays.jl."/><meta property="og:description" content="Documentation for CascadeDecays.jl."/><meta property="twitter:description" content="Documentation for CascadeDecays.jl."/><meta property="og:url" content="https://rub-ep1.github.io/CascadeDecays.jl/lb2lc3pi-model/"/><meta property="twitter:url" content="https://rub-ep1.github.io/CascadeDecays.jl/lb2lc3pi-model/"/><link rel="canonical" href="https://rub-ep1.github.io/CascadeDecays.jl/lb2lc3pi-model/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">CascadeDecays.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../notation/">Internal notation</a></li><li><a class="tocitem" href="../kinematic-task/">Kinematic tasks</a></li><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li class="is-active"><a class="tocitem" href>Lb to Lc 3pi model</a><ul class="internal"><li><a class="tocitem" href="#Procedural-Construction"><span>Procedural Construction</span></a></li><li><a class="tocitem" href="#Quick-Toy-Spectra"><span>Quick Toy Spectra</span></a></li><li><a class="tocitem" href="#What-The-Example-Exposes"><span>What The Example Exposes</span></a></li></ul></li><li><a class="tocitem" href="../cascade-vs-dpd/">CascadeDecays vs DPD</a></li><li><a class="tocitem" href="../api-reference/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Lb to Lc 3pi model</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lb to Lc 3pi model</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/lb2lc3pi-model.qmd#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="lb2lc3pi_model"><a class="docs-heading-anchor" href="#lb2lc3pi_model"><span>$\Lambda_b^0 \to \Lambda_c^+ \pi^+ \pi^- \pi^-$</span> model setup</a><a id="lb2lc3pi_model-1"></a><a class="docs-heading-anchor-permalink" href="#lb2lc3pi_model" title="Permalink"></a></h1><p>This page is a practical model-construction sketch. The task is to build a small coherent model for</p><p class="math-container">\[\Lambda_b^0 \to \Lambda_c^+ \pi^+ \pi^- \pi^-\]</p><p>with final-state labels</p><ul><li><code>1</code>: <span>$\Lambda_c^+$</span></li><li><code>2</code>: <span>$\pi^+$</span></li><li><code>3</code>: <span>$\pi^-$</span></li><li><code>4</code>: <span>$\pi^-$</span></li><li>root: <span>$\Lambda_b^0$</span></li></ul><p>The model has four channels:</p><ol><li><span>$\Lambda_b^0 \to a_1 \Lambda_c^+$</span>, <span>$a_1 \to \rho(23)\pi^-_4$</span></li><li><span>$\Lambda_b^0 \to a_1 \Lambda_c^+$</span>, <span>$a_1 \to \rho(24)\pi^-_3$</span></li><li><span>$\Lambda_b^0 \to \Lambda_c^{**}\pi^-_4$</span>,  <span>$\Lambda_c^{**}\to\Sigma_c(12)\pi^-_3$</span></li><li><span>$\Lambda_b^0 \to \Lambda_c^{**}\pi^-_3$</span>,  <span>$\Lambda_c^{**}\to\Sigma_c(12)\pi^-_4$</span></li></ol><p>The two <span>$a_1$</span> channels and the two <span>$\Sigma_c$</span> channels are written explicitly so a fitter can tie or release their couplings later.</p><h2 id="Procedural-Construction"><a class="docs-heading-anchor" href="#Procedural-Construction">Procedural Construction</a><a id="Procedural-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Procedural-Construction" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CascadeDecays
+using HadronicLineshapes
+using ThreeBodyDecays: @jp_str
+
+# External particles, in the final-state order used by the topology labels.
+m_pi_plus = 0.13957039
+m_pi_minus = 0.13957039
+m_lc = 2.28646
+m_lb = 5.61960
+
+system = CascadeSystem(
+    SystemSpinParities(&quot;1/2+&quot;, &quot;0-&quot;, &quot;0-&quot;, &quot;0-&quot;; jp0=&quot;1/2+&quot;),
+    SystemMasses(m_lc, m_pi_plus, m_pi_minus, m_pi_minus; m0=m_lb),
+)
+
+# Placeholder resonance parameters. Replace these with the values used in the
+# analysis model or expose them as fit parameters.
+rho_770 = BreitWigner(0.77526, 0.1491)
+a1_1260 = BreitWigner(1.23, 0.42)
+sigmac_2455 = BreitWigner(2.45397, 20 * 0.00189) # made wider 0.00189
+lcstar = BreitWigner(2.86, 5 * 0.067) # made wider
+
+# 1. a1 -&gt; rho(23) pi4
+topology_a1_23 = DecayTopology((1, ((2, 3), 4)))
+propagators_a1_23 = (
+    ((2, 3), 4) =&gt; Propagator(jp&quot;1+&quot;, a1_1260),
+    (2, 3) =&gt; Propagator(jp&quot;1-&quot;, rho_770),
+)
+chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, system, propagators_a1_23)
+
+# 2. a1 -&gt; rho(24) pi3
+topology_a1_24 = DecayTopology((1, ((2, 4), 3)))
+propagators_a1_24 = (
+    ((2, 4), 3) =&gt; Propagator(jp&quot;1+&quot;, a1_1260),
+    (2, 4) =&gt; Propagator(jp&quot;1-&quot;, rho_770),
+)
+chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, system, propagators_a1_24)
+
+# 3. Lc** -&gt; Sigma_c(12) pi3, with pi4 as the spectator
+topology_sigmac_123 = DecayTopology((((1, 2), 3), 4))
+propagators_sigmac_123 = (
+    ((1, 2), 3) =&gt; Propagator(jp&quot;3/2+&quot;, lcstar),
+    (1, 2) =&gt; Propagator(jp&quot;1/2+&quot;, sigmac_2455),
+)
+chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, system, propagators_sigmac_123)
+
+# 4. Lc** -&gt; Sigma_c(12) pi4, with pi3 as the spectator
+topology_sigmac_124 = DecayTopology((((1, 2), 4), 3))
+propagators_sigmac_124 = (
+    ((1, 2), 4) =&gt; Propagator(jp&quot;3/2+&quot;, lcstar),
+    (1, 2) =&gt; Propagator(jp&quot;1/2+&quot;, sigmac_2455),
+)
+chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, system, propagators_sigmac_124)</code></pre><p>At this point all channels are ordinary <code>DecayChain</code> values. The construction is explicit but repetitive: each channel needs a bracket topology, a tuple of bracket-addressed propagators, and one call to <code>minimal_ls_decay_chain</code>. This is useful for auditing the model, but it also shows where a future convenience layer could reduce boilerplate for charge-reflected channels.</p><p>The two <span>$a_1$</span> chains should share a production coupling if the two identical <span>$\pi^-$</span> assignments are symmetrized. The two <span>$\Sigma_c$</span> chains are handled the same way. For now the tying is done by passing the same coefficient object in the two corresponding positions.</p><pre><code class="language-julia hljs">c_a1 = 1.0 + 0.0im
+c_sigmac = 5.0 + 0.0im
+
+model = CascadeDecay(
+    (chain_a1_23, chain_a1_24, chain_sigmac_123, chain_sigmac_124),
+    system,
+    topology_a1_23;
+    couplings=(c_a1, c_a1, c_sigmac, c_sigmac),
+    names=(
+        &quot;a1-&gt;rho23pi4&quot;,
+        &quot;a1-&gt;rho24pi3&quot;,
+        &quot;lcstar-&gt;sigmac12pi3&quot;,
+        &quot;lcstar-&gt;sigmac12pi4&quot;,
+    ),
+)</code></pre><p>Each chain carries a string name. The names are stored in <code>model.names</code> and shown in the table-like <code>show</code> summary. They are mainly for selection: later we can slice out the <span>$a_1$</span> and <span>$\Lambda_c^{**}$</span> submodels without rebuilding chains or repeating couplings by hand.</p><pre><code class="language-julia hljs">show(model)
+(length(model), model.names, Tuple(couplings(model)))</code></pre><pre><code class="nohighlight hljs">CascadeDecay with 4 chains on (1,((2,3),4)):
+                 name     coupling       topology
+         a1-&gt;rho23pi4  1.0 + 0.0im  (1,((2,3),4))
+         a1-&gt;rho24pi3  1.0 + 0.0im  (1,((2,4),3))
+  lcstar-&gt;sigmac12pi3  5.0 + 0.0im  (((1,2),3),4)
+  lcstar-&gt;sigmac12pi4  5.0 + 0.0im  (((1,2),4),3)
+
+(4, (&quot;a1-&gt;rho23pi4&quot;, &quot;a1-&gt;rho24pi3&quot;, &quot;lcstar-&gt;sigmac12pi3&quot;, &quot;lcstar-&gt;sigmac12pi4&quot;), (1.0 + 0.0im, 1.0 + 0.0im, 5.0 + 0.0im, 5.0 + 0.0im))</code></pre><p>The result is a static model description. Each <code>DecayChain</code> has the same external system, but its own topology and Breit-Wigner propagators. The <code>minimal_ls_decay_chain</code> calls choose the first allowed LS coupling at every binary vertex from the supplied spin-parity assignments.</p><h2 id="Quick-Toy-Spectra"><a class="docs-heading-anchor" href="#Quick-Toy-Spectra">Quick Toy Spectra</a><a id="Quick-Toy-Spectra-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Toy-Spectra" title="Permalink"></a></h2><p>The same objects are enough for quick model-shape checks. Here <code>RemboOnDiet</code> generates flat four-body phase-space events. Each event is weighted by</p><p class="math-container">\[w = J_{\mathrm{PS}}\; I_{\mathrm{unpolarized}},\]</p><p>where <code>J_PS</code> is the phase-space weight returned by <code>RemboOnDiet</code> and <code>I_unpolarized</code> is <code>unpolarized_intensity(model, point)</code>.</p><p>To make the structures visible, the toy projection also evaluates the two channel groups separately: the two <span>$a_1$</span> chains and the two <span>$\Lambda_c^{**}$</span> chains. The full model remains coherent, so the black total curve can include interference that is not present in the two component intensities.</p><pre><code class="language-julia hljs">using FourVectors
+using Plots
+using Random
+using RemboOnDiet
+using DataFrames
+
+theme(:boxed)
+
+const N_TOY_EVENTS = 50_000
+
+rng = MersenneTwister(0x4C3B3)
+generator = PhaseSpaceGenerator(
+    [m_lc, m_pi_plus, m_pi_minus, m_pi_minus],
+    m_lb,
+)
+
+task = KinematicTask(
+    (topology_a1_23, topology_a1_24, topology_sigmac_123, topology_sigmac_124);
+    reference_topology=reference_topology(model),
+    wigner_finals=(1,),
+)</code></pre><p>The two component models are slices of the full model. They reuse the same chains and couplings, so they are not rebuilt by hand. They are also not a partition of the coherent intensity; they are diagnostic projections of the two channel families evaluated with the same kinematic task as the full model.</p><pre><code class="language-julia hljs">is_a1 = startswith.(model.names, &quot;a1&quot;)
+is_lcstar = startswith.(model.names, &quot;lcstar&quot;)
+
+model_a1 = model[is_a1]
+model_lcstar = model[is_lcstar]
+
+(length(model_a1), model_a1.names, length(model_lcstar), model_lcstar.names)</code></pre><p>The event sample is flat phase space. Each row stores the four-momenta, phase-space weight, component and total intensities, and a small set of invariant-mass columns computed with <code>FourVectors</code>.</p><pre><code class="language-julia hljs">data = DataFrame(
+    :event =&gt; [rand(rng, generator) for _ in 1:N_TOY_EVENTS])
+select!(data, :event =&gt; ByRow() do event
+    (; event.momenta, event.weight)
+end =&gt; AsTable)
+
+transform!(data, [:momenta, :weight] =&gt; ByRow() do momenta, weight
+    point = KinematicPoint(task, Tuple(momenta))
+    a1 = unpolarized_intensity(model_a1, point)
+    lcstar = unpolarized_intensity(model_lcstar, point)
+    total = unpolarized_intensity(model, point)
+    (;
+        weight_a1=a1 * weight,
+        weight_lcstar=lcstar * weight,
+        weight_total=total * weight,
+    )
+end =&gt; AsTable)
+
+transform!(data, :momenta =&gt; ByRow() do (Lc1, pip2, pim3, pim4)
+    (;
+        m_pip_pim_23=mass(pip2 + pim3),
+        m_pip_pim_24=mass(pip2 + pim4),
+        m_3pi=mass(pip2 + pim3 + pim4),
+        m_Lc_pim_13=mass(Lc1 + pim3),
+        m_Lc_pim_14=mass(Lc1 + pim4),
+        m_Lc_pip_12=mass(Lc1 + pip2),
+        m_Lc_pip_pim_123=mass(Lc1 + pip2 + pim3),
+        m_Lc_pip_pim_124=mass(Lc1 + pip2 + pim4),
+    )
+end =&gt; AsTable)
+
+select!(data, Not(:momenta))</code></pre><p>For observables involving one of the two identical <span>$\pi^-$</span> labels, both label assignments are filled into the same projection with repeated weights. The component histograms are filled to zero, while the full coherent model is drawn as a black step line. This keeps the interference-sensitive total visually separate from the two diagnostic component intensities.</p><pre><code class="language-julia hljs">plot(
+    projection(data, (:m_pip_pim_23, :m_pip_pim_24); xlabel=&quot;m(pi+ pi-) [GeV]&quot;, bins=100),
+    projection(data, (:m_3pi,); xlabel=&quot;m(3pi) [GeV]&quot;, bins=100),
+    projection(data, (:m_Lc_pip_pim_123, :m_Lc_pip_pim_124); xlabel=&quot;m(Lc+ pi+ pi-) [GeV]&quot;, bins=100),
+    projection(data, (:m_Lc_pim_13, :m_Lc_pim_14); xlabel=&quot;m(Lc+ pi-) [GeV]&quot;, bins=100),
+    layout=(2, 2),
+    size=(900, 650),
+    ylabel=&quot;weighted entries&quot;,
+)</code></pre><p><img src="../lb2lc3pi-model_files/figure-commonmark/mass-projections-output-1.svg" alt="Invariant-mass projections for the toy sample."/></p><p>There is no <span>$\Lambda_c^+\pi^+\pi^+$</span> spectrum for this final state; the three-body baryonic plot above uses the two available <span>$\Lambda_c^+\pi^+\pi^-$</span> combinations.</p><p>Two Dalitz projections probe the same symmetrization more directly. The <span>$\Lambda_c^+\pi^+\pi^-$</span> plot uses <code>m_Lc_pip_12</code> against the two <span>$\Lambda_c^+\pi^-$</span> assignments. The <span>$\Lambda_c^+\pi^-\pi^-$</span> plot uses <code>m_Lc_pim_13</code> and <code>m_Lc_pim_14</code>, together with their reflection <span>$(x, y) \leftrightarrow (y, x)$</span>, to visualize symmetry under exchange of the identical pions.</p><pre><code class="language-julia hljs">plot(
+    dalitz_projection(
+        data,
+        :m_Lc_pip_12,
+        (:m_Lc_pim_13, :m_Lc_pim_14);
+        xlabel=&quot;m(Lc+ pi+) [GeV]&quot;,
+        ylabel=&quot;m(Lc+ pi-) [GeV]&quot;,
+    ),
+    reflect_dalitz_projection(
+        data,
+        :m_Lc_pim_13,
+        :m_Lc_pim_14;
+        xlabel=&quot;m(Lc+ pi-_A) [GeV]&quot;,
+        ylabel=&quot;m(Lc+ pi-_B) [GeV]&quot;,
+    ),
+    layout=(1, 2),
+    size=(900, 400),
+    bottom_margin=5Plots.PlotMeasures.mm,
+    left_margin=5Plots.PlotMeasures.mm
+)</code></pre><p><img src="../lb2lc3pi-model_files/figure-commonmark/dalitz-projections-output-1.svg" alt="Dalitz projections with identical-pion symmetrization checks."/></p><h2 id="What-The-Example-Exposes"><a class="docs-heading-anchor" href="#What-The-Example-Exposes">What The Example Exposes</a><a id="What-The-Example-Exposes-1"></a><a class="docs-heading-anchor-permalink" href="#What-The-Example-Exposes" title="Permalink"></a></h2><p>This example is intentionally procedural. It makes the current API friction visible:</p><ul><li>resonance labels live in variable names, not in the model object;</li><li>the two symmetrized channel pairs are tied by manually repeating couplings;</li><li>every topology and propagator list is written by hand;</li><li>there is no helper yet for “build all charge permutations of this subdecay”.</li></ul><p>Once the full model is assembled, named indexing already covers one common workflow: selecting channel families (<code>model[is_a1]</code>, <code>model[is_lcstar]</code>) and evaluating their intensities with the same kinematic task as the coherent sum.</p><p>Those are useful pressure points for the next convenience layer. The low-level objects are explicit enough to audit, but a production analysis will likely want a small channel builder on top of them.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial/">« Tutorial</a><a class="docs-footer-nextpage" href="../cascade-vs-dpd/">CascadeDecays vs DPD »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 16 June 2026 19:38">Tuesday 16 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
