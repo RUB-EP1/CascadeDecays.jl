@@ -11,7 +11,7 @@ CascadeDecays = {path = ".."}
 RemboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 
 [compat]
-FourVectors = "0.3.1"
+FourVectors = "0.3.4"
 HadronicLineshapes = "0.4.2"
 RemboOnDiet = "0.1.1"
 StaticArrays = "1"
