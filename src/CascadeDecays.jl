@@ -76,7 +76,7 @@ include("spec_routine.jl")
 
 # cascade container
 export CascadeDecay
-export reference_topology, cascade_system, couplings
+export reference_topology, cascade_system, couplings, names
 export unpolarized_intensity
 include("cascade_decay.jl")
 

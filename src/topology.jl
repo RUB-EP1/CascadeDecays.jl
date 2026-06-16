@@ -318,6 +318,11 @@ function vertex_address(topology::DecayTopology, vertex_ind::Integer)
     return _line_ind_address(topology, incoming_line_ind(topology, vertex_ind))
 end
 
+function _compact_vertex_label(address)
+    address isa Integer && return string(address)
+    return "(" * _compact_vertex_label(address[1]) * "," * _compact_vertex_label(address[2]) * ")"
+end
+
 function _line_ind_address(topology::DecayTopology, line_ind::Integer)
     _require_line_ind(topology, line_ind)
     isfinal_line_ind(topology, line_ind) && return Int(line_ind)

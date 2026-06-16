@@ -7,11 +7,6 @@ Base.length(programs::VertexPrograms) = length(programs.programs)
 Base.getindex(programs::VertexPrograms, i::Integer) = programs.programs[i]
 Base.iterate(programs::VertexPrograms, state...) = iterate(programs.programs, state...)
 
-function _compact_vertex_label(address)
-    address isa Integer && return string(address)
-    return "(" * _compact_vertex_label(address[1]) * "," * _compact_vertex_label(address[2]) * ")"
-end
-
 function Base.show(io::IO, programs::VertexPrograms)
     print(io, "VertexPrograms with ", length(programs), " measurements")
     for (label, program) in zip(programs.labels, programs)

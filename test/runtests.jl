@@ -248,6 +248,75 @@ end
     @test_throws ArgumentError CascadeDecay((chain,), system, topology; couplings = (1, 2))
 end
 
+@testset "CascadeDecay indexing, names, and merge" begin
+    topology = DecayTopology(((1, 2), 3))
+    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(1, 2, 3; m0 = 3))
+    chain_a = DecayChain(
+        topology;
+        propagators = ((1, 2) => Propagator(0, ConstantLineshape(1.0)),),
+        vertices = (
+            (((1, 2), 3) => Vertex(RecouplingLS((0, 0)))),
+            ((1, 2) => Vertex(RecouplingLS((0, 0)))),
+        ),
+    )
+    chain_b = DecayChain(
+        topology;
+        propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
+        vertices = (
+            (((1, 2), 3) => Vertex(RecouplingLS((2, 0)))),
+            ((1, 2) => Vertex(RecouplingLS((0, 0)))),
+        ),
+    )
+
+    model = CascadeDecay(
+        (chain_a, chain_b),
+        system,
+        topology;
+        couplings = (1.0, 2.0im),
+        names = ("a1->rhopi", "a1->kk"),
+    )
+    @test model.names == SVector("a1->rhopi", "a1->kk")
+    @test length(model) == 2
+    @test collect(model)[1].name == "a1->rhopi"
+    @test model[1].names == SVector("a1->rhopi")
+    @test model[1].couplings == SVector(1.0)
+    @test model[[2]].names == SVector("a1->kk")
+    @test model[model.names .== "a1->rhopi"].names == SVector("a1->rhopi")
+    @test model["a1->kk"].chains === (chain_b,)
+
+    default_names = CascadeDecay((chain_a, chain_b), system, topology).names
+    @test default_names == SVector("(0,0)-(0,0)", "(2,0)-(0,0)")
+
+    show_text = sprint(show, model)
+    @test occursin("a1->rhopi", show_text)
+    @test occursin("coupling", show_text)
+    @test occursin("(0,0)", show_text)
+
+    part_a = model[model.names .== "a1->rhopi"]
+    part_b = model[model.names .== "a1->kk"]
+    combined = merge(part_a, part_b)
+    @test combined.names == model.names
+    @test combined.couplings == model.couplings
+    @test combined.chains === model.chains
+
+    amp_masses = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+    amp_σs = x2σs([0.45, 0.35], amp_masses; k = 3)
+    amp_objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(amp_σs, amp_masses; k = 3))
+    amp_point = KinematicPoint(KinematicTask((topology,); reference_topology = topology), amp_objs)
+    @test amplitude(model[[1]], amp_point) ≈ amplitude(part_a, amp_point)
+    @test amplitude(model[[2]], amp_point) ≈ 2.0im * amplitude(chain_b, system, kinematics_at(amp_point, topology))
+
+    @test_throws ArgumentError model[fill(false, length(model))]
+    @test_throws KeyError model["missing"]
+    @test_throws ArgumentError merge(part_a, part_a)
+    @test_throws ArgumentError CascadeDecay(
+        (chain_a, chain_b),
+        system,
+        topology;
+        names = ("only-one",),
+    )
+end
+
 @testset "Bracket-addressed DecayChain constructor" begin
     topology = DecayTopology((((1, 2), 3), 4))
     chain = DecayChain(
