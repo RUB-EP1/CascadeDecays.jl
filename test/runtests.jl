@@ -39,10 +39,10 @@ end
     @test root_mass(system) == 3
 
     @test_throws ArgumentError SystemSpins(0, 0)
-    spins = SystemSpins(0, 0, 0, 0; two_h0=0)
-    @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0, 2; two_h0=0)
-    @test SystemHelicities(spins, 0, 0, 0, 0; two_h0=0) ==
-        SystemHelicities(0, 0, 0, 0; two_h0=0)
+    spins = SystemSpins(0, 0, 0, 0; two_h0 = 0)
+    @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0, 2; two_h0 = 0)
+    @test SystemHelicities(spins, 0, 0, 0, 0; two_h0 = 0) ==
+        SystemHelicities(0, 0, 0, 0; two_h0 = 0)
     @test SystemSpinProjections === SystemSpins
     @test_throws ArgumentError SystemHelicities(0, 0)
     @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0)
@@ -463,7 +463,7 @@ end
         -1 0 0
     ]
 
-    @test CascadeDecays.relation(topology) == SMatrix{7,3,Int,21}(relation)
+    @test CascadeDecays.relation(topology) == SMatrix{7, 3, Int, 21}(relation)
     @test nfinal(topology) == 4
     @test nvertices(topology) == 3
     @test bracket_notation(topology) == "(((1,2),3),4)"
@@ -494,8 +494,8 @@ end
     @test line_invariant(topology, x, (1, 2)) ≈ mass(pD0 + piplus)^2
     @test line_invariant(topology, x, ((1, 2), 3)) ≈ mass(pD0 + piplus + pDminus)^2
     @test line_invariant(topology, x, (((1, 2), 3), 4)) ≈ mass(sum(objs))^2
-    @test isapprox(vertex_angles(topology, x, (1, 2)).cosθ, 0.8746538492596707; atol = 2e-10)
-    @test isapprox(vertex_angles(topology, x, (1, 2)).ϕ, -2.84901364039537; atol = 2e-10)
+    @test isapprox(vertex_angles(topology, x, (1, 2)).cosθ, 0.8746538492596707; atol = 2.0e-10)
+    @test isapprox(vertex_angles(topology, x, (1, 2)).ϕ, -2.84901364039537; atol = 2.0e-10)
 
     chain = DecayChain(
         topology;
@@ -509,7 +509,7 @@ end
             (1, 2) => Vertex(RecouplingLS((2, 0))),
         ),
     )
-    external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0=0)
+    external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0 = 0)
     A_full = amplitude(chain, system, x)
     @test size(A_full) == (1, 1, 1, 1, 1)
     A = amplitude(chain, system, x, external_two_λs)

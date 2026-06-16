@@ -4,9 +4,9 @@
 Runtime kinematic input point. `line_masses2` is indexed by line id and
 `vertex_angles` is indexed by vertex id.
 """
-struct CascadeKinematics{Nl,Nv,T,A}
-    line_masses2::SVector{Nl,T}
-    vertex_angles::SVector{Nv,A}
+struct CascadeKinematics{Nl, Nv, T, A}
+    line_masses2::SVector{Nl, T}
+    vertex_angles::SVector{Nv, A}
 end
 
 _has_vertex_angle_schema(angle) = hasproperty(angle, :cosθ) && hasproperty(angle, :ϕ)
@@ -18,18 +18,18 @@ function CascadeKinematics(line_masses2, vertex_angles)
         throw(ArgumentError("each vertex angle must provide `cosθ` and `ϕ` fields"))
     T = promote_type(map(typeof, mass_tuple)...)
     A = promote_type(map(typeof, angle_tuple)...)
-    return CascadeKinematics{length(mass_tuple),length(angle_tuple),T,A}(
-        SVector{length(mass_tuple),T}(mass_tuple),
-        SVector{length(angle_tuple),A}(angle_tuple),
+    return CascadeKinematics{length(mass_tuple), length(angle_tuple), T, A}(
+        SVector{length(mass_tuple), T}(mass_tuple),
+        SVector{length(angle_tuple), A}(angle_tuple),
     )
 end
 
 function CascadeKinematics(
-    topology::DecayTopology,
-    system::CascadeSystem;
-    internal_masses2,
-    vertex_angles,
-)
+        topology::DecayTopology,
+        system::CascadeSystem;
+        internal_masses2,
+        vertex_angles,
+    )
     masses = line_masses2(topology, system, internal_masses2)
     length(vertex_angles) == nvertices(topology) ||
         throw(ArgumentError("vertex_angles must have one entry per topology vertex"))
@@ -48,7 +48,7 @@ function _require_kinematic_vertex(x::CascadeKinematics, vertex_ind::Integer)
     return nothing
 end
 
-function _check_kinematics(topology::DecayTopology, x::CascadeKinematics{Nl,Nv}) where {Nl,Nv}
+function _check_kinematics(topology::DecayTopology, x::CascadeKinematics{Nl, Nv}) where {Nl, Nv}
     Nl == nlines(topology) ||
         throw(ArgumentError("kinematics line_masses2 must have one entry per topology line"))
     Nv == nvertices(topology) ||

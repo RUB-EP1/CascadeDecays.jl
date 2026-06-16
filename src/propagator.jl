@@ -11,7 +11,7 @@ Propagator payload for an internal cascade line, analogous to
 
 See also [`PropagatorWithParity`](@ref) for the LS-coupling case.
 """
-struct Propagator{F,X}
+struct Propagator{F, X}
     two_j::Int
     lineshape::F
     extra::X
@@ -20,16 +20,16 @@ end
 const PropagatorParityExtra = NamedTuple{(:parity,)}
 
 """Alias of [`Propagator`](@ref) with parity metadata in `extra`."""
-const PropagatorWithParity{F} = Propagator{F,<:PropagatorParityExtra}
-const PropagatorSpec = Pair{<:Tuple,<:Propagator}
-const PropagatorSpecWithParity = Pair{<:Tuple,<:PropagatorWithParity}
+const PropagatorWithParity{F} = Propagator{F, <:PropagatorParityExtra}
+const PropagatorSpec = Pair{<:Tuple, <:Propagator}
+const PropagatorSpecWithParity = Pair{<:Tuple, <:PropagatorWithParity}
 
 function Propagator(two_j::Integer, lineshape::F) where {F}
-    return Propagator{F,Nothing}(Int(two_j), lineshape, nothing)
+    return Propagator{F, Nothing}(Int(two_j), lineshape, nothing)
 end
 
 function Propagator(jp::SpinParity, lineshape::F) where {F}
-    return Propagator{F,NamedTuple{(:parity,),Tuple{typeof(jp.p)}}}(
+    return Propagator{F, NamedTuple{(:parity,), Tuple{typeof(jp.p)}}}(
         jp.two_j,
         lineshape,
         (parity = jp.p,),

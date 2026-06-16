@@ -12,8 +12,8 @@ const UndefinedParity = Char('±')
 External system mass descriptor. Final-state masses are positional; the root
 mass is always supplied as the keyword `m0`.
 """
-struct SystemMasses{Nf,T<:Real}
-    finals::SVector{Nf,T}
+struct SystemMasses{Nf, T <: Real}
+    finals::SVector{Nf, T}
     m0::T
 end
 
@@ -22,21 +22,21 @@ function SystemMasses(ms...; m0)
     length(mass_tuple) >= 1 ||
         throw(ArgumentError("provide at least one final-state mass before `m0`"))
     T = promote_type(typeof(m0), map(typeof, mass_tuple)...)
-    return SystemMasses{length(mass_tuple),T}(
-        SVector{length(mass_tuple),T}(mass_tuple),
+    return SystemMasses{length(mass_tuple), T}(
+        SVector{length(mass_tuple), T}(mass_tuple),
         convert(T, m0),
     )
 end
 
 function SystemMasses(ms::ThreeBodyDecays.MassTuple)
-    return SystemMasses(ms.m1, ms.m2, ms.m3; m0=ms.m0)
+    return SystemMasses(ms.m1, ms.m2, ms.m3; m0 = ms.m0)
 end
 
 Base.:(==)(a::SystemMasses, b::SystemMasses) =
     a.m0 == b.m0 && a.finals == b.finals
 
 function _check_helicity(two_j::Integer, two_λ::Integer)
-    abs(two_λ) <= two_j ||
+    return abs(two_λ) <= two_j ||
         throw(ArgumentError("helicity two_λ=$two_λ is not allowed for spin two_j=$two_j"))
 end
 
@@ -55,11 +55,11 @@ Pass a [`SystemSpins`](@ref) as the first argument when building helicities to c
 each value against the corresponding line spin (`|two_λ| ≤ two_j`).
 """
 struct SystemSpins{Nf}
-    finals::SVector{Nf,Int}
+    finals::SVector{Nf, Int}
     two_h0::Int
 end
 
-function _system_spins_root(; h0::Union{Nothing,Int}=nothing, two_h0::Union{Nothing,Int}=nothing)
+function _system_spins_root(; h0::Union{Nothing, Int} = nothing, two_h0::Union{Nothing, Int} = nothing)
     !isnothing(two_h0) && !isnothing(h0) &&
         throw(ArgumentError("provide root with either `two_h0=...` or `h0=...`, not both"))
     if !isnothing(two_h0)
@@ -71,18 +71,18 @@ function _system_spins_root(; h0::Union{Nothing,Int}=nothing, two_h0::Union{Noth
     end
 end
 
-function SystemSpins(finals...; h0::Union{Nothing,Int}=nothing, two_h0::Union{Nothing,Int}=nothing)
+function SystemSpins(finals...; h0::Union{Nothing, Int} = nothing, two_h0::Union{Nothing, Int} = nothing)
     spin_tuple = Tuple(finals)
     length(spin_tuple) >= 1 ||
         throw(ArgumentError("provide at least one final-state entry before the root entry"))
     parent_two_h = _system_spins_root(; h0, two_h0)
     return SystemSpins{length(spin_tuple)}(
-        SVector{length(spin_tuple),Int}(map(Int, spin_tuple)),
+        SVector{length(spin_tuple), Int}(map(Int, spin_tuple)),
         parent_two_h,
     )
 end
 
-function SystemSpins(spins::SystemSpins, λs...; h0::Union{Nothing,Int}=nothing, two_h0::Union{Nothing,Int}=nothing)
+function SystemSpins(spins::SystemSpins, λs...; h0::Union{Nothing, Int} = nothing, two_h0::Union{Nothing, Int} = nothing)
     λ_tuple = Tuple(map(Int, λs))
     Nf = length(spins.finals)
     length(λ_tuple) == Nf ||
@@ -92,11 +92,11 @@ function SystemSpins(spins::SystemSpins, λs...; h0::Union{Nothing,Int}=nothing,
     for i in 1:Nf
         _check_helicity(spins.finals[i], λ_tuple[i])
     end
-    return SystemSpins(λ_tuple...; two_h0=parent_two_λ)
+    return SystemSpins(λ_tuple...; two_h0 = parent_two_λ)
 end
 
 function SystemSpins(two_js::ThreeBodyDecays.SpinTuple)
-    return SystemSpins(two_js.two_h1, two_js.two_h2, two_js.two_h3; two_h0=two_js.two_h0)
+    return SystemSpins(two_js.two_h1, two_js.two_h2, two_js.two_h3; two_h0 = two_js.two_h0)
 end
 
 """Alias of [`SystemSpins`](@ref) for external helicity assignments in [`amplitude`](@ref)."""
@@ -112,7 +112,7 @@ External system parity descriptor. Final-state parities are positional; the
 root parity is always supplied as the keyword `P0`.
 """
 struct SystemParities{Nf}
-    finals::SVector{Nf,Char}
+    finals::SVector{Nf, Char}
     P0::Char
 end
 
@@ -120,11 +120,11 @@ function SystemParities(Ps...; P0)
     parity_tuple = Tuple(Ps)
     length(parity_tuple) >= 1 ||
         throw(ArgumentError("provide at least one final-state parity before `P0`"))
-    return SystemParities{length(parity_tuple)}(SVector{length(parity_tuple),Char}(parity_tuple), P0)
+    return SystemParities{length(parity_tuple)}(SVector{length(parity_tuple), Char}(parity_tuple), P0)
 end
 
 function SystemParities(Ps::ThreeBodyDecays.ParityTuple)
-    return SystemParities(Ps.P1, Ps.P2, Ps.P3; P0=Ps.P0)
+    return SystemParities(Ps.P1, Ps.P2, Ps.P3; P0 = Ps.P0)
 end
 
 """
@@ -154,28 +154,28 @@ SystemSpinParities(spins::SystemSpins, Ps...; P0) =
     SystemSpinParities(spins, SystemParities(Ps...; P0))
 
 function SystemSpinParities(
-    jps::ThreeBodyDecays.SpinParity...;
-    jp0::ThreeBodyDecays.SpinParity=error(
-        "provide root spin-parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
-    ),
-)
+        jps::ThreeBodyDecays.SpinParity...;
+        jp0::ThreeBodyDecays.SpinParity = error(
+            "provide root spin-parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
+        ),
+    )
     jp_tuple = Tuple(jps)
     length(jp_tuple) >= 1 ||
         throw(ArgumentError("provide at least one final-state jp before `jp0`"))
-    spins = SystemSpins(map(jp -> jp.two_j, jp_tuple)...; two_h0=jp0.two_j)
-    parities = SystemParities(map(jp -> jp.p, jp_tuple)...; P0=jp0.p)
+    spins = SystemSpins(map(jp -> jp.two_j, jp_tuple)...; two_h0 = jp0.two_j)
+    parities = SystemParities(map(jp -> jp.p, jp_tuple)...; P0 = jp0.p)
     return SystemSpinParities(spins, parities)
 end
 
 function SystemSpinParities(
-    jps::AbstractString...;
-    jp0::AbstractString=error(
-        "provide root spin-parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
-    ),
-)
+        jps::AbstractString...;
+        jp0::AbstractString = error(
+            "provide root spin-parity with `jp0`, e.g. `jp0=jp\"1±\"` or `jp0=\"1±\"`",
+        ),
+    )
     return SystemSpinParities(
         map(ThreeBodyDecays.str2jp, jps)...;
-        jp0=ThreeBodyDecays.str2jp(jp0),
+        jp0 = ThreeBodyDecays.str2jp(jp0),
     )
 end
 

@@ -6,20 +6,20 @@ Static external information for a cascade model. Pass [`SystemSpins`](@ref) for
 spin-only systems, or [`SystemSpinParities`](@ref) when LS builders need explicit
 external and root parities. Masses are always [`SystemMasses`](@ref).
 """
-struct CascadeSystem{Nf,Tm,Q<:Union{SystemSpins{Nf},SystemSpinParities{Nf}}}
+struct CascadeSystem{Nf, Tm, Q <: Union{SystemSpins{Nf}, SystemSpinParities{Nf}}}
     quantum::Q
-    masses::SystemMasses{Nf,Tm}
+    masses::SystemMasses{Nf, Tm}
 end
 
-function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
-    return CascadeSystem{Nf,Tm,typeof(spins)}(spins, masses)
+function CascadeSystem(spins::SystemSpins{Nf}, masses::SystemMasses{Nf, Tm}) where {Nf, Tm}
+    return CascadeSystem{Nf, Tm, typeof(spins)}(spins, masses)
 end
 
-function CascadeSystem(quantum::SystemSpinParities{Nf}, masses::SystemMasses{Nf,Tm}) where {Nf,Tm}
-    return CascadeSystem{Nf,Tm,typeof(quantum)}(quantum, masses)
+function CascadeSystem(quantum::SystemSpinParities{Nf}, masses::SystemMasses{Nf, Tm}) where {Nf, Tm}
+    return CascadeSystem{Nf, Tm, typeof(quantum)}(quantum, masses)
 end
 
-const CascadeSystemWithParities = CascadeSystem{<:Any,<:Any,<:SystemSpinParities}
+const CascadeSystemWithParities = CascadeSystem{<:Any, <:Any, <:SystemSpinParities}
 
 final_two_js(system::CascadeSystem) = final_two_js(system.quantum)
 root_two_j(system::CascadeSystem) = root_two_j(system.quantum)
@@ -53,7 +53,7 @@ function line_values(topology::DecayTopology; finals, root, internals = ())
         throw(ArgumentError("provide exactly one internal value for each internal line"))
 
     T = promote_type(typeof(root), map(typeof, final_tuple)..., map(spec -> typeof(spec.second), internal_specs)...)
-    values = MVector{nlines(topology),T}(undef)
+    values = MVector{nlines(topology), T}(undef)
     for (i, line_ind) in pairs(final_line_inds(topology))
         values[line_ind] = final_tuple[i]
     end
@@ -84,7 +84,7 @@ function line_masses2(topology::DecayTopology, system::CascadeSystem, internal_m
         map(invariant_type, Tuple(final_masses(system)))...,
         map(typeof, internal_tuple)...,
     )
-    masses = MVector{nlines(topology),T}(undef)
+    masses = MVector{nlines(topology), T}(undef)
     for (i, line_ind) in pairs(final_line_inds(topology))
         masses[line_ind] = final_masses(system)[i]^2
     end

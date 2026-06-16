@@ -15,37 +15,37 @@ separately from the incidence matrix because helicity conventions depend on
 child order. Prefer bracket notation for user-facing construction; when using
 the flat relation constructor, `child_order` must be supplied explicitly.
 """
-struct DecayTopology{Nl,Nv,Nf,T<:Integer,L,C}
-    relation::SMatrix{Nl,Nv,T,L}
+struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C}
+    relation::SMatrix{Nl, Nv, T, L}
     root::Int
-    finals::SVector{Nf,Int}
-    child_order::SMatrix{2,Nv,Int,C}
+    finals::SVector{Nf, Int}
+    child_order::SMatrix{2, Nv, Int, C}
 end
 
 function DecayTopology(
-    relation::SMatrix{Nl,Nv,T,L},
-    root::Integer,
-    finals::SVector{Nf,Int};
-    child_order::SMatrix{2,Nv,Int,C},
-    validate::Bool = true,
-) where {Nl,Nv,Nf,T<:Integer,L,C}
-    topology = DecayTopology{Nl,Nv,Nf,T,L,C}(relation, Int(root), finals, child_order)
+        relation::SMatrix{Nl, Nv, T, L},
+        root::Integer,
+        finals::SVector{Nf, Int};
+        child_order::SMatrix{2, Nv, Int, C},
+        validate::Bool = true,
+    ) where {Nl, Nv, Nf, T <: Integer, L, C}
+    topology = DecayTopology{Nl, Nv, Nf, T, L, C}(relation, Int(root), finals, child_order)
     validate && validate_topology(topology)
     return topology
 end
 
 function DecayTopology(
-    relation::AbstractMatrix{T};
-    root::Integer,
-    finals,
-    child_order,
-    validate::Bool = true,
-) where {T<:Integer}
+        relation::AbstractMatrix{T};
+        root::Integer,
+        finals,
+        child_order,
+        validate::Bool = true,
+    ) where {T <: Integer}
     Nl, Nv = size(relation)
     final_tuple = Tuple(Int(line_ind) for line_ind in finals)
-    final_lines = SVector{length(final_tuple),Int}(final_tuple)
-    static_relation = SMatrix{Nl,Nv,T,Nl * Nv}(relation)
-    static_child_order = SMatrix{2,Nv,Int,2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
+    final_lines = SVector{length(final_tuple), Int}(final_tuple)
+    static_relation = SMatrix{Nl, Nv, T, Nl * Nv}(relation)
+    static_child_order = SMatrix{2, Nv, Int, 2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
     return DecayTopology(static_relation, root, final_lines; child_order = static_child_order, validate)
 end
 
@@ -64,7 +64,7 @@ function _collect_final_labels!(labels::Vector{Int}, tree)
     return labels
 end
 
-function _assign_lines!(line_ind_for_address::Dict{Any,Int}, next_internal::Base.RefValue{Int}, address)
+function _assign_lines!(line_ind_for_address::Dict{Any, Int}, next_internal::Base.RefValue{Int}, address)
     if address isa Integer
         line_ind_for_address[address] = _bracket_leaf(address)
         return line_ind_for_address[address]
@@ -109,7 +109,7 @@ function DecayTopology(tree::Tuple)
     nfinal = length(final_labels)
     nvertices = nfinal - 1
     nlines = nfinal + nvertices
-    line_ind_for_address = Dict{Any,Int}()
+    line_ind_for_address = Dict{Any, Int}()
     _assign_lines!(line_ind_for_address, Ref(nfinal + 1), tree)
     vertex_addresses = _collect_vertex_addresses_preorder!(Any[], tree)
     relation = zeros(Int, nlines, nvertices)
@@ -137,8 +137,8 @@ Return the final-state line ids in canonical order (`1:nfinal`).
 final_line_inds(topology::DecayTopology) = topology.finals
 
 nlines(::DecayTopology{Nl}) where {Nl} = Nl
-nvertices(::DecayTopology{Nl,Nv}) where {Nl,Nv} = Nv
-nfinal(::DecayTopology{Nl,Nv,Nf}) where {Nl,Nv,Nf} = Nf
+nvertices(::DecayTopology{Nl, Nv}) where {Nl, Nv} = Nv
+nfinal(::DecayTopology{Nl, Nv, Nf}) where {Nl, Nv, Nf} = Nf
 
 _line_range(topology::DecayTopology) = Base.OneTo(nlines(topology))
 _vertex_range(topology::DecayTopology) = Base.OneTo(nvertices(topology))

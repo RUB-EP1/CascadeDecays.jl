@@ -44,7 +44,7 @@ function copy_quarto_assets!(gfm_path::AbstractString, page_path::AbstractString
     destination = joinpath(dirname(page_path), asset_dir)
     isdir(source) || return
     isdir(destination) && rm(destination; recursive = true)
-    cp(source, destination)
+    return cp(source, destination)
 end
 
 function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractString, title = nothing)
@@ -61,14 +61,14 @@ function build_quarto_page!(spec)
     gfm = render_quarto_gfm!(spec.qmd)
     dest = page_path(spec.page)
     get(spec, :copy_assets, false) && copy_quarto_assets!(gfm, dest)
-    write(
+    return write(
         dest,
         documenter_quarto_page(gfm; edit_url = spec.edit_url, title = get(spec, :title, nothing)),
     )
 end
 
 function build_quarto_pages!()
-    foreach(build_quarto_page!, QUARTO_PAGES)
+    return foreach(build_quarto_page!, QUARTO_PAGES)
 end
 
 DocMeta.setdocmeta!(
