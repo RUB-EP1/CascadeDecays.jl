@@ -246,6 +246,24 @@ end
 
     @test_throws ArgumentError CascadeDecay((), system, topology)
     @test_throws ArgumentError CascadeDecay((chain,), system, topology; couplings = (1, 2))
+
+    vector_cascade = CascadeDecay([chain], system, topology)
+    @test vector_cascade.chains === (chain,)
+
+    alt_topology = DecayTopology(((2, 3), 1))
+    alt_chain = DecayChain(
+        alt_topology,
+        (ConstantLineshape(1.0),),
+        (TestVertex(:mother), TestVertex(:isobar)),
+        (4,),
+        (0,),
+    )
+    mixed = CascadeDecay((chain, alt_chain), system, topology)
+    @test mixed.chains[1].topology === topology
+    @test mixed.chains[2].topology === alt_topology
+
+    wrong_system = CascadeSystem(SystemSpins(0, 0; two_h0 = 0), SystemMasses(1, 2; m0 = 3))
+    @test_throws ArgumentError CascadeDecay((chain,), wrong_system, topology)
 end
 
 @testset "CascadeDecay indexing, names, and merge" begin
@@ -285,12 +303,13 @@ end
     @test model["a1->kk"].chains === (chain_b,)
 
     default_names = CascadeDecay((chain_a, chain_b), system, topology).names
-    @test default_names == SVector("(0,0)-(0,0)", "(2,0)-(0,0)")
+    @test default_names == SVector("chain_1", "chain_2")
 
     show_text = sprint(show, model)
     @test occursin("a1->rhopi", show_text)
     @test occursin("coupling", show_text)
-    @test occursin("(0,0)", show_text)
+    @test occursin("topology", show_text)
+    @test occursin("((1,2),3)", show_text)
 
     part_a = model[model.names .== "a1->rhopi"]
     part_b = model[model.names .== "a1->kk"]

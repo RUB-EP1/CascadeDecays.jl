@@ -106,8 +106,6 @@ the two corresponding positions.
 ```{julia}
 #| label: model
 
-# The current CascadeDecay object is a clean container: it stores chains, shared
-# system information, a reference topology, and complex channel coefficients.
 c_a1 = 1.0 + 0.0im
 c_sigmac = 5.0 + 0.0im
 
@@ -116,18 +114,26 @@ model = CascadeDecay(
     system,
     topology_a1_23;
     couplings=(c_a1, c_a1, c_sigmac, c_sigmac),
+    names=(
+        "a1->rho23pi4",
+        "a1->rho24pi3",
+        "lcstar->sigmac12pi3",
+        "lcstar->sigmac12pi4",
+    ),
 )
 ```
+
+Each chain carries a string name. The names are stored in `model.names` and
+shown in the table-like `show` summary. They are mainly for selection: later
+we can slice out the $a_1$ and $\Lambda_c^{**}$ submodels without rebuilding
+chains or repeating couplings by hand.
 
 ```{julia}
 #| label: model-summary
 #| output: true
 
-(
-    nchannels=length(model.chains),
-    reference=bracket_notation(reference_topology(model)),
-    couplings=Tuple(couplings(model)),
-)
+show(model)
+(length(model), model.names, Tuple(couplings(model)))
 ```
 
 The result is a static model description. Each `DecayChain` has the same
@@ -178,26 +184,21 @@ task = KinematicTask(
 )
 ```
 
-The two component models reuse the already-constructed chains. They are not a
+The two component models are slices of the full model. They reuse the same
+chains and couplings, so they are not rebuilt by hand. They are also not a
 partition of the coherent intensity; they are diagnostic projections of the two
 channel families evaluated with the same kinematic task as the full model.
 
 ```{julia}
 #| label: component-models
 
-model_a1 = CascadeDecay(
-    (chain_a1_23, chain_a1_24),
-    system,
-    topology_a1_23;
-    couplings=(c_a1, c_a1),
-)
+is_a1 = startswith.(model.names, "a1")
+is_lcstar = startswith.(model.names, "lcstar")
 
-model_lcstar = CascadeDecay(
-    (chain_sigmac_123, chain_sigmac_124),
-    system,
-    topology_a1_23;
-    couplings=(c_sigmac, c_sigmac),
-)
+model_a1 = model[is_a1]
+model_lcstar = model[is_lcstar]
+
+(length(model_a1), model_a1.names, length(model_lcstar), model_lcstar.names)
 ```
 
 The event sample is flat phase space. Each row stores the four-momenta,
@@ -341,9 +342,11 @@ visible:
 - resonance labels live in variable names, not in the model object;
 - the two symmetrized channel pairs are tied by manually repeating couplings;
 - every topology and propagator list is written by hand;
-- there is no helper yet for “build all charge permutations of this subdecay”;
-- `CascadeDecay` is currently a container, not yet the high-level evaluation
-  interface for coherent sums.
+- there is no helper yet for “build all charge permutations of this subdecay”.
+
+Once the full model is assembled, named indexing already covers one common
+workflow: selecting channel families (`model[is_a1]`, `model[is_lcstar]`) and
+evaluating their intensities with the same kinematic task as the coherent sum.
 
 Those are useful pressure points for the next convenience layer. The low-level
 objects are explicit enough to audit, but a production analysis will likely want
