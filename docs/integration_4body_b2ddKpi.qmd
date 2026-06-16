@@ -12,13 +12,10 @@ This tutorial demonstrates how `CascadeDecays.jl` routes kinematic variables
 through a flat cascade topology and evaluates a [`DecayChain`](@ref) amplitude
 end to end. The worked example is B⁺ → D⁰D⁻π⁺K⁺ via ψ(4040).
 
-The input event is taken from:
-
-- <https://github.com/RUB-EP1/B2DxDK.jl/blob/fe8f63cad0a64c5d757cd01d7f61be0644026b28/data/crosscheck_event.json>
-
-The angle program follows the convention used in:
-
-- <https://github.com/RUB-EP1/B2DxDK.jl/blob/fe8f63cad0a64c5d757cd01d7f61be0644026b28/notebooks/all_angles.jl>
+The input four-vectors and reference invariants come from a fixed cross-check
+event vendored under `docs/fixtures/b2ddpiK/`. The final-state label ordering
+and helicity-angle convention match the B2DxDK `all_angles` reference notebook
+(D⁰, π⁺, D⁻, K⁺ as labels `1…4`).
 
 We use helicity convention only. The goal here is not yet a production physics
 model, but a clean integration point: static graph and model payloads live in
@@ -30,6 +27,7 @@ four-vectors and routed into local vertex and propagator calls.
 using CascadeDecays
 using FourVectors
 using HadronicLineshapes
+using JSON
 using StaticArrays
 using ThreeBodyDecays: RecouplingLS
 
@@ -39,8 +37,8 @@ format_instruction(inst) =
 
 ## 1. Event four-vectors
 
-The final-state particle labels are chosen to match the
-`InstructionalDecayTrees.jl` angle notebook:
+The final-state particle labels match the vendored B2DxDK cross-check fixture
+(`docs/fixtures/b2ddpiK/`):
 
 ```text
 1: D⁰
@@ -51,10 +49,16 @@ The final-state particle labels are chosen to match the
 
 ```{julia}
 #| label: event-vectors
-pDminus = FourVector(0.8634762475578601, -0.2273640501540901, 0.5897962254778486; E=2.1542368373711818)
-pD0 = FourVector(-0.41098561980779524, 0.4602903155362023, 0.1331926788204417; E=1.9687832721903593)
-pKplus = FourVector(-0.4483316412801869, -0.23415599517164887, -0.7305348220308255; E=1.0164784292725653)
-piplus = FourVector(-0.004158986333048991, 0.0012297296374225927, 0.00754591768614862; E=0.13984149613322175)
+const CROSSCHECK_EVENT = joinpath(@__DIR__, "fixtures", "b2ddpiK", "crosscheck_event.json")
+event = JSON.parsefile(CROSSCHECK_EVENT)
+kinematics = event["dpd_kinematics"]
+fourvector(p) = FourVector(p["px"], p["py"], p["pz"]; E = p["E"])
+v = event["four_vectors"]
+
+pD0 = fourvector(v["D0"])
+piplus = fourvector(v["pi"])
+pDminus = fourvector(v["D"])
+pKplus = fourvector(v["K"])
 
 objs = (pD0, piplus, pDminus, pKplus)
 
@@ -62,9 +66,9 @@ P_Dx = pD0 + piplus
 P_psi = P_Dx + pDminus
 P_B = P_psi + pKplus
 
-reference_mψ2 = 17.3825
-reference_cosθ_D_in_Dx = 0.8746538492596707
-reference_ϕ_D_in_Dx = -2.84901364039537
+reference_mψ2 = kinematics["msq_DxD"]
+reference_cosθ_D_in_Dx = kinematics["cos_theta_D_in_Dx"]
+reference_ϕ_D_in_Dx = kinematics["phi_D_in_Dx"]
 
 @assert isapprox(mass(P_psi)^2, reference_mψ2; atol=5e-5)
 ```
