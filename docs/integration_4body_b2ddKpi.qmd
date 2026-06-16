@@ -140,6 +140,7 @@ Here we inspect the local decay `(1,2)`, which corresponds to
 
 ```{julia}
 #| label: kinematics
+#| output: true
 programs = CascadeDecays.helicity_angle_programs(topology)
 
 for (label, program) in (
@@ -167,6 +168,7 @@ println("angles for (1,2): cosθ = ", Dx_angles.cosθ, ", ϕ = ", Dx_angles.ϕ)
 @assert line_invariant(topology, x, (1, 2)) ≈ mass(P_Dx)^2
 @assert line_invariant(topology, x, ((1, 2), 3)) ≈ mass(P_psi)^2
 @assert vertex_masses2(topology, x, (((1, 2), 3), 4)) == (mass(P_B)^2, mass(P_psi)^2, mass(pKplus)^2)
+nothing
 ```
 
 ## 5. Static payloads: vertices and propagators
@@ -205,6 +207,7 @@ propagators = (
 )
 
 chain = DecayChain(topology; propagators, vertices)
+nothing
 ```
 
 Vertices are [`Vertex`](@ref) objects. In this minimal example
@@ -243,12 +246,14 @@ external_two_λs = SystemHelicities(
     two_h0=0, # B⁺
 )
 A = amplitude(chain, system, x, external_two_λs)
+nothing
 ```
 
 ## 7. Numerical result
 
 ```{julia}
 #| label: result
+#| output: true
 println("m²(1,2) = ", line_invariant(topology, x, (1, 2)))
 println("m²((1,2),3) = ", line_invariant(topology, x, ((1, 2), 3)))
 println("angles at (1,2) = ", vertex_angles(topology, x, (1, 2)))
@@ -256,4 +261,5 @@ println("summed amplitude = ", A)
 
 @assert isfinite(real(A))
 @assert isfinite(imag(A))
+nothing
 ```

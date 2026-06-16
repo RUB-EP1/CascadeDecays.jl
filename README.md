@@ -30,5 +30,6 @@ Pkg.instantiate()
 
 - Run tests with `julia --project=. test/runtests.jl`.
 - Build the docs with `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` followed by `julia --project=docs docs/make.jl` (requires [Quarto](https://quarto.org/)).
-- Render the integration tutorial alone with `quarto render docs/integration_4body_b2ddKpi.qmd` from the repo root (or from `docs/`).
-- The Quarto source for the four-body walkthrough is [docs/integration_4body_b2ddKpi.qmd](docs/integration_4body_b2ddKpi.qmd).
+- Render Quarto tutorials locally with `bash docs/render-tutorials.sh` (from the repo root) or `quarto render docs/<tutorial>.qmd --to gfm`.
+- When editing a tutorial, set cell output explicitly: the document default is `output: false`, so add `#| output: true` only on cells that should print tables or show return values; end other cells with `nothing` to avoid leaking the last expression.
+- Quarto sources live in `docs/*.qmd` and are compiled into `docs/src/*.md` by `docs/make.jl`.

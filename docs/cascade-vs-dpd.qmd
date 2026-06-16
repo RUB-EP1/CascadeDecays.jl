@@ -167,6 +167,7 @@ For this event the reference orientation is:
 
 ```{julia}
 #| label: reference-orientation
+#| output: true
 po_ref = reference_plane_orientation(REF_TOPOLOGY, objs; initial_frame = CurrentFrame())
 (α = po_ref.α, cosβ = po_ref.cosβ, γ = po_ref.γ)
 ```
@@ -198,6 +199,7 @@ function tbd_relative_zyz(k, particle, σs, ms2)
     ζ = acos(cosζ(w, σs, ms2))
     return ispositive(w) ? (ϕ = 0.0, θ = ζ, ψ = 0.0) : (ϕ = π, θ = ζ, ψ = -π)
 end
+nothing
 ```
 
 ```{julia}
@@ -242,6 +244,7 @@ end
 
 println("target   spin_particle ref_path             target_path          IDT relative ZYZ          TBD relative ZYZ")
 foreach(println, rotation_rows())
+nothing
 ```
 
 This table deliberately prints only the two rotation parameterizations. It does
@@ -333,6 +336,7 @@ for spin_particle in (1, 2, 3)
     println("k        sign           max |TBD-CD|       max |TBD+CD|")
     foreach(println, compare_toy_amplitudes(spin_particle))
 end
+nothing
 ```
 
 These amplitude checks are a useful warning. The fixed reference phase

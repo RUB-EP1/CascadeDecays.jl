@@ -133,7 +133,7 @@ chains or repeating couplings by hand.
 #| output: true
 
 show(model)
-(length(model), model.names, Tuple(couplings(model)))
+nothing
 ```
 
 The result is a static model description. Each `DecayChain` has the same
@@ -199,6 +199,7 @@ model_a1 = model[is_a1]
 model_lcstar = model[is_lcstar]
 
 (length(model_a1), model_a1.names, length(model_lcstar), model_lcstar.names)
+nothing
 ```
 
 The event sample is flat phase space. Each row stores the four-momenta,
@@ -240,6 +241,7 @@ transform!(data, :momenta => ByRow() do (Lc1, pip2, pim3, pim4)
 end => AsTable)
 
 select!(data, Not(:momenta))
+nothing
 ```
 
 For observables involving one of the two identical $\pi^-$ labels, both
@@ -296,6 +298,7 @@ plot(
     size=(900, 650),
     ylabel="weighted entries",
 )
+nothing
 ```
 
 There is no $\Lambda_c^+\pi^+\pi^+$ spectrum for this final state; the
@@ -334,6 +337,7 @@ plot(
     bottom_margin=5Plots.PlotMeasures.mm,
     left_margin=5Plots.PlotMeasures.mm
 )
+nothing
 ```
 
 ## What the example exposes
