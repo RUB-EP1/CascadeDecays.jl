@@ -1,4 +1,4 @@
-struct VertexPrograms{P,L}
+struct VertexPrograms{P, L}
     programs::P
     labels::L
 end
@@ -13,14 +13,15 @@ function Base.show(io::IO, programs::VertexPrograms)
         print(io, "\n  vertex ", label, ": ")
         show(io, program)
     end
+    return
 end
 
-struct TopologyPrograms{V,A}
+struct TopologyPrograms{V, A}
     vertex_programs::V
     alignment_paths::A
 end
 
-const _REST_FRAME_RTOL = 1e-12
+const _REST_FRAME_RTOL = 1.0e-12
 
 """
     KinematicTask(topologies; reference_topology, wigner_finals, initial_frame)
@@ -30,7 +31,7 @@ which final indices to align, and precompiled IDT programs.
 `initial_frame` is stored so evaluation can fall back to `CurrentFrame()` when
 the reconstructed parent momentum is numerically already at rest.
 """
-struct KinematicTask{Tops,Ref,F,Frame,Progs}
+struct KinematicTask{Tops, Ref, F, Frame, Progs}
     topologies::Tops
     reference_topology::Ref
     wigner_finals::F
@@ -46,18 +47,18 @@ stores one [`CascadeKinematics`](@ref) object per task topology, plus one
 external-axis alignment tuple per topology for the final particles requested by
 `task.wigner_finals`.
 """
-struct KinematicPoint{Task,Kins,Aligns}
+struct KinematicPoint{Task, Kins, Aligns}
     task::Task
     kinematics::Kins
     alignments::Aligns
 end
 
 function KinematicTask(
-    topologies::Tuple{Vararg{DecayTopology}};
-    reference_topology::DecayTopology=topologies[1],
-    wigner_finals::Tuple{Vararg{Int}}=(),
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-)
+        topologies::Tuple{Vararg{DecayTopology}};
+        reference_topology::DecayTopology = topologies[1],
+        wigner_finals::Tuple{Vararg{Int}} = (),
+        initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    )
     isempty(topologies) && throw(ArgumentError("KinematicTask requires at least one topology"))
     for final_ind in wigner_finals
         final_ind >= 1 || throw(ArgumentError("wigner_finals entries must be positive final indices"))
@@ -107,16 +108,16 @@ function _line_masses2_from_objects(topology::DecayTopology{Nl}, objs) where {Nl
     end
 end
 
-function _effectively_at_rest(p; rtol::Real=_REST_FRAME_RTOL)
+function _effectively_at_rest(p; rtol::Real = _REST_FRAME_RTOL)
     scale = max(abs(p.E), one(float(abs(p.E))))
     return p.px^2 + p.py^2 + p.pz^2 <= (rtol * scale)^2
 end
 
 function _effective_initial_frame(
-    topology::DecayTopology,
-    objs,
-    initial_frame::AbstractInitialFrame,
-)
+        topology::DecayTopology,
+        objs,
+        initial_frame::AbstractInitialFrame,
+    )
     initial_frame isa HelicityRootFrame || return initial_frame
     return _effectively_at_rest(_root_momentum(topology, objs)) ? CurrentFrame() : initial_frame
 end
@@ -174,9 +175,9 @@ function KinematicPoint(task::KinematicTask, objs)
         progs = task.programs[i]
         Nf = nfinal(t)
         alignments_tuple =
-            if isempty(task.wigner_finals)
-                ntuple(_ -> _trivial_wigner, Val(Nf))
-            else
+        if isempty(task.wigner_finals)
+            ntuple(_ -> _trivial_wigner, Val(Nf))
+        else
             initial_frame = _effective_initial_frame(t, objs, task.initial_frame)
             alignment_paths =
                 initial_frame === task.initial_frame ? progs.alignment_paths :
@@ -186,20 +187,20 @@ function KinematicPoint(task::KinematicTask, objs)
                         helicity_frame_path(task.reference_topology, final_ind; initial_frame),
                         helicity_frame_path(t, final_ind; initial_frame),
                     )
-                end
-                ntuple(Val(Nf)) do final_ind
-                    requested = findfirst(==(final_ind), task.wigner_finals)
-                    requested === nothing && return _trivial_wigner
-                    path_ref, path_t = alignment_paths[requested]
-                    if path_ref == path_t
-                        return _trivial_wigner
-                    end
-                    cmp = compare_instruction_paths(path_ref, path_t, objs)
-                    zyz = wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
-                    return (α = zyz.ϕ, cosβ = cos(zyz.θ), γ = zyz.ψ)
-                end
             end
-        return SVector{Nf,WignerAngles}(alignments_tuple)
+            ntuple(Val(Nf)) do final_ind
+                requested = findfirst(==(final_ind), task.wigner_finals)
+                requested === nothing && return _trivial_wigner
+                path_ref, path_t = alignment_paths[requested]
+                if path_ref == path_t
+                    return _trivial_wigner
+                end
+                cmp = compare_instruction_paths(path_ref, path_t, objs)
+                zyz = wigner_zyz(cmp.relative; atol = _WIGNER_DECODE_ATOL)
+                return (α = zyz.ϕ, cosβ = cos(zyz.θ), γ = zyz.ψ)
+            end
+        end
+        return SVector{Nf, WignerAngles}(alignments_tuple)
     end
     return KinematicPoint(task, kinematics, alignments)
 end
@@ -210,10 +211,10 @@ end
 Compute a single-topology [`CascadeKinematics`](@ref) from external four-vectors.
 """
 function CascadeKinematics(
-    topology::DecayTopology,
-    objs;
-    initial_frame::AbstractInitialFrame=HelicityRootFrame(),
-)
+        topology::DecayTopology,
+        objs;
+        initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    )
     task = KinematicTask((topology,); initial_frame = initial_frame)
     return KinematicPoint(task, objs).kinematics[1]
 end
@@ -226,10 +227,10 @@ Wigner rotations on the final-state axes listed in `point.task.wigner_finals`
 (relative to `point.task.reference_topology`).
 """
 function amplitude(
-    chain::DecayChain{Nf,Np},
-    system::CascadeSystem,
-    point::KinematicPoint,
-) where {Nf,Np}
+        chain::DecayChain{Nf, Np},
+        system::CascadeSystem,
+        point::KinematicPoint,
+    ) where {Nf, Np}
     x = kinematics_at(point, chain.topology)
     A = _vertex_helicity_amplitude(chain, system, x)
     if !isempty(point.task.wigner_finals)
@@ -244,11 +245,11 @@ function amplitude(
 end
 
 function amplitude(
-    chain::DecayChain,
-    system::CascadeSystem,
-    point::KinematicPoint,
-    external_two_λs::SystemSpins,
-)
+        chain::DecayChain,
+        system::CascadeSystem,
+        point::KinematicPoint,
+        external_two_λs::SystemSpins,
+    )
     A = amplitude(chain, system, point)
     return A[_external_amplitude_indices(chain, system, external_two_λs)...]
 end

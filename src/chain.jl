@@ -6,27 +6,27 @@ The public constructor accepts bracket-addressed `address => payload` pairs and
 stores the resolved flat graph information in typed static arrays.
 """
 struct DecayChain{
-    Nf,
-    Np,
-    Nv,
-    P,
-    V,
-    T<:DecayTopology,
-}
+        Nf,
+        Np,
+        Nv,
+        P,
+        V,
+        T <: DecayTopology,
+    }
     topology::T
-    propagators::SVector{Np,P}
-    vertices::SVector{Nv,V}
-    propagating_line_inds::SVector{Np,Int}
-    propagator_two_js::SVector{Np,Int}
+    propagators::SVector{Np, P}
+    vertices::SVector{Nv, V}
+    propagating_line_inds::SVector{Np, Int}
+    propagator_two_js::SVector{Np, Int}
 end
 
 function DecayChain(
-    topology::DecayTopology,
-    propagators::SVector{Np,P},
-    vertices::SVector{Nv,V},
-    propagating_line_inds::SVector{Np,Int},
-    propagator_two_js::SVector{Np,Int},
-) where {Np,Nv,P,V}
+        topology::DecayTopology,
+        propagators::SVector{Np, P},
+        vertices::SVector{Nv, V},
+        propagating_line_inds::SVector{Np, Int},
+        propagator_two_js::SVector{Np, Int},
+    ) where {Np, Nv, P, V}
     Nv == nvertices(topology) ||
         throw(ArgumentError("number of vertices must match topology"))
     all(line_ind -> isinternal_line_ind(topology, line_ind), propagating_line_inds) ||
@@ -35,7 +35,7 @@ function DecayChain(
         throw(ArgumentError("propagating lines must be unique"))
     sort(collect(propagating_line_inds)) == internal_line_inds(topology) ||
         throw(ArgumentError("provide exactly one propagator spec for each internal line"))
-    return DecayChain{nfinal(topology),Np,Nv,P,V,typeof(topology)}(
+    return DecayChain{nfinal(topology), Np, Nv, P, V, typeof(topology)}(
         topology,
         propagators,
         vertices,
@@ -59,8 +59,8 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
         topology,
         SVector{length(propagator_tuple)}(propagator_tuple),
         SVector{length(vertex_tuple)}(vertex_tuple),
-        SVector{length(line_tuple),Int}(line_tuple),
-        SVector{length(two_j_tuple),Int}(two_j_tuple),
+        SVector{length(line_tuple), Int}(line_tuple),
+        SVector{length(two_j_tuple), Int}(two_j_tuple),
     )
 end
 
@@ -78,10 +78,10 @@ Build a static cascade model from bracket-addressed payload pairs. User-facing
 addresses are resolved immediately to internal line and vertex ids.
 """
 function DecayChain(
-    topology::DecayTopology;
-    propagators::Tuple{Vararg{PropagatorSpec}},
-    vertices::Tuple{Vararg{Pair{<:Any,<:Any}}},
-)
+        topology::DecayTopology;
+        propagators::Tuple{Vararg{PropagatorSpec}},
+        vertices::Tuple{Vararg{Pair{<:Any, <:Any}}},
+    )
     length(vertices) == nvertices(topology) ||
         throw(ArgumentError("vertices must contain one payload per topology vertex"))
     propagating_line_tuple = Tuple(line_ind_for(topology, spec.first) for spec in propagators)
@@ -129,20 +129,22 @@ vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex_ind::Integer) =
 vertex_helicities(chain::DecayChain, two_λs, vertex_ind::Integer) =
     vertex_helicities(chain.topology, two_λs, vertex_ind)
 
-function line_two_js(chain::DecayChain{Nf,Np}, system::CascadeSystem) where {Nf,Np}
+function line_two_js(chain::DecayChain{Nf, Np}, system::CascadeSystem) where {Nf, Np}
     _check_system(chain.topology, system)
     final_inds = Tuple(final_line_inds(chain))
     prop_inds = Tuple(propagating_line_inds(chain))
     final_js = final_two_js(system)
     prop_js = chain.propagator_two_js
     root_j = root_two_j(system)
-    return SVector(ntuple(Val(Nf + Np + 1)) do line_ind
-        i = findfirst(==(line_ind), final_inds)
-        i !== nothing && return Int(final_js[i])
-        i = findfirst(==(line_ind), prop_inds)
-        i !== nothing && return Int(prop_js[i])
-        return Int(root_j)
-    end)
+    return SVector(
+        ntuple(Val(Nf + Np + 1)) do line_ind
+            i = findfirst(==(line_ind), final_inds)
+            i !== nothing && return Int(final_js[i])
+            i = findfirst(==(line_ind), prop_inds)
+            i !== nothing && return Int(prop_js[i])
+            return Int(root_j)
+        end
+    )
 end
 
 function vertex_spins(chain::DecayChain, system::CascadeSystem, vertex_ind::Integer)

@@ -7,13 +7,13 @@ spins and parities; internal entries come from each [`Propagator`](@ref) built w
 `Propagator(jp, lineshape)`.
 """
 function line_spin_parities(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+    )
     _check_system(topology, system)
     parities = system.quantum.parities
-    jps = MVector{nlines(topology),SpinParity}(undef)
+    jps = MVector{nlines(topology), SpinParity}(undef)
     for (i, line_ind) in pairs(final_line_inds(topology))
         jps[line_ind] = SpinParity(final_two_js(system)[i], parities.finals[i])
     end
@@ -27,11 +27,11 @@ function line_spin_parities(
 end
 
 function vertex_spin_parities(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-    vertex_ind::Integer,
-)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+        vertex_ind::Integer,
+    )
     jps = line_spin_parities(topology, system, propagator_specs)
     l0, l1, l2 = vertex_line_inds(topology, vertex_ind)
     return (jps[l0], jps[l1], jps[l2])
@@ -44,7 +44,7 @@ Return allowed `(two_l, two_s)` couplings at one binary vertex using
 `possible_ls_more` (including [`UndefinedParity`](@ref), `'±'`).
 """
 possible_vertex_ls(jp0::SpinParity, jp1::SpinParity, jp2::SpinParity) =
-    possible_ls_more(jp1, jp2; jp=jp0)
+    possible_ls_more(jp1, jp2; jp = jp0)
 
 """
     minimal_vertex_coupling(jp0, jp1, jp2)
@@ -83,14 +83,16 @@ then deeper vertices from left to right — the same order as
 couplings are sorted by increasing `two_l`.
 """
 function possible_vertex_couplings(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-)
-    return _vertex_coupling_specs(topology, vertex_ind -> begin
-        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
-        possible_vertex_ls(jp0, jp1, jp2)
-    end)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+    )
+    return _vertex_coupling_specs(
+        topology, vertex_ind -> begin
+            jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
+            possible_vertex_ls(jp0, jp1, jp2)
+        end
+    )
 end
 
 """
@@ -101,14 +103,16 @@ Pair ordering follows the same root-first preorder convention as
 [`possible_vertex_couplings`](@ref).
 """
 function minimal_vertex_couplings(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-)
-    return _vertex_coupling_specs(topology, vertex_ind -> begin
-        jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
-        minimal_vertex_coupling(jp0, jp1, jp2)
-    end)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+    )
+    return _vertex_coupling_specs(
+        topology, vertex_ind -> begin
+            jp0, jp1, jp2 = vertex_spin_parities(topology, system, propagator_specs, vertex_ind)
+            minimal_vertex_coupling(jp0, jp1, jp2)
+        end
+    )
 end
 
 function _ls_vertices(vertex_couplings)
@@ -116,10 +120,10 @@ function _ls_vertices(vertex_couplings)
 end
 
 function _build_ls_decay_chain(
-    topology::DecayTopology,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-    vertex_couplings,
-)
+        topology::DecayTopology,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+        vertex_couplings,
+    )
     propagating_line_tuple = Tuple(line_ind_for(topology, spec.first) for spec in propagator_specs)
     return DecayChain(
         topology,
@@ -141,10 +145,10 @@ This is the same as [`all_ls_decay_chains`](@ref), but takes `first` of each
 local coupling list from [`possible_vertex_couplings`](@ref).
 """
 function minimal_ls_decay_chain(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+    )
     couplings = _vertex_coupling_values(minimal_vertex_couplings(topology, system, propagator_specs))
     return _build_ls_decay_chain(topology, propagator_specs, couplings)
 end
@@ -176,14 +180,14 @@ end
 ````
 """
 function all_ls_decay_chains(
-    topology::DecayTopology,
-    system::CascadeSystemWithParities,
-    propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
-)
+        topology::DecayTopology,
+        system::CascadeSystemWithParities,
+        propagator_specs::Tuple{Vararg{PropagatorSpecWithParity}},
+    )
     coupling_specs = possible_vertex_couplings(topology, system, propagator_specs)
     coupling_lists = ntuple(i -> coupling_specs[i].second, nvertices(topology))
     return [
         _build_ls_decay_chain(topology, propagator_specs, combo) for
-        combo in Iterators.product(coupling_lists...)
+            combo in Iterators.product(coupling_lists...)
     ]
 end
