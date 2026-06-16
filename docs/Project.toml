@@ -12,7 +12,6 @@ ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
 CascadeDecays = {path = ".."}
-FourVectors = {url = "https://github.com/mmikhasenko/FourVectors.jl"}
 InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
 RemboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 

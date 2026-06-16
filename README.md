@@ -21,7 +21,6 @@ If you work with a different Julia version than the one used for this manifest, 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.develop(url = "https://github.com/mmikhasenko/FourVectors.jl")
 Pkg.develop(url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl")
 Pkg.instantiate()
 ```
