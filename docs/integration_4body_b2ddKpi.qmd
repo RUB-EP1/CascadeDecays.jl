@@ -258,12 +258,11 @@ nothing
 ```{julia}
 #| label: result
 #| output: true
+@assert isfinite(real(A))
+@assert isfinite(imag(A))
+
 println("m²(1,2) = ", line_invariant(topology, x, (1, 2)))
 println("m²((1,2),3) = ", line_invariant(topology, x, ((1, 2), 3)))
 println("angles at (1,2) = ", vertex_angles(topology, x, (1, 2)))
 println("summed amplitude = ", A)
-
-@assert isfinite(real(A))
-@assert isfinite(imag(A))
-nothing
 ```
