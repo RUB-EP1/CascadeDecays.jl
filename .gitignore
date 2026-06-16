@@ -4,7 +4,9 @@ Manifest.toml
 coverage/
 docs/build/
 docs/integration_4body_b2ddKpi.md
+docs/lb2lc3pi-model.md
 docs/src/tutorial.md
+docs/src/lb2lc3pi-model.md
 docs/integration_4body_b2ddKpi.html
 docs/integration_4body_b2ddKpi_files/
 docs/**/_freeze/
