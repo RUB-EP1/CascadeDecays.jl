@@ -9,5 +9,7 @@ docs/src/tutorial.md
 docs/src/lb2lc3pi-model.md
 docs/integration_4body_b2ddKpi.html
 docs/integration_4body_b2ddKpi_files/
+docs/lb2lc3pi-model_files/
+docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl

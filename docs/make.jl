@@ -16,11 +16,22 @@ function render_quarto_gfm!(qmd_path::AbstractString, gfm_path::AbstractString)
     isfile(gfm_path) || error("expected Quarto output at $(gfm_path)")
 end
 
+function copy_quarto_assets!(gfm_path::AbstractString, page_path::AbstractString)
+    asset_dir = splitext(basename(gfm_path))[1] * "_files"
+    source = joinpath(dirname(gfm_path), asset_dir)
+    destination = joinpath(dirname(page_path), asset_dir)
+    isdir(source) || return nothing
+    isdir(destination) && rm(destination; recursive = true)
+    cp(source, destination)
+    return nothing
+end
+
 function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractString, title = nothing)
     body = read(gfm_path, String)
     if title !== nothing
         body = replace(body, r"^# .+\n\n" => title * "\n\n"; count = 1)
     end
+    body = replace(body, r"<img\s+src=\"([^\"]+)\"\s+id=\"([^\"]+)\"\s*/>" => s"![](\1)")
     meta = "```@meta\nCurrentModule = CascadeDecays\nEditURL = \"$(edit_url)\"\n```\n\n"
     return meta * body
 end
@@ -36,6 +47,7 @@ render_quarto_gfm!(TUTORIAL_QMD, TUTORIAL_GFM)
 write(TUTORIAL, documenter_quarto_page(TUTORIAL_GFM; edit_url = "../integration_4body_b2ddKpi.qmd"))
 
 render_quarto_gfm!(LB2LC3PI_QMD, LB2LC3PI_GFM)
+copy_quarto_assets!(LB2LC3PI_GFM, LB2LC3PI_PAGE)
 write(
     LB2LC3PI_PAGE,
     documenter_quarto_page(

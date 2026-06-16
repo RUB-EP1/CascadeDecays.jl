@@ -17,20 +17,20 @@ small coherent model for
 
 with final-state labels
 
-- `1`: ``\Lambda_c^+``
-- `2`: ``\pi^+``
-- `3`: ``\pi^-``
-- `4`: ``\pi^-``
-- root: ``\Lambda_b^0``
+- `1`: $\Lambda_c^+$
+- `2`: $\pi^+$
+- `3`: $\pi^-$
+- `4`: $\pi^-$
+- root: $\Lambda_b^0$
 
 The model has four channels:
 
-1. ``\Lambda_b^0 \to a_1 \Lambda_c^+``, ``a_1 \to \rho(23)\pi^-_4``
-2. ``\Lambda_b^0 \to a_1 \Lambda_c^+``, ``a_1 \to \rho(24)\pi^-_3``
-3. ``\Lambda_b^0 \to \Lambda_c^{**}\pi^-_4``, ``\Lambda_c^{**}\to\Sigma_c(12)\pi^-_3``
-4. ``\Lambda_b^0 \to \Lambda_c^{**}\pi^-_3``, ``\Lambda_c^{**}\to\Sigma_c(12)\pi^-_4``
+1. $\Lambda_b^0 \to a_1 \Lambda_c^+$, $a_1 \to \rho(23)\pi^-_4$
+2. $\Lambda_b^0 \to a_1 \Lambda_c^+$, $a_1 \to \rho(24)\pi^-_3$
+3. $\Lambda_b^0 \to \Lambda_c^{**}\pi^-_4$, $\Lambda_c^{**}\to\Sigma_c(12)\pi^-_3$
+4. $\Lambda_b^0 \to \Lambda_c^{**}\pi^-_3$, $\Lambda_c^{**}\to\Sigma_c(12)\pi^-_4$
 
-The two `a1` channels and the two ``\Sigma_c`` channels are written explicitly
+The two $a_1$ channels and the two $\Sigma_c$ channels are written explicitly
 so a fitter can tie or release their couplings later.
 
 ## Procedural Construction
@@ -98,8 +98,8 @@ bracket-addressed propagators, and one call to `minimal_ls_decay_chain`. This is
 useful for auditing the model, but it also shows where a future convenience layer
 could reduce boilerplate for charge-reflected channels.
 
-The two ``a_1`` chains should share a production coupling if the two identical
-``\pi^-`` assignments are symmetrized. The two ``\Sigma_c`` chains are handled
+The two $a_1$ chains should share a production coupling if the two identical
+$\pi^-$ assignments are symmetrized. The two $\Sigma_c$ chains are handled
 the same way. For now the tying is done by passing the same coefficient object in
 the two corresponding positions.
 
@@ -143,13 +143,13 @@ where `J_PS` is the phase-space weight returned by `RemboOnDiet` and
 `I_unpolarized` is `unpolarized_intensity(model, point)`.
 
 To make the structures visible, the toy projection also evaluates the two
-channel groups separately: the two ``a_1`` chains and the two
-``\Lambda_c^{**}`` chains. The full model remains coherent, so the black total
+channel groups separately: the two $a_1$ chains and the two
+$\Lambda_c^{**}$ chains. The full model remains coherent, so the black total
 curve can include interference that is not present in the two component
 intensities.
 
 ```{julia}
-#| label: spectra
+#| label: spectra-setup
 using FourVectors
 using Plots
 using Random
@@ -170,6 +170,14 @@ task = KinematicTask(
     reference_topology = reference_topology(model),
     wigner_finals = (1,),
 )
+```
+
+The two component models reuse the already-constructed chains. They are not a
+partition of the coherent intensity; they are diagnostic projections of the two
+channel families evaluated with the same kinematic task as the full model.
+
+```{julia}
+#| label: component-models
 
 model_a1 = CascadeDecay(
     (chain_a1_23, chain_a1_24),
@@ -184,6 +192,14 @@ model_lcstar = CascadeDecay(
     topology_a1_23;
     couplings = (c_sigmac, c_sigmac),
 )
+```
+
+The event sample is flat phase space. For each event, the same phase-space
+Jacobian multiplies three intensities: the full coherent model, the two
+$a_1$ channels alone, and the two $\Lambda_c^{**}$ channels alone.
+
+```{julia}
+#| label: toy-events
 
 function invmass(point, inds)
     p = reduce(+, (point.momenta[i] for i in inds))
@@ -203,6 +219,13 @@ toy_weights_lcstar = map(toy_events) do event
     point = KinematicPoint(task, Tuple(event.momenta))
     phase_space_weight(event) * unpolarized_intensity(model_lcstar, point)
 end
+```
+
+For observables involving one of the two identical $\pi^-$ labels, both
+label assignments are filled into the same projection with repeated weights.
+
+```{julia}
+#| label: projection-data
 
 function sym_values(events, weights, combinations)
     values = Float64[]
@@ -232,6 +255,15 @@ _, weight_lc_pi_pi_lcstar = sym_values(toy_events, toy_weights_lcstar, ((1, 2, 3
 mass_lc_pi, weight_lc_pi_total = sym_values(toy_events, toy_weights_total, ((1, 3), (1, 4)))
 _, weight_lc_pi_a1 = sym_values(toy_events, toy_weights_a1, ((1, 3), (1, 4)))
 _, weight_lc_pi_lcstar = sym_values(toy_events, toy_weights_lcstar, ((1, 3), (1, 4)))
+```
+
+The component histograms are filled to zero, while the full coherent model is
+drawn as a black step line. This keeps the interference-sensitive total visually
+separate from the two diagnostic component intensities.
+
+```{julia}
+#| label: projections
+#| output: true
 
 function projection(values, weights_a1, weights_lcstar, weights_total; xlabel)
     stephist(values; weights = weights_a1, bins = 50, fillto = 0, fillalpha = 0.25, c = 2, label = "a1", xlabel)
@@ -250,9 +282,9 @@ plot(
 )
 ```
 
-There is no ``\Lambda_c^+\pi^+\pi^+`` spectrum for this final state; the
+There is no $\Lambda_c^+\pi^+\pi^+$ spectrum for this final state; the
 three-body baryonic plot above uses the two available
-``\Lambda_c^+\pi^+\pi^-`` combinations.
+$\Lambda_c^+\pi^+\pi^-$ combinations.
 
 ## What The Example Exposes
 
