@@ -159,10 +159,28 @@ Base.getindex(cascade::CascadeDecay, inds::AbstractVector{<:Integer}) =
 Base.getindex(cascade::CascadeDecay, inds::UnitRange{<:Integer}) =
     _slice_cascade(cascade, collect(inds))
 
-Base.getindex(cascade::CascadeDecay, inds::NTuple{N,Integer}) where {N} =
-    _slice_cascade(cascade, collect(inds))
+function Base.getindex(cascade::CascadeDecay, inds::NTuple{N,Integer}) where {N}
+    chain_tuple = ntuple(i -> cascade.chains[inds[i]], Val(N))
+    coupling_tuple = ntuple(i -> cascade.couplings[inds[i]], Val(N))
+    names_tuple = ntuple(i -> cascade.names[inds[i]], Val(N))
+    return CascadeDecay(
+        chain_tuple,
+        cascade.system,
+        cascade.reference_topology,
+        coupling_tuple,
+        names_tuple,
+    )
+end
 
-Base.getindex(cascade::CascadeDecay, ind::Integer) = cascade[[ind]]
+function Base.getindex(cascade::CascadeDecay, ind::Integer)
+    return CascadeDecay(
+        (cascade.chains[ind],),
+        cascade.system,
+        cascade.reference_topology,
+        (cascade.couplings[ind],),
+        (cascade.names[ind],),
+    )
+end
 
 function Base.getindex(cascade::CascadeDecay, name::AbstractString)
     inds = findall(==(name), cascade.names)
@@ -251,12 +269,11 @@ end
 
 Coherent helicity amplitude `sum(cᵢ * Aᵢ)` for all chains in `cascade`.
 """
-function amplitude(cascade::CascadeDecay, point::KinematicPoint)
+function amplitude(cascade::CascadeDecay{Nc}, point::KinematicPoint) where {Nc}
     point.task.reference_topology == cascade.reference_topology ||
         throw(ArgumentError("point task reference_topology must match cascade reference_topology"))
     return sum(
-        c * amplitude(chain, cascade.system, point)
-        for (c, chain) in zip(cascade.couplings, cascade.chains)
+        ntuple(i -> cascade.couplings[i] * amplitude(cascade.chains[i], cascade.system, point), Val(Nc)),
     )
 end
 
