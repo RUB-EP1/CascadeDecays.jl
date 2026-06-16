@@ -138,15 +138,13 @@ end
 
 function _slice_cascade(cascade::CascadeDecay, inds::AbstractVector{<:Integer})
     isempty(inds) && throw(ArgumentError("cannot slice CascadeDecay to zero chains"))
-    chain_tuple = ntuple(i -> cascade.chains[inds[i]], length(inds))
-    coupling_tuple = ntuple(i -> cascade.couplings[inds[i]], length(inds))
-    names_tuple = ntuple(i -> cascade.names[inds[i]], length(inds))
+    chain_tuple = Tuple(cascade.chains[i] for i in inds)
     return CascadeDecay(
         chain_tuple,
         cascade.system,
         cascade.reference_topology,
-        coupling_tuple,
-        names_tuple,
+        cascade.couplings[inds],
+        cascade.names[inds],
     )
 end
 
@@ -212,8 +210,8 @@ function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay, cascades::Ca
 end
 
 function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay)
-    cascade1.system === cascade2.system &&
-        cascade1.reference_topology === cascade2.reference_topology ||
+    cascade1.system == cascade2.system &&
+        cascade1.reference_topology == cascade2.reference_topology ||
         throw(ArgumentError("merged models must share system and reference_topology"))
     combined_names = vcat(cascade1.names, cascade2.names)
     length(combined_names) == length(unique(combined_names)) ||
@@ -272,9 +270,13 @@ Coherent helicity amplitude `sum(cᵢ * Aᵢ)` for all chains in `cascade`.
 function amplitude(cascade::CascadeDecay{Nc}, point::KinematicPoint) where {Nc}
     point.task.reference_topology == cascade.reference_topology ||
         throw(ArgumentError("point task reference_topology must match cascade reference_topology"))
-    return sum(
-        ntuple(i -> cascade.couplings[i] * amplitude(cascade.chains[i], cascade.system, point), Val(Nc)),
-    )
+    amp1 = amplitude(cascade.chains[1], cascade.system, point)
+    Nc == 1 && return cascade.couplings[1] .* amp1
+    res = cascade.couplings[1] .* amp1
+    for i in 2:Nc
+        res .+= cascade.couplings[i] .* amplitude(cascade.chains[i], cascade.system, point)
+    end
+    return res
 end
 
 """
