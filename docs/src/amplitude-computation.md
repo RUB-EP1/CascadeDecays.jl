@@ -39,10 +39,10 @@ is selected with `amplitude(chain, system, x, external_two_λs)`.
     `amplitude(chain, system, x)` does **not** apply the four final-state Wigner
     `d`-rotations that `ThreeBodyDecays.amplitude(dc, σs)` adds after the aligned
     chain. The result is an **aligned** amplitude in the natural frames of this
-  topology. To compare or add channels with different topologies coherently, use
-  [`KinematicTask`](@ref) / [`KinematicPoint`](@ref) and the Wigner-alignment paths
-  documented in [Routing four-vectors](@ref kinematic_tasks). See also
-  [Cross-checking with ThreeBodyDecays](@ref cascade_vs_dpd).
+    topology. To compare or add channels with different topologies coherently, use
+    [`KinematicTask`](@ref) / [`KinematicPoint`](@ref) and the Wigner-alignment paths
+    documented in [Routing four-vectors](@ref kinematic_tasks). See also
+    [Cross-checking with ThreeBodyDecays](@ref cascade_vs_dpd).
 
 Schematically,
 
@@ -102,19 +102,26 @@ h_{\lambda_1 \lambda_2} \;
 \mathrm{ff}(m_0^2, m_1^2, m_2^2),
 ```
 
-where `j_2` is the spin of **child 2** (the right child in the bracket tree) and
-`\mathrm{phase}(j_2 - \lambda_2)` is `+1` or `-1`:
+where `j_2` is the spin of **child 2** (the right child in the bracket tree). The
+phase factor is
 
 ```math
-\mathrm{phase}(j_2 - \lambda_2) =
+\mathrm{phase}(j_2 - \lambda_2) = (-1)^{j_2 - \lambda_2}.
+```
+
+In the implementation (`_particle_two_phase` in `evaluation.jl`), twice-helicity
+integers are used:
+
+```math
+\mathrm{phase}(2j_2 - 2\lambda_2) =
 \begin{cases}
-(-1)^{(j_2 - \lambda_2)/2} & j_2 - \lambda_2 \text{ even}, \\
-\text{error} & \text{otherwise}.
+(-1)^{(2j_2 - 2\lambda_2)/2} & 2j_2 - 2\lambda_2 \text{ even}, \\
+\text{error} & \text{otherwise},
 \end{cases}
 ```
 
-In the implementation (`_vertex_coupling_value` in `evaluation.jl`), twice-helicity
-integers are used: `phase(two_j_2 - two_λ_2)` with the same rule.
+which is equivalent to `(-1)^{j_2 - \lambda_2}` whenever `j_2 - \lambda_2` is an
+integer (as for physical helicity states).
 
 **Why split `h` and the phase?** The recoupling amplitude `h` has the parity
 properties required for LS coupling: [`minimal_ls_decay_chain`](@ref) and
@@ -139,7 +146,8 @@ H_{\lambda_1 \lambda_2},
 ```
 
 where `(ϕ, cosθ)` are the local decay angles at that vertex (`vertex_angles(x, vertex_ind)`),
-`PartialWaveFunctions`). Entries with `|\lambda_1 - \lambda_2| > j_0` are zero.
+and the Wigner `D`-functions are evaluated using `PartialWaveFunctions.jl`. Entries
+with `|\lambda_1 - \lambda_2| > j_0` are zero.
 
 Vertex factors are built as dense arrays (analogous to `VRk` / `Vij` in
 `ThreeBodyDecays.aligned_amplitude`) and multiplied into the line-indexed tensor
