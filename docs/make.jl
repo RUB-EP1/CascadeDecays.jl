@@ -94,6 +94,7 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Topology and numbering" => "notation.md",
+        "Amplitude computation" => "amplitude-computation.md",
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
         "Building a full model for a decay" => "lb2lc3pi-model.md",
