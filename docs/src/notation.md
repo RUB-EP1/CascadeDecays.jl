@@ -134,3 +134,5 @@ Final lines (1–4) and the root (7) are lines without an attached propagator.
 ### Amplitude axes
 
 [`line_amplitude_tensor`](@ref) builds a buffer with **one axis per line**, sized by the spin/helicity multiplicity on that line. [`external_helicity_amplitude`](@ref) sums over internal line axes ([`propagating_line_inds`](@ref)); the result has one axis per external line (finals in [`final_line_inds`](@ref) order, plus the root helicity last).
+
+For the full evaluation pipeline (propagators, vertex couplings, particle-2 phase), see [Amplitude computation](@ref amplitude_computation).
