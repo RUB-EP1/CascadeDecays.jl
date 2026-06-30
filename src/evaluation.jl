@@ -113,7 +113,7 @@ end
 function routed_vertex_amplitude(
         chain::DecayChain,
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
         two_λs,
         vertex_ind::Integer,
     )
@@ -125,7 +125,7 @@ function routed_vertex_amplitude(
     return routed_vertex_amplitude(vertex, masses2, helicities, spins, angles)
 end
 
-function routed_propagator_product(chain::DecayChain, x::CascadeKinematics)
+function routed_propagator_product(chain::DecayChain, x::DecayChainKinematics)
     return prod(zip(chain.propagators, propagating_line_inds(chain))) do (propagator, line_ind)
         propagator(line_invariant(x, line_ind))
     end
@@ -159,7 +159,7 @@ vertex `vertex_ind`, as a dense array (cf. `VRk` / `Vij` in
 function _vertex_factor(
         chain::DecayChain,
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
         vertex_ind::Integer,
     )
     l0, l1, l2 = vertex_line_inds(chain, vertex_ind)
@@ -241,7 +241,7 @@ Line-indexed amplitude buffer ``F_{λ_{\\mathrm{line}_1} \\ldots} =
 function line_amplitude_tensor(
         chain::DecayChain,
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
     )
     two_js = line_two_js(chain, system)
     line_sizes = ntuple(line_ind -> _helicity_axis_length(two_js[line_ind]), nlines(chain))
@@ -331,7 +331,7 @@ end
 function _vertex_helicity_amplitude(
         chain::DecayChain{Nf, Np},
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
     ) where {Nf, Np}
     P_prod = routed_propagator_product(chain, x)
     # sqrt(2j+1) per propagating line matches ThreeBodyDecays.aligned_amplitude normalisation
@@ -354,7 +354,7 @@ Helicity-frame Wigner rotations of `ThreeBodyDecays.amplitude(dc, σs)` are not 
 function amplitude(
         chain::DecayChain{Nf, Np},
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
     ) where {Nf, Np}
     return _vertex_helicity_amplitude(chain, system, x)
 end
@@ -369,7 +369,7 @@ positional finals, root via `two_h0=...` or `h0=...`).
 function amplitude(
         chain::DecayChain,
         system::CascadeSystem,
-        x::CascadeKinematics,
+        x::DecayChainKinematics,
         external_two_λs::SystemSpins,
     )
     A = amplitude(chain, system, x)

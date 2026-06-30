@@ -7,7 +7,7 @@ EditURL = "../src/kinematic-task.md"
 
 [`KinematicTask`](@ref) is a reusable specification for turning one event,
 represented by final-state four-vectors, into topology-local
-[`CascadeKinematics`](@ref). It stores the topologies, the initial-frame
+[`DecayChainKinematics`](@ref). It stores the topologies, the initial-frame
 convention, the generated angle-measurement programs, and optional helicity-axis
 alignment paths.
 
@@ -64,11 +64,11 @@ There are three kinematic objects in this workflow:
 - [`KinematicTask`](@ref) is the reusable specification generated from the
   topologies. It owns the topology list, initial-frame convention, generated
   vertex programs, and requested Wigner-alignment paths.
-- [`CascadeKinematics`](@ref) is the evaluated kinematics for one topology and
+- [`DecayChainKinematics`](@ref) is the evaluated kinematics for one topology and
   one event. It stores the line masses squared and the local helicity angles
   used by amplitude evaluation.
 - [`KinematicPoint`](@ref) is the evaluated event for the whole task. It stores
-  one `CascadeKinematics` object per topology, plus the requested relative
+  one `DecayChainKinematics` object per topology, plus the requested relative
   Wigner rotations.
 
 The generated programs are ordinary `InstructionalDecayTrees.jl` instruction
@@ -112,9 +112,9 @@ x12_3 = kinematics_at(point, topologies[1])
 ```
 
 The `point` object is the evaluated event in the task convention. It stores one
-[`CascadeKinematics`](@ref) object per topology and one set of requested
+[`DecayChainKinematics`](@ref) object per topology and one set of requested
 relative Wigner alignment angles per topology. [`kinematics_at`](@ref) is only a
-retrieval convenience: it selects the `CascadeKinematics` entry associated with
+retrieval convenience: it selects the `DecayChainKinematics` entry associated with
 the requested topology.
 
 ```@example kin_task

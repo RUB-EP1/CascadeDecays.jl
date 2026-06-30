@@ -61,11 +61,11 @@ amplitude(chain, system, x)
 amplitude(chain, system, x, external_two_λs)
 ```
 
-- `x::CascadeKinematics` — runtime kinematics indexed by `line_ind` and `vertex_ind`
+- `x::DecayChainKinematics` — runtime kinematics indexed by `line_ind` and `vertex_ind`
 - `external_two_λs` — optional external helicity selection
 
 ```julia
-struct CascadeKinematics{...}
+struct DecayChainKinematics{...}
     line_masses2::SVector{Nl,T}   # indexed by line_ind
     vertex_angles::SVector{Nv,A}    # indexed by vertex_ind
 end
