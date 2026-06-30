@@ -84,7 +84,7 @@ end
         (4,),
         (2,),
     )
-    x = CascadeKinematics(
+    x = DecayChainKinematics(
         topology,
         system;
         internal_masses2 = (4.0,),
@@ -106,7 +106,7 @@ end
     @test vertex_angles(x, 1) == (cosθ = 0.5, ϕ = 0.1)
     @test vertex_angles(topology, x, (1, 2)) == (cosθ = -0.2, ϕ = 0.3)
 
-    @test_throws ArgumentError CascadeKinematics(
+    @test_throws ArgumentError DecayChainKinematics(
         topology,
         system;
         internal_masses2 = (),
@@ -164,7 +164,7 @@ end
     @test alt_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 
     boosted_objs = Tuple(p |> Bz(1.5) |> Ry(0.1) |> Rz(0.2) for p in objs)
-    x_helicity = CascadeKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
+    x_helicity = DecayChainKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
 end
@@ -407,7 +407,7 @@ end
 @testset "Canonical routing on larger tree" begin
     topology = DecayTopology((((1, 2), 3), 4))
     system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
-    x = CascadeKinematics(
+    x = DecayChainKinematics(
         topology,
         system;
         internal_masses2 = (1.2, 2.3),
@@ -443,7 +443,7 @@ end
 
     @test_throws ArgumentError line_invariant(x, 8)
     @test_throws ArgumentError vertex_angles(x, 4)
-    @test_throws ArgumentError CascadeKinematics(
+    @test_throws ArgumentError DecayChainKinematics(
         topology,
         system;
         internal_masses2 = (1.2, 2.3),
@@ -487,7 +487,7 @@ end
         SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
     )
     programs = CascadeDecays.helicity_angle_programs(topology)
-    x = CascadeKinematics(topology, objs)
+    x = DecayChainKinematics(topology, objs)
 
     @test length(programs) == 3
     @test length.(programs) == (2, 3, 4)

@@ -124,7 +124,7 @@ bracket_notation(chain::DecayChain; labels = nothing) =
 vertex_line_inds(chain::DecayChain, vertex_ind::Integer) = vertex_line_inds(chain.topology, vertex_ind)
 child_line_inds(chain::DecayChain, vertex_ind::Integer) = child_line_inds(chain.topology, vertex_ind)
 final_descendants(chain::DecayChain, line_ind::Integer) = final_descendants(chain.topology, line_ind)
-vertex_masses2(chain::DecayChain, x::CascadeKinematics, vertex_ind::Integer) =
+vertex_masses2(chain::DecayChain, x::DecayChainKinematics, vertex_ind::Integer) =
     vertex_masses2(chain.topology, x, vertex_ind)
 vertex_helicities(chain::DecayChain, two_λs, vertex_ind::Integer) =
     vertex_helicities(chain.topology, two_λs, vertex_ind)

@@ -1,19 +1,12 @@
 """
-    DecayTopology(relation; root, finals, child_order)
+    DecayTopology(bracket)
 
-Flat line-vertex incidence graph for a connected binary cascade tree.
+Construct a decay topology from binary bracket notation, for example
+`DecayTopology((((1, 2), 3), 4))`.
 
-Rows of `relation` are lines and columns are vertices. The sign convention is:
-
-- `-1`: line enters a vertex
-- `+1`: line leaves a vertex
-- `0`: line is unrelated to the vertex
-
-The root/mother line is included explicitly. Final-state lines are listed in
-`finals`. The ordered pair of outgoing children at each vertex is stored
-separately from the incidence matrix because helicity conventions depend on
-child order. Prefer bracket notation for user-facing construction; when using
-the flat relation constructor, `child_order` must be supplied explicitly.
+Final-state particles are numbered by the integer leaves. The left/right order
+inside each pair is preserved because helicity conventions depend on child
+order. Internally the topology is stored as a flat line-vertex graph.
 """
 struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C}
     relation::SMatrix{Nl, Nv, T, L}
@@ -22,7 +15,7 @@ struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C}
     child_order::SMatrix{2, Nv, Int, C}
 end
 
-function DecayTopology(
+function _decay_topology_from_relation(
         relation::SMatrix{Nl, Nv, T, L},
         root::Integer,
         finals::SVector{Nf, Int};
@@ -34,7 +27,7 @@ function DecayTopology(
     return topology
 end
 
-function DecayTopology(
+function _decay_topology_from_relation(
         relation::AbstractMatrix{T};
         root::Integer,
         finals,
@@ -46,7 +39,7 @@ function DecayTopology(
     final_lines = SVector{length(final_tuple), Int}(final_tuple)
     static_relation = SMatrix{Nl, Nv, T, Nl * Nv}(relation)
     static_child_order = SMatrix{2, Nv, Int, 2 * Nv}(Tuple(Int(line_ind) for line_ind in child_order))
-    return DecayTopology(static_relation, root, final_lines; child_order = static_child_order, validate)
+    return _decay_topology_from_relation(static_relation, root, final_lines; child_order = static_child_order, validate)
 end
 
 _bracket_leaf(x::Integer) = Int(x)
@@ -92,16 +85,6 @@ function _address_final_labels(address)
     return Tuple(labels)
 end
 
-"""
-    DecayTopology(bracket)
-
-Construct a flat line-vertex incidence topology from binary bracket notation,
-for example `DecayTopology((((1, 2), 3), 4))`.
-
-The generated convention is final-state lines first, internal lines next in
-postorder, and the root/mother line last. Vertex columns are root-first, and
-the left/right order in each bracket pair is preserved.
-"""
 function DecayTopology(tree::Tuple)
     final_labels = sort!(_collect_final_labels!(Int[], tree))
     final_labels == collect(1:length(final_labels)) ||
@@ -123,7 +106,7 @@ function DecayTopology(tree::Tuple)
         relation[child2, vertex_ind] = 1
         child_order[:, vertex_ind] .= (child1, child2)
     end
-    return DecayTopology(relation; root = nlines, finals = Tuple(1:nfinal), child_order)
+    return _decay_topology_from_relation(relation; root = nlines, finals = Tuple(1:nfinal), child_order)
 end
 
 relation(topology::DecayTopology) = topology.relation
