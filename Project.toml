@@ -19,7 +19,7 @@ InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDe
 [compat]
 FourVectors = "0.3.4"
 HadronicLineshapes = "0.4.2"
-InstructionalDecayTrees = "0.2.0"
+InstructionalDecayTrees = "0.3.0"
 Literate = "2.21.0"
 PartialWaveFunctions = "0.2"
 StaticArrays = "1"
