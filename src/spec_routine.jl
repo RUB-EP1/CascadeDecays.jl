@@ -43,7 +43,7 @@ end
     KinematicPoint
 
 Evaluated kinematic data for one event and one [`KinematicTask`](@ref). It
-stores one [`CascadeKinematics`](@ref) object per task topology, plus one
+stores one [`DecayChainKinematics`](@ref) object per task topology, plus one
 external-axis alignment tuple per topology for the final particles requested by
 `task.wigner_finals`.
 """
@@ -132,7 +132,7 @@ end
 """
     kinematics_at(point, topology)
 
-Return the [`CascadeKinematics`](@ref) stored in `point` for `topology`.
+Return the [`DecayChainKinematics`](@ref) stored in `point` for `topology`.
 This is a retrieval helper; all kinematic values were computed when the
 [`KinematicPoint`](@ref) was built.
 """
@@ -153,7 +153,7 @@ alignment_angles_at(point::KinematicPoint, topology::DecayTopology) =
     KinematicPoint(task, objs)
 
 Build one [`KinematicPoint`](@ref) for external four-vectors `objs`. The point
-stores one [`CascadeKinematics`](@ref) per task topology plus requested relative
+stores one [`DecayChainKinematics`](@ref) per task topology plus requested relative
 Wigner alignment angles.
 """
 function KinematicPoint(task::KinematicTask, objs)
@@ -168,7 +168,7 @@ function KinematicPoint(task::KinematicTask, objs)
             _, result = apply_decay_instruction(program, objs)
             only(values(result))
         end
-        CascadeKinematics(_line_masses2_from_objects(t, objs), Tuple(angle_results))
+        _decay_chain_kinematics_from_values(_line_masses2_from_objects(t, objs), Tuple(angle_results))
     end
     alignments = ntuple(length(task.topologies)) do i
         t = task.topologies[i]
@@ -206,11 +206,11 @@ function KinematicPoint(task::KinematicTask, objs)
 end
 
 """
-    CascadeKinematics(topology, objs; initial_frame=HelicityRootFrame())
+    DecayChainKinematics(topology, objs; initial_frame=HelicityRootFrame())
 
-Compute a single-topology [`CascadeKinematics`](@ref) from external four-vectors.
+Compute a single-topology [`DecayChainKinematics`](@ref) from external four-vectors.
 """
-function CascadeKinematics(
+function DecayChainKinematics(
         topology::DecayTopology,
         objs;
         initial_frame::AbstractInitialFrame = HelicityRootFrame(),

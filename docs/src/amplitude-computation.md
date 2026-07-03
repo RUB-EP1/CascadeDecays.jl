@@ -6,7 +6,7 @@ EditURL = "../src/amplitude-computation.md"
 ```
 
 This page describes how [`amplitude`](@ref) assembles a decay-chain amplitude from
-the static [`DecayChain`](@ref) payload and runtime [`CascadeKinematics`](@ref).
+the static [`DecayChain`](@ref) payload and runtime [`DecayChainKinematics`](@ref).
 It complements [Topology and numbering](@ref notation) (indices and axis layout)
 and [Routing four-vectors](@ref kinematic_tasks) (how local angles and masses are
 obtained). Tutorials show end-to-end model building; this page is the evaluation

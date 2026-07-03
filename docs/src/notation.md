@@ -101,7 +101,7 @@ DecayTopology(((3, 1), 2)) != DecayTopology(((1, 3), 2))
 
 ### Incidence matrix
 
-`relation[line_ind, vertex_ind]` uses the sign convention documented on [`DecayTopology`](@ref):
+`relation[line_ind, vertex_ind]` uses this sign convention:
 
 - `−1` — line enters the vertex (incoming parent)
 - `+1` — line leaves the vertex (outgoing child)

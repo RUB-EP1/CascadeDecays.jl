@@ -118,7 +118,7 @@ system = CascadeSystem(two_js, masses)
 
 ## 4. Runtime kinematic input from the topology
 
-`CascadeKinematics` is the completed input point from which the package can
+`DecayChainKinematics` is the completed input point from which the package can
 route local invariants and angles by topology address.
 
 The angle programs are generated directly from the topology. It is useful to
@@ -136,7 +136,7 @@ The initial configuration of four-vectors is assumed to be already aligned so
 that the subsequent helicity-angle measurements are performed in the desired
 convention.
 
-After that, `CascadeKinematics(...)` evaluates the generated programs on the
+After that, `DecayChainKinematics(...)` evaluates the generated programs on the
 event four-vectors and assembles the full kinematic input object.
 
 Here we inspect the local decay `(1,2)`, which corresponds to
@@ -156,7 +156,7 @@ for (label, program) in (
     foreach(step -> println("  ", format_instruction(step)), program)
 end
 
-x = CascadeKinematics(topology, objs)
+x = DecayChainKinematics(topology, objs)
 
 root_angles = vertex_angles(topology, x, (((1, 2), 3), 4))
 psi_angles = vertex_angles(topology, x, ((1, 2), 3))
@@ -233,7 +233,7 @@ In formula form,
 The routing contract is:
 
 - topology chooses the local parent/children at each binary decay
-- `CascadeKinematics` supplies three local masses squared
+- `DecayChainKinematics` supplies three local masses squared
 - `external_two_λs` is a `SystemHelicities` value aligned with `two_js`
   (positional finals, root via `two_h0=...`)
 - `CascadeSystem` and `DecayChain` supply local external/internal spins

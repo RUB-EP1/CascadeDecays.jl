@@ -48,7 +48,7 @@ export line_masses2, line_values
 include("system.jl")
 
 # kinematics
-export CascadeKinematics
+export DecayChainKinematics
 export line_invariant
 export vertex_masses2, vertex_helicities, vertex_spins, vertex_angles
 include("kinematics.jl")
