@@ -4,7 +4,7 @@ Local smoke check for Λc⁺ → p K⁻ π⁺ against [ThreeBodyDecays.jl](https
 
 ## What is compared
 
-- 1000 phase-space points from [RemboOnDiet.jl](https://github.com/mmikhasenko/RamboOnDiet.jl)
+- 1000 phase-space points from [RamboOnDiet.jl](https://github.com/mmikhasenko/RamboOnDiet.jl)
 - Unit lineshape (`σ -> 1`), minimal LS vertices
 - External helicity array shape **`(2, 1, 1, 2)`** for `(λ_p, λ_K, λ_π, λ_Λc)` when `ThreeBodySpins(1, 0, 0; two_h0 = 1)` (not `h0 = 1`)
 

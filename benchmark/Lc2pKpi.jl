@@ -1,4 +1,4 @@
-# Lc2pKpi smoke script: Λc⁺ → p K⁻ π⁺ (1000 RemboOnDiet events).
+# Lc2pKpi smoke script: Λc⁺ → p K⁻ π⁺ (1000 RamboOnDiet events).
 # Run: julia --project=benchmark benchmark/Lc2pKpi.jl
 #
 # Not a performance benchmark. CascadeDecays.amplitude lacks the helicity-frame
@@ -18,7 +18,7 @@ using CascadeDecays:
 using FourVectors
 using HadronicLineshapes
 using Random
-using RemboOnDiet
+using RamboOnDiet
 using StaticArrays
 using ThreeBodyDecays:
     DecayChainLS,
@@ -47,7 +47,7 @@ const LC_QUANTUM = SystemSpinParities("1/2+", "0-", "0-"; jp0 = "1/2+")
 println("Lc2pKpi smoke script (shapes only — not a timing benchmark)")
 println("CascadeDecays: ", pkgversion(CascadeDecays))
 println("Note: Cascade amplitude omits helicity-frame Wigner rotations present in ThreeBodyDecays.amplitude(dc, σs)")
-println("Events: ", N_EVENTS, " (RemboOnDiet PhaseSpaceGenerator)")
+println("Events: ", N_EVENTS, " (RamboOnDiet PhaseSpaceGenerator)")
 println("Quantum numbers: p 1/2+, K 0-, π 0-, Λc 1/2+ (expected external shape (2,1,1,2))")
 
 events, tbs, Ps, tbd, system, mandelstam_lc = let

@@ -1,0 +1,48 @@
+/* Compact Quarto note styling */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.48;
+}
+
+main.content {
+  max-width: 860px;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+h1.title {
+  font-size: 2.0rem;
+  line-height: 1.15;
+}
+
+h2 {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.25rem;
+  margin-top: 2rem;
+}
+
+.math.display {
+  margin: 1.0rem 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+th {
+  text-align: left;
+}
+
+blockquote {
+  border-left: 4px solid #777;
+  padding-left: 1rem;
+  color: #444;
+}

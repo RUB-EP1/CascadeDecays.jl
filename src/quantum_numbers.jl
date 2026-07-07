@@ -6,6 +6,15 @@ skips the parity filter when any participating line carries it.
 """
 const UndefinedParity = Char('±')
 
+function _spin_label(two_j::Integer)
+    return iseven(two_j) ? string(two_j ÷ 2) : string(two_j, "/2")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", jp::SpinParity)
+    print(io, _spin_label(jp.two_j), jp.p)
+    return
+end
+
 """
     SystemMasses(m1, m2, ...; m0)
 
