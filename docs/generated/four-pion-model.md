@@ -39,24 +39,24 @@ and commit the updated `docs/generated/four-pion-model.md` file.
 
 ## Setup
 
-| parent | jp                 | mass   |
-|--------|--------------------|--------|
-| chi_c0 | SpinParity(0, ‘+’) | 3.4147 |
-| chi_c2 | SpinParity(4, ‘+’) | 3.5562 |
+| parent | jp  | mass   |
+|--------|-----|--------|
+| chi_c0 | 0+  | 3.4147 |
+| chi_c2 | 2+  | 3.5562 |
 
-| name | jp                 | mass  | width |
-|------|--------------------|-------|-------|
-| f0   | SpinParity(0, ‘+’) | 0.98  | 0.07  |
-| rho  | SpinParity(2, ‘-’) | 0.775 | 0.149 |
-| f2   | SpinParity(4, ‘+’) | 1.275 | 0.185 |
+| name | jp  | mass  | width |
+|------|-----|-------|-------|
+| f0   | 0+  | 0.98  | 0.07  |
+| rho  | 1-  | 0.775 | 0.149 |
+| f2   | 2+  | 1.275 | 0.185 |
 
-| name | jp                 | mass | width |
-|------|--------------------|------|-------|
-| a1   | SpinParity(2, ‘+’) | 1.23 | 0.42  |
-| a2   | SpinParity(4, ‘+’) | 1.32 | 0.11  |
-| pi0  | SpinParity(0, ‘-’) | 1.3  | 0.25  |
-| pi1  | SpinParity(2, ‘-’) | 1.6  | 0.3   |
-| pi2  | SpinParity(4, ‘-’) | 1.67 | 0.26  |
+| name | jp  | mass | width |
+|------|-----|------|-------|
+| a1   | 1+  | 1.23 | 0.42  |
+| a2   | 2+  | 1.32 | 0.11  |
+| pi0  | 0-  | 1.3  | 0.25  |
+| pi1  | 1-  | 1.6  | 0.3   |
+| pi2  | 2-  | 1.67 | 0.26  |
 
 ## Kinematic Topology Catalogue
 
@@ -201,9 +201,9 @@ coherent amplitude.
 
 | step                        | events | total_ms | ms_per_event |
 |-----------------------------|--------|----------|--------------|
-| KinematicPoint construction | 100    | 1315.01  | 13.1501      |
-| coherent amplitude          | 100    | 2200.6   | 22.006       |
-| sum(abs2, amplitude)        | 100    | 53.2968  | 0.532968     |
+| KinematicPoint construction | 100    | 1228.34  | 12.2834      |
+| coherent amplitude          | 100    | 1598.03  | 15.9803      |
+| sum(abs2, amplitude)        | 100    | 29.2105  | 0.292105     |
 
 The benchmark model is intentionally not the full physics model. It
 exercises the same kinematic routing and amplitude machinery on a

@@ -79,7 +79,7 @@ tree_label(tree) = replace(bracket_notation(DecayTopology(tree)), "," => ", ")
 function format_cell(x)
     x isa AbstractString && return replace(x, "|" => "\\|")
     cell = sprint() do io
-        show(IOContext(io, :compact => true, :limit => false), x)
+        show(IOContext(io, :compact => true, :limit => false), MIME("text/plain"), x)
     end
     return replace(cell, "|" => "\\|")
 end

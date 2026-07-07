@@ -30,6 +30,9 @@ end
 
     from_strings = SystemSpinParities("1+", "0-", "0-"; jp0 = "1±")
     from_jp = SystemSpinParities(jp"1+", jp"0-", jp"0-"; jp0 = jp"1±")
+    @test sprint(show, MIME("text/plain"), SpinParity(0, '+')) == "0+"
+    @test sprint(show, MIME("text/plain"), SpinParity(4, '-')) == "2-"
+    @test sprint(show, MIME("text/plain"), SpinParity(1, UndefinedParity)) == "1/2±"
     @test from_strings.spins == SystemSpins(2, 0, 0; two_h0 = 2)
     @test from_strings.parities == SystemParities('+', '-', '-'; P0 = UndefinedParity)
     @test from_jp == from_strings
