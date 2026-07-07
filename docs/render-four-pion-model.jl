@@ -6,7 +6,7 @@ const DEST = joinpath(DOCS, "src", "four-pion-model.md")
 function documenter_page(body::AbstractString)
     body = replace(
         body,
-        r"^# .+\n\n" =>
+        r"^# .+\r?\n\r?\n" =>
             "# [Four-pion model-building catalogue](@id four_pion_model)\n\n";
         count = 1,
     )
