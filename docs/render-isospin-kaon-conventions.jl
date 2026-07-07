@@ -4,7 +4,7 @@ const DEST = joinpath(DOCS, "generated", "isospin-kaon-conventions.md")
 const TITLE = "Isospin and kaon charge-conjugation conventions"
 
 function strip_frontmatter(text::AbstractString)
-    lines = split(text, '\n'; keepempty=true)
+    lines = split(text, '\n'; keepempty = true)
     length(lines) >= 2 && strip(lines[1]) == "---" || return text
     close = findnext(line -> strip(line) == "---", lines, 2)
     close === nothing && return text

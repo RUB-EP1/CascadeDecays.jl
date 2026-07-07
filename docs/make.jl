@@ -93,6 +93,7 @@ function prepare_documenter_source!()
     for entry in readdir(joinpath(DOCS, "generated"))
         cp(joinpath(DOCS, "generated", entry), joinpath(DOCUMENTER_SOURCE, entry); force = true)
     end
+    return
 end
 
 prepare_documenter_source!()

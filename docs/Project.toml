@@ -7,14 +7,14 @@ HadronicLineshapes = "49c9d978-1f9d-4e96-a984-0a9783c0b9bf"
 InstructionalDecayTrees = "1d606af4-d0f8-4ff7-bc8d-eb3f657b7647"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-RemboOnDiet = "1cb55d97-0cb4-4390-8d6a-9cd22df9b4c4"
+RamboOnDiet = "1cb55d97-0cb4-4390-8d6a-9cd22df9b4c4"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
 CascadeDecays = {path = ".."}
 InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
-RemboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
+RamboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 
 [compat]
 Documenter = "1"

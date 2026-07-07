@@ -47,7 +47,7 @@ using CascadeDecays
 using DataFrames
 using HadronicLineshapes
 using Random
-using RemboOnDiet
+using RamboOnDiet
 using ThreeBodyDecays: @jp_str
 
 const M_PI = 0.13957

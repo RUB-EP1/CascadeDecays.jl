@@ -143,14 +143,14 @@ binary vertex from the supplied spin-parity assignments.
 
 ## Quick toy spectra
 
-The same objects are enough for quick model-shape checks. Here `RemboOnDiet`
+The same objects are enough for quick model-shape checks. Here `RamboOnDiet`
 generates flat four-body phase-space events. Each event is weighted by
 
 ```math
 w = J_{\mathrm{PS}}\; I_{\mathrm{unpolarized}},
 ```
 
-where `J_PS` is the phase-space weight returned by `RemboOnDiet` and
+where `J_PS` is the phase-space weight returned by `RamboOnDiet` and
 `I_unpolarized` is `unpolarized_intensity(model, point)`.
 
 To make the structures visible, the toy projection also evaluates the two
@@ -164,7 +164,7 @@ intensities.
 using FourVectors
 using Plots
 using Random
-using RemboOnDiet
+using RamboOnDiet
 using DataFrames
 
 theme(:boxed)
