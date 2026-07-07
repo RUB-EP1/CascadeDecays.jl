@@ -4,7 +4,7 @@ engine: julia
 format:
   gfm: default
 execute:
-  echo: true
+  echo: false
   output: false
 ---
 
@@ -34,7 +34,7 @@ artifacts and is not rendered by `docs/make.jl` in CI. After editing this
 notebook, run
 
 ```sh
-julia --project=docs docs/render-four-pion-model.jl
+julia --project=docs docs/render-generated-docs.jl
 ```
 
 and commit the updated `docs/generated/four-pion-model.md` file.
@@ -43,7 +43,6 @@ and commit the updated `docs/generated/four-pion-model.md` file.
 
 ```{julia}
 #| label: setup
-#| code-fold: true
 using CascadeDecays
 using DataFrames
 using HadronicLineshapes
@@ -77,13 +76,28 @@ const CHARGE = Dict(1 => +1, 2 => -1, 3 => +1, 4 => -1)
 
 particle_label(i) = CHARGE[i] == +1 ? "pi$(i)+" : "pi$(i)-"
 tree_label(tree) = replace(bracket_notation(DecayTopology(tree)), "," => ", ")
-show_table(df) = (show(IOContext(stdout, :limit => false), MIME("text/html"), df); println())
+function format_cell(x)
+    x isa AbstractString && return replace(x, "|" => "\\|")
+    cell = sprint() do io
+        show(IOContext(io, :compact => true, :limit => false), x)
+    end
+    return replace(cell, "|" => "\\|")
+end
+function show_table(df::AbstractDataFrame)
+    cols = names(df)
+    println("| ", join(cols, " | "), " |")
+    println("| ", join(fill("---", length(cols)), " | "), " |")
+    for row in eachrow(df)
+        cells = [format_cell(getproperty(row, col)) for col in cols]
+        println("| ", join(cells, " | "), " |")
+    end
+    return
+end
 nothing
 ```
 
 ```{julia}
 #| label: parent-and-resonance-tables
-#| code-fold: true
 parents = DataFrame(
     parent = ["chi_c0", "chi_c2"],
     jp_label = ["0+", "2+"],
@@ -120,15 +134,18 @@ nothing
 ```{julia}
 #| label: parent-table
 #| output: asis
-#| code-fold: true
 show_table(select(parents, :parent, :jp, :mass))
 ```
 
 ```{julia}
-#| label: resonance-table
+#| label: two-body-resonance-table
 #| output: asis
-#| code-fold: true
 show_table(select(two_body, :r2 => :name, :jp, :mass, :width))
+```
+
+```{julia}
+#| label: three-body-resonance-table
+#| output: asis
 show_table(select(three_body, :r3 => :name, :jp, :mass, :width))
 ```
 
@@ -148,7 +165,6 @@ in this class, so the conjugate of `(1,2)` is `(2,1)`.
 
 ```{julia}
 #| label: topology-maps
-#| code-fold: true
 identity_map = Dict(i => i for i in 1:4)
 plus_swap = Dict(1 => 3, 3 => 1, 2 => 2, 4 => 4)
 minus_swap = Dict(1 => 1, 3 => 3, 2 => 4, 4 => 2)
@@ -208,7 +224,6 @@ nothing
 ```{julia}
 #| label: cascade-topology-table
 #| output: asis
-#| code-fold: true
 show_table(
     select(
         cascade_topologies,
@@ -240,7 +255,6 @@ A_{(12)(34)} + A_{(21)(43)} = 2 A_{(12)(34)} .
 
 ```{julia}
 #| label: pair-pair-topologies
-#| code-fold: true
 pair_pair_seed = ((1, 2), (3, 4))
 
 pair_pair_checks = transform(
@@ -293,10 +307,14 @@ nothing
 ```
 
 ```{julia}
-#| label: pair-pair-tables
+#| label: pair-pair-topology-table
 #| output: asis
-#| code-fold: true
 show_table(select(pair_pair_topologies, :R2a_pair, :R2b_pair, :bracket))
+```
+
+```{julia}
+#| label: pair-pair-check-table
+#| output: asis
 show_table(select(pair_pair_checks, :stage, :raw, :canonical))
 ```
 
@@ -308,7 +326,6 @@ kinematic plus spin-parity bookkeeping; no lineshape parameters enter yet.
 
 ```{julia}
 #| label: ls-catalogue
-#| code-fold: true
 ls_label((two_l, two_s)) =
     "(L=$(iseven(two_l) ? string(two_l ÷ 2) : string(two_l, "/2")), " *
     "S=$(iseven(two_s) ? string(two_s ÷ 2) : string(two_s, "/2")))"
@@ -383,7 +400,6 @@ nothing
 ```{julia}
 #| label: cascade-ls-table
 #| output: asis
-#| code-fold: true
 show_table(
     select(
         cascade_ls,
@@ -402,7 +418,6 @@ show_table(
 ```{julia}
 #| label: pair-pair-ls-table
 #| output: asis
-#| code-fold: true
 show_table(
     select(
         pair_pair_ls,
@@ -427,7 +442,6 @@ numbers only make the benchmark finite and reproducible.
 
 ```{julia}
 #| label: dynamics-lineshapes
-#| code-fold: true
 transform!(
     two_body,
     [:mass, :width] => ByRow((m, Γ) -> BreitWigner(m, Γ)) => :lineshape,
@@ -441,7 +455,6 @@ nothing
 
 ```{julia}
 #| label: dynamic-chain-table
-#| code-fold: true
 dynamic_rows = crossjoin(
     select(subset(parents, :parent => ByRow(==("chi_c2"))), :parent, :system),
     select(cascade_topologies, :stage, :tree, :topology, :bracket),
@@ -488,7 +501,6 @@ nothing
 ```{julia}
 #| label: dynamic-chain-summary
 #| output: asis
-#| code-fold: true
 show_table(select(dynamic_rows, :parent, :stage, :bracket, :r3, :r2, :n_chains))
 ```
 
@@ -500,7 +512,6 @@ kinematics, and how much time is spent evaluating the toy coherent amplitude.
 
 ```{julia}
 #| label: phase-space-events
-#| code-fold: true
 const N_BENCH_EVENTS = 100
 
 rng = MersenneTwister(20260707)
@@ -518,7 +529,6 @@ nothing
 ```{julia}
 #| label: benchmark
 #| output: asis
-#| code-fold: true
 KinematicPoint(task, first(events.momenta))
 first_point = KinematicPoint(task, first(events.momenta))
 amplitude(toy_model, first_point)
