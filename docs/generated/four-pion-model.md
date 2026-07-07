@@ -35,8 +35,7 @@ editing this notebook, run
 julia --project=docs docs/render-four-pion-model.jl
 ```
 
-and commit the updated `docs/four-pion-model.md` and
-`docs/src/four-pion-model.md` files.
+and commit the updated `docs/generated/four-pion-model.md` file.
 
 ## Setup
 
@@ -4964,12 +4963,12 @@ KinematicPoint construction
 
 <td style="text-align: right;">
 
-1226.32
+1255.7
 </td>
 
 <td style="text-align: right;">
 
-12.2632
+12.557
 </td>
 
 </tr>
@@ -4993,12 +4992,12 @@ coherent amplitude
 
 <td style="text-align: right;">
 
-1737.83
+1629.24
 </td>
 
 <td style="text-align: right;">
 
-17.3783
+16.2924
 </td>
 
 </tr>
@@ -5022,12 +5021,12 @@ sum(abs2, amplitude)
 
 <td style="text-align: right;">
 
-27.3835
+27.1487
 </td>
 
 <td style="text-align: right;">
 
-0.273835
+0.271487
 </td>
 
 </tr>

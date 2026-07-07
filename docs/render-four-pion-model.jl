@@ -1,7 +1,7 @@
 const DOCS = @__DIR__
 const QMD = "four-pion-model.qmd"
 const GFM = joinpath(DOCS, "four-pion-model.md")
-const DEST = joinpath(DOCS, "src", "four-pion-model.md")
+const DEST = joinpath(DOCS, "generated", "four-pion-model.md")
 
 function documenter_page(body::AbstractString)
     body = replace(
@@ -20,3 +20,4 @@ end
 
 isfile(GFM) || error("expected Quarto output at $GFM")
 write(DEST, documenter_page(read(GFM, String)))
+rm(GFM; force = true)

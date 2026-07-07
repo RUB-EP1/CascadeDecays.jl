@@ -37,8 +37,7 @@ notebook, run
 julia --project=docs docs/render-four-pion-model.jl
 ```
 
-and commit the updated `docs/four-pion-model.md` and
-`docs/src/four-pion-model.md` files.
+and commit the updated `docs/generated/four-pion-model.md` file.
 
 ## Setup
 

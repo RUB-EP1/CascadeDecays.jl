@@ -1,8 +1,6 @@
 const DOCS = @__DIR__
-const SOURCE_DIR = joinpath(DOCS, "isospin_kaon_note_updated")
-const QMD = joinpath(SOURCE_DIR, "isospin-kaon-conventions.qmd")
-const GFM = joinpath(SOURCE_DIR, "isospin-kaon-conventions.md")
-const DEST = joinpath(DOCS, "src", "isospin-kaon-conventions.md")
+const QMD = joinpath(DOCS, "isospin-kaon-conventions.qmd")
+const DEST = joinpath(DOCS, "generated", "isospin-kaon-conventions.md")
 const TITLE = "Isospin and kaon charge-conjugation conventions"
 
 function strip_frontmatter(text::AbstractString)
@@ -13,16 +11,11 @@ function strip_frontmatter(text::AbstractString)
     return join(lines[(close + 1):end], '\n')
 end
 
-function source_artifact(body::AbstractString)
-    return "# $TITLE\n\n" * body
-end
-
 function documenter_page(body::AbstractString)
-    meta = "```@meta\nCurrentModule = CascadeDecays\nEditURL = \"../isospin_kaon_note_updated/isospin-kaon-conventions.qmd\"\n```\n\n"
+    meta = "```@meta\nCurrentModule = CascadeDecays\nEditURL = \"../isospin-kaon-conventions.qmd\"\n```\n\n"
     header = "# [$TITLE](@id isospin_kaon_conventions)\n\n"
     return meta * header * body
 end
 
 body = strip_frontmatter(read(QMD, String))
-write(GFM, source_artifact(body))
 write(DEST, documenter_page(body))

@@ -1,15 +1,10 @@
----
-title: 'Isospin and Charge-Conjugation Conventions for \(\pi\pi K\bar K\) Amplitudes'
-author: "Mikhail Mikhasenko"
-format:
-  html:
-    css: style.css
-    toc: true
-    toc-depth: 3
-    number-sections: true
-execute:
-  echo: false
----
+```@meta
+CurrentModule = CascadeDecays
+EditURL = "../isospin-kaon-conventions.qmd"
+```
+
+# [Isospin and kaon charge-conjugation conventions](@id isospin_kaon_conventions)
+
 
 # Goal
 
@@ -34,7 +29,7 @@ not rendered by `docs/make.jl` in CI. After editing this notebook, run
 julia --project=docs docs/render-isospin-kaon-conventions.jl
 ```
 
-and commit the updated generated markdown files.
+and commit the updated `docs/generated/isospin-kaon-conventions.md` file.
 
 # Isospin doublets
 

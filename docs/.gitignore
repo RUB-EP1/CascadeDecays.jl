@@ -1,2 +1,4 @@
 /.quarto/
+/.documenter-build/
+/.documenter-src/
 **/*.quarto_ipynb

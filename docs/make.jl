@@ -2,6 +2,7 @@ using CascadeDecays
 using Documenter
 
 const DOCS = @__DIR__
+const DOCUMENTER_SOURCE = joinpath(DOCS, ".documenter-src")
 
 # Quarto notebooks rendered into Documenter pages under src/.
 const QUARTO_PAGES = [
@@ -80,11 +81,29 @@ DocMeta.setdocmeta!(
 
 build_quarto_pages!()
 
+function prepare_documenter_source!()
+    rm(DOCUMENTER_SOURCE; recursive = true, force = true)
+    mkpath(DOCUMENTER_SOURCE)
+
+    for entry in readdir(joinpath(DOCS, "src"))
+        source = joinpath(DOCS, "src", entry)
+        isdir(source) || splitext(entry)[2] == ".md" || continue
+        cp(joinpath(DOCS, "src", entry), joinpath(DOCUMENTER_SOURCE, entry); force = true)
+    end
+    for entry in readdir(joinpath(DOCS, "generated"))
+        cp(joinpath(DOCS, "generated", entry), joinpath(DOCUMENTER_SOURCE, entry); force = true)
+    end
+end
+
+prepare_documenter_source!()
+
 makedocs(;
     modules = [CascadeDecays],
     authors = "Mikhail Mikhasenko and contributors",
     repo = "https://github.com/RUB-EP1/CascadeDecays.jl/blob/{commit}{path}#{line}",
     sitename = "CascadeDecays.jl",
+    source = ".documenter-src",
+    build = ".documenter-build",
     doctest = false,
     checkdocs = :none,
     format = Documenter.HTML(;
@@ -105,4 +124,4 @@ makedocs(;
     ],
 )
 
-deploydocs(; repo = "github.com/RUB-EP1/CascadeDecays.jl")
+deploydocs(; repo = "github.com/RUB-EP1/CascadeDecays.jl", target = ".documenter-build")
