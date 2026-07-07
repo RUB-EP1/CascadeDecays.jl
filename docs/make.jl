@@ -98,6 +98,8 @@ makedocs(;
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
         "Building a full model for a decay" => "lb2lc3pi-model.md",
+        "Four-pion model-building catalogue" => "four-pion-model.md",
+        "Isospin and kaon charge-conjugation conventions" => "isospin-kaon-conventions.md",
         "Cross-checking with ThreeBodyDecays" => "cascade-vs-dpd.md",
         "API reference" => "api-reference.md",
     ],

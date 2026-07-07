@@ -2,6 +2,10 @@ engines: ["julia"]
 
 project:
   type: default
+  render:
+    - integration_4body_b2ddKpi.qmd
+    - lb2lc3pi-model.qmd
+    - cascade-vs-dpd.qmd
 
 format:
   gfm: default
