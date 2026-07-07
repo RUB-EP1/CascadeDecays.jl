@@ -1,5 +1,6 @@
 """
     DecayChainKinematics{Nl, Nv, T, A}
+    DecayChainKinematics(topology, line_masses2; vertex_angles)
 
 Runtime kinematic input point for one decay topology and one event.
 
@@ -35,14 +36,31 @@ end
 
 function DecayChainKinematics(
         topology::DecayTopology,
-        system::CascadeSystem;
-        internal_masses2,
+        line_masses2::AbstractVector;
         vertex_angles,
     )
-    masses = line_masses2(topology, system, internal_masses2)
-    length(vertex_angles) == nvertices(topology) ||
+    Nl = nlines(topology)
+    Nv = nvertices(topology)
+    length(line_masses2) == Nl ||
+        throw(ArgumentError("line_masses2 must have one entry per topology line"))
+    length(vertex_angles) == Nv ||
         throw(ArgumentError("vertex_angles must have one entry per topology vertex"))
-    return _decay_chain_kinematics_from_values(masses, vertex_angles)
+    all(_has_vertex_angle_schema, vertex_angles) ||
+        throw(ArgumentError("each vertex angle must provide `cosθ` and `ϕ` fields"))
+    static_masses = SVector{Nl}(line_masses2)
+    static_angles = SVector{Nv}(vertex_angles)
+    return DecayChainKinematics{Nl, Nv, eltype(static_masses), eltype(static_angles)}(
+        static_masses,
+        static_angles,
+    )
+end
+
+function DecayChainKinematics(
+        topology::DecayTopology,
+        line_masses2::Tuple{Vararg{Real}};
+        vertex_angles,
+    )
+    return DecayChainKinematics(topology, SVector(line_masses2); vertex_angles)
 end
 
 function _require_kinematic_line_ind(x::DecayChainKinematics, line_ind::Integer)

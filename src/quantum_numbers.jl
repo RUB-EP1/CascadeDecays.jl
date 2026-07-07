@@ -15,35 +15,6 @@ function Base.show(io::IO, ::MIME"text/plain", jp::SpinParity)
     return
 end
 
-"""
-    SystemMasses(m1, m2, ...; m0)
-
-External system mass descriptor. Final-state masses are positional; the root
-mass is always supplied as the keyword `m0`.
-"""
-struct SystemMasses{Nf, T <: Real}
-    finals::SVector{Nf, T}
-    m0::T
-end
-
-function SystemMasses(ms...; m0)
-    mass_tuple = Tuple(ms)
-    length(mass_tuple) >= 1 ||
-        throw(ArgumentError("provide at least one final-state mass before `m0`"))
-    T = promote_type(typeof(m0), map(typeof, mass_tuple)...)
-    return SystemMasses{length(mass_tuple), T}(
-        SVector{length(mass_tuple), T}(mass_tuple),
-        convert(T, m0),
-    )
-end
-
-function SystemMasses(ms::ThreeBodyDecays.MassTuple)
-    return SystemMasses(ms.m1, ms.m2, ms.m3; m0 = ms.m0)
-end
-
-Base.:(==)(a::SystemMasses, b::SystemMasses) =
-    a.m0 == b.m0 && a.finals == b.finals
-
 function _check_helicity(two_j::Integer, two_λ::Integer)
     return abs(two_λ) <= two_j ||
         throw(ArgumentError("helicity two_λ=$two_λ is not allowed for spin two_j=$two_j"))
@@ -142,8 +113,8 @@ end
     SystemSpinParities(jp1, jp2, ...; jp0)
     SystemSpinParities("1+", "0-", ...; jp0="1±")
 
-External spin and parity descriptor for [`CascadeSystem`](@ref) when LS
-enumeration needs explicit final-state and root parities.
+External spin and parity descriptor for LS enumeration when explicit
+final-state and root parities are needed.
 
 Spin-parity labels use the same `jp"…"` / string syntax as
 [`ThreeBodyDecays.ThreeBodySpinParities`](https://github.com/gw2ssi/ThreeBodyDecays.jl).
@@ -158,6 +129,8 @@ struct SystemSpinParities{Nf}
         return new{Nf}(spins, parities)
     end
 end
+
+const SystemSpinsOrSpinParities{Nf} = Union{SystemSpins{Nf}, SystemSpinParities{Nf}}
 
 SystemSpinParities(spins::SystemSpins, Ps...; P0) =
     SystemSpinParities(spins, SystemParities(Ps...; P0))

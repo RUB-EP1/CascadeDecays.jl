@@ -6,14 +6,12 @@
 
 using CascadeDecays
 using CascadeDecays:
-    CascadeSystem,
     ConstantLineshape,
+    DecayChainKinematics,
     DecayTopology,
     Propagator,
-    SystemMasses,
     SystemSpinParities,
     amplitude,
-    cascade_kinematics,
     minimal_ls_decay_chain
 using FourVectors
 using HadronicLineshapes
@@ -50,7 +48,7 @@ println("Note: Cascade amplitude omits helicity-frame Wigner rotations present i
 println("Events: ", N_EVENTS, " (RamboOnDiet PhaseSpaceGenerator)")
 println("Quantum numbers: p 1/2+, K 0-, π 0-, Λc 1/2+ (expected external shape (2,1,1,2))")
 
-events, tbs, Ps, tbd, system, mandelstam_lc = let
+events, tbs, Ps, tbd, quantum, mandelstam_lc = let
     function mandelstam_lc(point)
         p, K, π = point.momenta
         return (σ1 = mass(K + π)^2, σ2 = mass(p + π)^2, σ3 = mass(p + K)^2)
@@ -71,10 +69,7 @@ events, tbs, Ps, tbd, system, mandelstam_lc = let
         lambda = DecayChainLS(; k = 2, Xlineshape = unit_X, jp = jp"3/2-", Ps, tbs),
     )
 
-    masses = SystemMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0)
-    system = CascadeSystem(LC_QUANTUM, masses)
-
-    events, tbs, Ps, tbd, system, mandelstam_lc
+    events, tbs, Ps, tbd, LC_QUANTUM, mandelstam_lc
 end
 
 let
@@ -83,16 +78,16 @@ let
     cascade_chain = let
         topology = DecayTopology(((1, 2), 3))
         propagators = (((1, 2) => Propagator(jp"1-", UNIT_LINESHAPE)),)
-        minimal_ls_decay_chain(topology, system, propagators)
+        minimal_ls_decay_chain(topology, quantum, propagators)
     end
 
     x = let point = events[1]
-        cascade_kinematics(cascade_chain.topology, system, Tuple(point.momenta))
+        DecayChainKinematics(cascade_chain.topology, Tuple(point.momenta))
     end
     σ1 = mandelstam_lc(events[1])
 
     println("\n=== ", label, " ===")
-    A = amplitude(cascade_chain, system, x)
+    A = amplitude(cascade_chain, x)
     println("  Cascade external-helicity size: ", size(A), "  (p, K, π, Λc axes)")
     println("  Cascade Λc–p block A[:,1,1,:] size: ", size(A[:, 1, 1, :]))
     println("  ThreeBodyDecays amplitude size: ", size(tbd_amplitude(tbd_chain, σ1)))
@@ -104,16 +99,16 @@ let
     cascade_chain = let
         topology = DecayTopology(((1, 3), 2))
         propagators = (((1, 3) => Propagator(jp"3/2-", UNIT_LINESHAPE)),)
-        minimal_ls_decay_chain(topology, system, propagators)
+        minimal_ls_decay_chain(topology, quantum, propagators)
     end
 
     x = let point = events[1]
-        cascade_kinematics(cascade_chain.topology, system, Tuple(point.momenta))
+        DecayChainKinematics(cascade_chain.topology, Tuple(point.momenta))
     end
     σ1 = mandelstam_lc(events[1])
 
     println("\n=== ", label, " ===")
-    A = amplitude(cascade_chain, system, x)
+    A = amplitude(cascade_chain, x)
     println("  Cascade external-helicity size: ", size(A), "  (p, K, π, Λc axes)")
     println("  Cascade Λc–p block A[:,1,1,:] size: ", size(A[:, 1, 1, :]))
     println("  ThreeBodyDecays amplitude size: ", size(tbd_amplitude(tbd_chain, σ1)))

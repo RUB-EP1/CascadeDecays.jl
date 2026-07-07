@@ -32,8 +32,9 @@ export bracket_notation
 include("topology.jl")
 
 # quantum numbers
-export SystemMasses, SystemParities, SystemSpinParities
+export SystemParities, SystemSpinParities
 export SystemSpins, SystemHelicities, SystemSpinProjections
+export SystemSpinsOrSpinParities
 export UndefinedParity
 export final_two_js, root_two_j
 include("quantum_numbers.jl")
@@ -42,9 +43,7 @@ include("quantum_numbers.jl")
 include("possible_ls_more.jl")
 
 # system
-export CascadeSystem, CascadeSystemWithParities
-export final_masses, root_mass
-export line_masses2, line_values
+export line_values
 include("system.jl")
 
 # kinematics
@@ -56,7 +55,7 @@ include("kinematics.jl")
 # decay chain
 export DecayChain
 export SpinParity, Vertex
-export line_two_js
+export line_two_js, propagator_two_js
 include("chain.jl")
 
 # kinematic frames and path comparisons
@@ -76,7 +75,7 @@ include("spec_routine.jl")
 
 # cascade container
 export CascadeDecay
-export reference_topology, cascade_system, couplings
+export reference_topology, couplings
 export unpolarized_intensity
 include("cascade_decay.jl")
 

@@ -20,13 +20,11 @@ struct TestVertex <: AbstractVertex
 end
 
 @testset "Kinematic quantum-number types" begin
-    ms = ThreeBodyMasses(1.1, 2.2, 3.3; m0 = 7.7)
-    @test SystemMasses(ms) == SystemMasses(1.1, 2.2, 3.3; m0 = 7.7)
     @test SystemSpins(ThreeBodySpins(0, 0, 0; two_h0 = 0)) == SystemSpins(0, 0, 0; two_h0 = 0)
 
-    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
-    parity_system = CascadeSystem(SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'), system.masses)
-    @test parity_system.quantum.parities == SystemParities('+', '+', '+'; P0 = '+')
+    system = SystemSpins(0, 0, 0; two_h0 = 2)
+    parity_system = SystemSpinParities(system, '+', '+', '+'; P0 = '+')
+    @test parity_system.parities == SystemParities('+', '+', '+'; P0 = '+')
 
     from_strings = SystemSpinParities("1+", "0-", "0-"; jp0 = "1±")
     from_jp = SystemSpinParities(jp"1+", jp"0-", jp"0-"; jp0 = jp"1±")
@@ -39,7 +37,6 @@ end
     @test final_two_js(parity_system) == final_two_js(system)
     @test root_two_j(parity_system) == root_two_j(system)
     @test root_two_j(system) == 2
-    @test root_mass(system) == 3
 
     @test_throws ArgumentError SystemSpins(0, 0)
     spins = SystemSpins(0, 0, 0, 0; two_h0 = 0)
@@ -49,7 +46,6 @@ end
     @test SystemSpinProjections === SystemSpins
     @test_throws ArgumentError SystemHelicities(0, 0)
     @test_throws ArgumentError SystemHelicities(spins, 0, 0, 0)
-    @test_throws ArgumentError SystemMasses(; m0 = 1.0)
 end
 
 @testset "DecayTopology" begin
@@ -77,11 +73,12 @@ end
     @test bracket_notation(topology) == "((1,2),3)"
 end
 
-@testset "CascadeSystem and kinematic routing" begin
+@testset "Quantum numbers and kinematic routing" begin
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3; m0 = 3))
+    system = SystemSpins(0, 0, 0; two_h0 = 2)
     chain = DecayChain(
         topology,
+        system,
         (ConstantLineshape(1.0),),
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
@@ -89,21 +86,30 @@ end
     )
     x = DecayChainKinematics(
         topology,
-        system;
-        internal_masses2 = (4.0,),
+        SVector(1.0, 4.0, 9.0, 4.0, 9.0);
         vertex_angles = ((cosθ = 0.5, ϕ = 0.1), (cosθ = -0.2, ϕ = 0.3)),
     )
 
-    @test line_masses2(topology, system, (4.0,)) == SVector(1.0, 4.0, 9.0, 4.0, 9.0)
+    @test x.line_masses2 == SVector(1.0, 4.0, 9.0, 4.0, 9.0)
     @test line_invariant(x, 4) == 4.0
     @test line_invariant(topology, x, (1, 2)) == 4.0
 
     @test vertex_masses2(topology, x, 1) == (9.0, 4.0, 9.0)
     @test vertex_masses2(topology, x, 2) == (4.0, 1.0, 4.0)
     @test vertex_masses2(topology, x, (1, 2)) == (4.0, 1.0, 4.0)
-    @test line_two_js(chain, system) == SVector(0, 0, 0, 2, 2)
-    @test vertex_spins(chain, system, 1) == (2, 2, 0)
-    @test vertex_spins(chain, system, 2) == (2, 0, 0)
+    @test line_two_js(chain) == SVector(0, 0, 0, 2, 2)
+    @test vertex_spins(chain, 1) == (2, 2, 0)
+    @test vertex_spins(chain, 2) == (2, 0, 0)
+
+    spin_parity_chain = DecayChain(
+        topology,
+        SystemSpinParities(system, '+', '+', '+'; P0 = '+'),
+        (ConstantLineshape(1.0),),
+        (TestVertex(:mother), TestVertex(:isobar)),
+        (4,),
+        (2,),
+    )
+    @test line_two_js(spin_parity_chain) == line_two_js(chain)
     @test vertex_helicities(topology, (0, 0, 0, 1, -1), 1) == (-1, 1, 0)
     @test vertex_helicities(topology, (0, 0, 0, 1, -1), 2) == (1, 0, 0)
     @test vertex_angles(x, 1) == (cosθ = 0.5, ϕ = 0.1)
@@ -111,8 +117,7 @@ end
 
     @test_throws ArgumentError DecayChainKinematics(
         topology,
-        system;
-        internal_masses2 = (),
+        SVector(1.0, 4.0);
         vertex_angles = ((cosθ = 0.5, ϕ = 0.1), (cosθ = -0.2, ϕ = 0.3)),
     )
 end
@@ -174,8 +179,10 @@ end
 
 @testset "DecayChain payload mapping" begin
     topology = DecayTopology(((1, 2), 3))
+    system = SystemSpins(0, 0, 0; two_h0 = 2)
     chain = DecayChain(
         topology,
+        system,
         (ConstantLineshape(1.0),),
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
@@ -184,13 +191,14 @@ end
 
     @test chain.topology === topology
     @test nfinal(chain) == 3
-    @test chain.propagator_two_js == SVector(2)
+    @test propagator_two_js(chain) == SVector(2)
     @test bracket_notation(chain) == "((1,2),3)"
     @test final_descendants(chain, 4) == [1, 2]
     @test chain.propagators[1](2.0) == 1.0
 
     @test_throws ArgumentError DecayChain(
         topology,
+        system,
         (ConstantLineshape(1.0),),
         (TestVertex(:mother), TestVertex(:isobar)),
         (1,),
@@ -198,6 +206,7 @@ end
     )
     @test_throws ArgumentError DecayChain(
         topology,
+        system,
         (ConstantLineshape(1.0), ConstantLineshape(2.0)),
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
@@ -207,23 +216,23 @@ end
 
 @testset "CascadeDecay constructor" begin
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(1, 2, 3; m0 = 3))
+    system = SystemSpins(0, 0, 0; two_h0 = 0)
     chain = DecayChain(
         topology,
+        system,
         (ConstantLineshape(1.0),),
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
         (0,),
     )
 
-    cascade = CascadeDecay((chain,), system, topology)
+    cascade = CascadeDecay((chain,), topology)
     @test cascade.chains === (chain,)
-    @test cascade_system(cascade) === system
     @test reference_topology(cascade) === topology
     @test couplings(cascade) == (1.0 + 0.0im,)
     @test cascade.names == ("chain_1",)
 
-    weighted = CascadeDecay((chain, chain), system, topology; couplings = (2, 3.0im))
+    weighted = CascadeDecay((chain, chain), topology; couplings = (2, 3.0im))
     @test weighted.chains === (chain, chain)
     @test couplings(weighted) == (2.0 + 0.0im, 0.0 + 3.0im)
 
@@ -231,12 +240,10 @@ end
     amp_σs = x2σs([0.45, 0.35], amp_masses; k = 3)
     amp_objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(amp_σs, amp_masses; k = 3))
     amp_topology = DecayTopology(((1, 2), 3))
-    amp_system = CascadeSystem(
-        SystemSpins(0, 0, 0; two_h0 = 0),
-        SystemMasses(amp_masses),
-    )
+    amp_system = SystemSpins(0, 0, 0; two_h0 = 0)
     amp_chain = DecayChain(
-        amp_topology;
+        amp_topology,
+        amp_system;
         propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
         vertices = (
             (((1, 2), 3) => Vertex(NoRecoupling(0, 0))),
@@ -244,37 +251,46 @@ end
         ),
     )
     amp_point = KinematicPoint(KinematicTask((amp_topology,); reference_topology = amp_topology), amp_objs)
-    amp_cascade = CascadeDecay((amp_chain, amp_chain), amp_system, amp_topology; couplings = (2, 3.0im))
-    @test amplitude(amp_cascade, amp_point) ≈ (2.0 + 3.0im) .* amplitude(amp_chain, amp_system, amp_point)
+    amp_cascade = CascadeDecay((amp_chain, amp_chain), amp_topology; couplings = (2, 3.0im))
+    @test amplitude(amp_cascade, amp_point) ≈ (2.0 + 3.0im) .* amplitude(amp_chain, amp_point)
     @test unpolarized_intensity(amp_cascade, amp_point) ≈ sum(abs2, amplitude(amp_cascade, amp_point))
 
-    @test_throws ArgumentError CascadeDecay((), system, topology)
-    @test_throws ArgumentError CascadeDecay((chain,), system, topology; couplings = (1, 2))
+    @test_throws ArgumentError CascadeDecay((), topology)
+    @test_throws ArgumentError CascadeDecay((chain,), topology; couplings = (1, 2))
 
-    vector_cascade = CascadeDecay([chain], system, topology)
+    vector_cascade = CascadeDecay([chain], topology)
     @test vector_cascade.chains === (chain,)
 
     alt_topology = DecayTopology(((2, 3), 1))
     alt_chain = DecayChain(
         alt_topology,
+        system,
         (ConstantLineshape(1.0),),
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
         (0,),
     )
-    mixed = CascadeDecay((chain, alt_chain), system, topology)
+    mixed = CascadeDecay((chain, alt_chain), topology)
     @test mixed.chains[1].topology === topology
     @test mixed.chains[2].topology === alt_topology
 
-    wrong_system = CascadeSystem(SystemSpins(0, 0; two_h0 = 0), SystemMasses(1, 2; m0 = 3))
-    @test_throws ArgumentError CascadeDecay((chain,), wrong_system, topology)
+    wrong_chain = DecayChain(
+        topology,
+        SystemSpins(2, 0, 0; two_h0 = 0),
+        (ConstantLineshape(1.0),),
+        (TestVertex(:mother), TestVertex(:isobar)),
+        (4,),
+        (0,),
+    )
+    @test_throws ArgumentError CascadeDecay((chain, wrong_chain), topology)
 end
 
 @testset "CascadeDecay indexing, names, and merge" begin
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem(SystemSpins(0, 0, 0; two_h0 = 0), SystemMasses(1, 2, 3; m0 = 3))
+    system = SystemSpins(0, 0, 0; two_h0 = 0)
     chain_a = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = ((1, 2) => Propagator(0, ConstantLineshape(1.0)),),
         vertices = (
             (((1, 2), 3) => Vertex(RecouplingLS((0, 0)))),
@@ -282,7 +298,8 @@ end
         ),
     )
     chain_b = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
         vertices = (
             (((1, 2), 3) => Vertex(RecouplingLS((2, 0)))),
@@ -292,7 +309,6 @@ end
 
     model = CascadeDecay(
         (chain_a, chain_b),
-        system,
         topology;
         couplings = (1.0, 2.0im),
         names = ("a1->rhopi", "a1->kk"),
@@ -306,7 +322,7 @@ end
     @test model[model.names .== "a1->rhopi"].names == ("a1->rhopi",)
     @test model["a1->kk"].chains === (chain_b,)
 
-    default_names = CascadeDecay((chain_a, chain_b), system, topology).names
+    default_names = CascadeDecay((chain_a, chain_b), topology).names
     @test default_names == ("chain_1", "chain_2")
 
     show_text = sprint(show, model)
@@ -327,14 +343,13 @@ end
     amp_objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(amp_σs, amp_masses; k = 3))
     amp_point = KinematicPoint(KinematicTask((topology,); reference_topology = topology), amp_objs)
     @test amplitude(model[[1]], amp_point) ≈ amplitude(part_a, amp_point)
-    @test amplitude(model[[2]], amp_point) ≈ 2.0im * amplitude(chain_b, system, kinematics_at(amp_point, topology))
+    @test amplitude(model[[2]], amp_point) ≈ 2.0im * amplitude(chain_b, kinematics_at(amp_point, topology))
 
     @test_throws ArgumentError model[fill(false, length(model))]
     @test_throws KeyError model["missing"]
     @test_throws ArgumentError merge(part_a, part_a)
     @test_throws ArgumentError CascadeDecay(
         (chain_a, chain_b),
-        system,
         topology;
         names = ("only-one",),
     )
@@ -342,8 +357,10 @@ end
 
 @testset "Bracket-addressed DecayChain constructor" begin
     topology = DecayTopology((((1, 2), 3), 4))
+    system = SystemSpins(0, 0, 0, 0; two_h0 = 2)
     chain = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = (
             ((1, 2), 3) => Propagator(4, ConstantLineshape(:R123)),
             (1, 2) => Propagator(2, ConstantLineshape(:R12)),
@@ -354,18 +371,17 @@ end
             ((1, 2), 3) => TestVertex(:middle),
         ),
     )
-    system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
-
-    @test chain.propagator_two_js == SVector(4, 2)
+    @test propagator_two_js(chain) == SVector(4, 2)
     @test chain.propagators[1](1.0) == :R123
     @test chain.propagators[2](1.0) == :R12
     @test chain.vertices[1].name == :root
     @test chain.vertices[2].name == :middle
     @test chain.vertices[3].name == :inner
-    @test line_two_js(chain, system) == SVector(0, 0, 0, 0, 2, 4, 2)
+    @test line_two_js(chain) == SVector(0, 0, 0, 0, 2, 4, 2)
 
     jp_chain = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = (
             ((1, 2), 3) => Propagator(SpinParity(4, '+'), ConstantLineshape(:R123)),
             (1, 2) => Propagator(SpinParity(2, '-'), ConstantLineshape(:R12)),
@@ -376,7 +392,7 @@ end
             (1, 2) => TestVertex(:inner),
         ),
     )
-    @test jp_chain.propagator_two_js == SVector(4, 2)
+    @test propagator_two_js(jp_chain) == SVector(4, 2)
     @test line_values(
         topology;
         finals = (0, 0, 0, 0),
@@ -385,7 +401,8 @@ end
     ) == SVector(0, 0, 0, 0, 2, -2, 0)
 
     @test_throws ArgumentError DecayChain(
-        topology;
+        topology,
+        system;
         propagators = ((1, 2) => Propagator(2, ConstantLineshape(:R12)),),
         vertices = (
             (((1, 2), 3), 4) => TestVertex(:root),
@@ -394,7 +411,8 @@ end
         ),
     )
     @test_throws TypeError DecayChain(
-        topology;
+        topology,
+        system;
         propagators = (
             ((1, 2), 3) => Propagator(4, ConstantLineshape(:R123)),
             (1, 2) => ConstantLineshape(:R12),
@@ -409,11 +427,10 @@ end
 
 @testset "Canonical routing on larger tree" begin
     topology = DecayTopology((((1, 2), 3), 4))
-    system = CascadeSystem(SystemSpins(0, 0, 0, 0; two_h0 = 2), SystemMasses(1, 2, 3, 4; m0 = 3))
+    system = SystemSpins(0, 0, 0, 0; two_h0 = 2)
     x = DecayChainKinematics(
         topology,
-        system;
-        internal_masses2 = (1.2, 2.3),
+        SVector(1.0, 4.0, 9.0, 16.0, 1.2, 2.3, 9.0);
         vertex_angles = (
             (cosθ = 0.1, ϕ = 0.2),
             (cosθ = 0.3, ϕ = 0.4),
@@ -422,6 +439,7 @@ end
     )
     chain = DecayChain(
         topology,
+        system,
         (ConstantLineshape(11), ConstantLineshape(13)),
         (TestVertex(:root), TestVertex(:middle), TestVertex(:inner)),
         (6, 5),
@@ -437,8 +455,8 @@ end
     @test vertex_masses2(topology, x, 2) == (2.3, 1.2, 9.0)
     @test vertex_masses2(topology, x, 3) == (1.2, 1.0, 4.0)
     @test vertex_masses2(topology, x, ((1, 2), 3)) == (2.3, 1.2, 9.0)
-    @test line_two_js(chain, system) == SVector(0, 0, 0, 0, 2, 4, 2)
-    @test vertex_spins(chain, system, 2) == (4, 2, 0)
+    @test line_two_js(chain) == SVector(0, 0, 0, 0, 2, 4, 2)
+    @test vertex_spins(chain, 2) == (4, 2, 0)
     @test vertex_helicities(topology, (0, 0, 0, 0, 1, -2, 2), 2) == (-2, 1, 0)
     @test routed_propagator_product(chain, x) == 143
     @test line_invariant(topology, x, ((1, 2), 3)) == 2.3
@@ -448,8 +466,7 @@ end
     @test_throws ArgumentError vertex_angles(x, 4)
     @test_throws ArgumentError DecayChainKinematics(
         topology,
-        system;
-        internal_masses2 = (1.2, 2.3),
+        SVector(1.0, 4.0, 9.0, 16.0, 1.2, 2.3, 9.0);
         vertex_angles = ((θ = 0.1, ϕ = 0.2), (cosθ = 0.3, ϕ = 0.4), (cosθ = 0.5, ϕ = 0.6)),
     )
 end
@@ -485,10 +502,7 @@ end
     piplus = FourVector(-0.004158986333048991, 0.0012297296374225927, 0.00754591768614862; E = 0.13984149613322175)
     objs = (pD0, piplus, pDminus, pKplus)
 
-    system = CascadeSystem(
-        SystemSpins(0, 0, 0, 0; two_h0 = 0),
-        SystemMasses(mass.(objs)...; m0 = mass(sum(objs))),
-    )
+    system = SystemSpins(0, 0, 0, 0; two_h0 = 0)
     programs = CascadeDecays.helicity_angle_programs(topology)
     x = DecayChainKinematics(topology, objs)
 
@@ -501,7 +515,8 @@ end
     @test isapprox(vertex_angles(topology, x, (1, 2)).ϕ, -2.84901364039537; atol = 2.0e-10)
 
     chain = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = (
             (1, 2) => Propagator(2, ConstantLineshape(1.0 + 0.0im)),
             ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
@@ -512,14 +527,14 @@ end
             (1, 2) => Vertex(RecouplingLS((2, 0))),
         ),
     )
-    external_two_λs = SystemHelicities(system.quantum, 0, 0, 0, 0; two_h0 = 0)
-    A_full = amplitude(chain, system, x)
+    external_two_λs = SystemHelicities(system, 0, 0, 0, 0; two_h0 = 0)
+    A_full = amplitude(chain, x)
     @test size(A_full) == (1, 1, 1, 1, 1)
-    A = amplitude(chain, system, x, external_two_λs)
+    A = amplitude(chain, x, external_two_λs)
     @test A == A_full[1, 1, 1, 1, 1]
     @test isfinite(real(A))
     @test isfinite(imag(A))
-    @test_throws MethodError amplitude(chain, system, x, (0, 0, 0, 0, 0))
+    @test_throws MethodError amplitude(chain, x, (0, 0, 0, 0, 0))
 end
 
 @testset "Particle-2 helicity phase" begin
@@ -539,12 +554,10 @@ end
     σs = x2σs([0.45, 0.35], ms; k = 3)
     objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(σs, ms; k = 3))
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem(
-        SystemSpins(0, 0, 0; two_h0 = 0),
-        SystemMasses(ms),
-    )
+    system = SystemSpins(0, 0, 0; two_h0 = 0)
     chain = DecayChain(
-        topology;
+        topology,
+        system;
         propagators = ((1, 2) => Propagator(0, ConstantLineshape(2.0)),),
         vertices = (
             (((1, 2), 3) => Vertex(NoRecoupling(0, 0))),
@@ -554,19 +567,13 @@ end
     point = KinematicPoint(KinematicTask((topology,); reference_topology = topology), objs)
     x = kinematics_at(point, topology)
 
-    @test amplitude(chain, system, point) == amplitude(chain, system, x)
+    @test amplitude(chain, point) == amplitude(chain, x)
 end
 
 @testset "LS decay-chain builders" begin
     topology = DecayTopology(((1, 2), 3))
-    system = CascadeSystem(
-        SystemSpins(0, 0, 0; two_h0 = 0),
-        SystemMasses(1.0, 1.0, 1.0; m0 = 3.0),
-    )
-    weak_system = CascadeSystem(
-        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = '+'),
-        system.masses,
-    )
+    system = SystemSpins(0, 0, 0; two_h0 = 0)
+    weak_system = SystemSpinParities(system, '+', '+', '+'; P0 = '+')
     propagators = (
         (1, 2) => Propagator(SpinParity(0, '+'), ConstantLineshape(1.0)),
     )
@@ -582,12 +589,12 @@ end
     )
 
     minimal = minimal_ls_decay_chain(topology, weak_system, propagators)
-    @test minimal.propagator_two_js == SVector(0)
+    @test propagator_two_js(minimal) == SVector(0)
     @test all(v -> v.h isa RecouplingLS, minimal.vertices)
 
     all_chains = all_ls_decay_chains(topology, weak_system, propagators)
     @test length(all_chains) == 1
-    @test Set(chain.propagator_two_js for chain in all_chains) == Set([SVector(0)])
+    @test Set(propagator_two_js(chain) for chain in all_chains) == Set([SVector(0)])
 
     @test !isempty(possible_vertex_ls(SpinParity(1, '-'), SpinParity(1, '+'), SpinParity(0, '+')))
 
@@ -600,10 +607,7 @@ end
     @test jps[1].p == '+'
     @test jps[root_line_ind(topology)].p == '+'
 
-    undefined_root = CascadeSystem(
-        SystemSpinParities(system.quantum, '+', '+', '+'; P0 = UndefinedParity),
-        system.masses,
-    )
+    undefined_root = SystemSpinParities(system, '+', '+', '+'; P0 = UndefinedParity)
     @test line_spin_parities(topology, undefined_root, propagators)[root_line_ind(topology)].p ==
         UndefinedParity
     undefined_couplings = possible_vertex_couplings(topology, undefined_root, propagators)

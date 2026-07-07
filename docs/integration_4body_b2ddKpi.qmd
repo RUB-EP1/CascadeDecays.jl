@@ -93,27 +93,23 @@ topology = DecayTopology((((1, 2), 3), 4))
 @assert bracket_notation(topology) == "(((1,2),3),4)"
 ```
 
-## 3. Static system information
+## 3. Static quantum-number information
 
-The static system stores only external/root spins and fixed external/root
-masses. Internal spins belong to the propagator specs below, and internal
-masses are supplied by the event kinematics.
+The static quantum-number input stores only external/root spins. All line invariant masses,
+including final and root masses, are supplied by the event kinematics.
 
 We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins are
 represented as doubled integers.
 
 ```{julia}
-#| label: system
-two_js = SystemSpins(
+#| label: quantum
+quantum = SystemSpins(
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
     two_h0=0, # B⁺
 )
-
-masses = SystemMasses(mass.(objs)...; m0=mass(P_B))
-system = CascadeSystem(two_js, masses)
 ```
 
 ## 4. Runtime kinematic input from the topology
@@ -210,7 +206,7 @@ propagators = (
     ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
 )
 
-chain = DecayChain(topology; propagators, vertices)
+chain = DecayChain(topology, quantum; propagators, vertices)
 nothing
 ```
 
@@ -234,22 +230,22 @@ The routing contract is:
 
 - topology chooses the local parent/children at each binary decay
 - `DecayChainKinematics` supplies three local masses squared
-- `external_two_λs` is a `SystemHelicities` value aligned with `two_js`
+- `external_two_λs` is a `SystemHelicities` value aligned with `quantum`
   (positional finals, root via `two_h0=...`)
-- `CascadeSystem` and `DecayChain` supply local external/internal spins
+- `DecayChain` supplies local external/internal spins
 - Julia dispatch selects vertex and propagator computations
 
 ```{julia}
 #| label: amplitude
 external_two_λs = SystemHelicities(
-    two_js,
+    quantum,
     0, # D⁰
     0, # π⁺
     0, # D⁻
     0, # K⁺
     two_h0=0, # B⁺
 )
-A = amplitude(chain, system, x, external_two_λs)
+A = amplitude(chain, x, external_two_λs)
 nothing
 ```
 
