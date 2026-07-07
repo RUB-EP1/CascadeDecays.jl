@@ -38,7 +38,7 @@ function render_generated_page!(page)
         dest_path,
         documenter_page(read(gfm_path, String); title = page.title, id = page.id, qmd = page.qmd),
     )
-    rm(gfm_path; force = true)
+    return rm(gfm_path; force = true)
 end
 
 for page in GENERATED_PAGES
