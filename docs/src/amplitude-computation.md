@@ -28,15 +28,15 @@ the same aligned-style chain used in `ThreeBodyDecays.aligned_amplitude`:
 The public entry point is
 
 ```julia
-A = amplitude(chain, system, x)
+A = amplitude(chain, x)
 ```
 
 which returns a complex array with one axis per external helicity: final-state lines
 in [`final_line_inds`](@ref) order, then the root helicity last. A single component
-is selected with `amplitude(chain, system, x, external_two_λs)`.
+is selected with `amplitude(chain, x, external_two_λs)`.
 
 !!! note "Aligned vs helicity-frame output"
-    `amplitude(chain, system, x)` does **not** apply the four final-state Wigner
+    `amplitude(chain, x)` does **not** apply the four final-state Wigner
     `d`-rotations that `ThreeBodyDecays.amplitude(dc, σs)` adds after the aligned
     chain. The result is an **aligned** amplitude in the natural frames of this
     topology. To compare or add channels with different topologies coherently, use
@@ -159,7 +159,7 @@ For tests and diagnostics, `routed_vertex_amplitude` evaluates one vertex with
 masses, helicities, spins, and angles routed from a full cascade context:
 
 ```julia
-routed_vertex_amplitude(chain, system, x, two_λs, vertex_ind)
+routed_vertex_amplitude(chain, x, two_λs, vertex_ind)
 ```
 
 This is the same local rotation × `H` logic without the chain product or propagators.

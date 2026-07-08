@@ -12,7 +12,7 @@ EditURL = "../src/index.md"
 1. Define a cascade with [`DecayTopology`](@ref).
 2. Attach propagators and vertices with [`DecayChain`](@ref).
 3. Build runtime kinematics with [`DecayChainKinematics`](@ref) or the reusable [`KinematicTask`](@ref) / [`KinematicPoint`](@ref) workflow.
-4. Evaluate amplitudes with `amplitude(chain, system, x)` (full external-helicity array) or `amplitude(..., external_two_λs)` (one component). Use `amplitude(chain, system, point)` when relative Wigner alignments between topologies are required.
+4. Evaluate amplitudes with `amplitude(chain, x)` (full external-helicity array) or `amplitude(..., external_two_λs)` (one component). Use `amplitude(chain, point)` when relative Wigner alignments between topologies are required.
 
 ## Documentation map
 

@@ -1,31 +1,40 @@
 """
-    CascadeDecay(chains, system, reference_topology; couplings, names)
+    CascadeDecay(chains, reference_topology; couplings, names)
 
-Container for a coherent set of decay chains that share one system and reference
-topology. Each chain has a coupling coefficient and a string name for selection
-and display.
+Container for a coherent set of decay chains that share compatible external
+spin axes and one reference topology. Each chain has a coupling coefficient and
+a string name for selection and display.
 
 `chains` is stored as a concretely typed tuple of [`DecayChain`](@ref) objects.
 `couplings` and `names` are homogeneous `NTuple`s of one numeric type and
 `String`, respectively. Vector inputs are accepted at the constructor boundary
 and converted immediately.
 """
-struct CascadeDecay{Nc, Ch <: Tuple{Vararg{DecayChain}}, S, T, C}
+struct CascadeDecay{Nc, Ch <: Tuple{Vararg{DecayChain}}, T, C}
     chains::Ch
     couplings::NTuple{Nc, C}
     names::NTuple{Nc, String}
-    system::S
     reference_topology::T
+end
+
+function _external_two_js(chain::DecayChain)
+    two_js = line_two_js(chain)
+    return (Tuple(two_js[final_line_inds(chain)])..., two_js[root_line_ind(chain)])
 end
 
 function _validate_cascade_inputs(
         reference_topology::DecayTopology,
-        system::CascadeSystem,
         chains::Tuple{Vararg{DecayChain}},
     )
-    _check_system(reference_topology, system)
+    expected_nfinal = nfinal(reference_topology)
+    expected_external_two_js = _external_two_js(chains[1])
+    length(expected_external_two_js) == expected_nfinal + 1 ||
+        throw(ArgumentError("chains must have the same number of final particles as reference_topology"))
     for chain in chains
-        _check_system(chain.topology, system)
+        nfinal(chain) == expected_nfinal ||
+            throw(ArgumentError("all chains must have the same number of final particles as reference_topology"))
+        _external_two_js(chain) == expected_external_two_js ||
+            throw(ArgumentError("all chains in a CascadeDecay must share external spin assignments"))
     end
     return nothing
 end
@@ -54,7 +63,6 @@ end
 
 function CascadeDecay(
         chains::Tuple{Vararg{DecayChain}},
-        system::CascadeSystem,
         reference_topology::DecayTopology,
         couplings::Tuple{Vararg{Number}},
         names::Tuple{Vararg{AbstractString}},
@@ -63,50 +71,45 @@ function CascadeDecay(
     length(couplings) == length(chains) ||
         throw(ArgumentError("couplings must have one entry per chain"))
     _validate_chain_names(chains, names)
-    _validate_cascade_inputs(reference_topology, system, chains)
+    _validate_cascade_inputs(reference_topology, chains)
     coupling_tuple = _coupling_tuple(couplings)
     names_tuple = _name_tuple(names)
     C = eltype(coupling_tuple)
-    return CascadeDecay{length(chains), typeof(chains), typeof(system), typeof(reference_topology), C}(
+    return CascadeDecay{length(chains), typeof(chains), typeof(reference_topology), C}(
         chains,
         coupling_tuple,
         names_tuple,
-        system,
         reference_topology,
     )
 end
 
 function CascadeDecay(
         chains::Tuple{Vararg{DecayChain}},
-        system::CascadeSystem,
         reference_topology::DecayTopology,
         couplings::Tuple{Vararg{Number}};
         names::Union{Nothing, Tuple{Vararg{AbstractString}}} = nothing,
     )
     name_tuple = isnothing(names) ? _default_chain_names(chains) : names
-    return CascadeDecay(chains, system, reference_topology, couplings, name_tuple)
+    return CascadeDecay(chains, reference_topology, couplings, name_tuple)
 end
 
 function CascadeDecay(
         chains::Tuple{Vararg{DecayChain}},
-        system::CascadeSystem,
         reference_topology::DecayTopology;
         couplings::Tuple{Vararg{Number}} = ntuple(_ -> one(ComplexF64), length(chains)),
         names::Union{Nothing, Tuple{Vararg{AbstractString}}} = nothing,
     )
-    return CascadeDecay(chains, system, reference_topology, couplings; names)
+    return CascadeDecay(chains, reference_topology, couplings; names)
 end
 
 function CascadeDecay(
         chains::AbstractVector{<:DecayChain},
-        system::CascadeSystem,
         reference_topology::DecayTopology,
         couplings::AbstractVector{<:Number},
         names::AbstractVector{<:AbstractString},
     )
     return CascadeDecay(
         (chains...,),
-        system,
         reference_topology,
         (couplings...,),
         (String(name) for name in names...),
@@ -115,27 +118,24 @@ end
 
 function CascadeDecay(
         chains::AbstractVector{<:DecayChain},
-        system::CascadeSystem,
         reference_topology::DecayTopology,
         couplings::AbstractVector{<:Number};
         names::Union{Nothing, AbstractVector{<:AbstractString}} = nothing,
     )
     name_tuple = isnothing(names) ? _default_chain_names((chains...,)) : (String(name) for name in names...)
-    return CascadeDecay((chains...,), system, reference_topology, (couplings...,), name_tuple)
+    return CascadeDecay((chains...,), reference_topology, (couplings...,), name_tuple)
 end
 
 function CascadeDecay(
         chains::AbstractVector{<:DecayChain},
-        system::CascadeSystem,
         reference_topology::DecayTopology;
         couplings::AbstractVector{<:Number} = fill(one(ComplexF64), length(chains)),
         names::Union{Nothing, AbstractVector{<:AbstractString}} = nothing,
     )
-    return CascadeDecay(chains, system, reference_topology, couplings; names)
+    return CascadeDecay(chains, reference_topology, couplings; names)
 end
 
 reference_topology(cascade::CascadeDecay) = cascade.reference_topology
-cascade_system(cascade::CascadeDecay) = cascade.system
 couplings(cascade::CascadeDecay) = cascade.couplings
 
 Base.length(cascade::CascadeDecay) = length(cascade.chains)
@@ -160,7 +160,6 @@ function _slice_cascade(cascade::CascadeDecay, inds::AbstractVector{<:Integer})
     names_tuple = ntuple(i -> cascade.names[inds[i]], n)
     return CascadeDecay(
         chain_tuple,
-        cascade.system,
         cascade.reference_topology,
         coupling_tuple,
         names_tuple,
@@ -185,7 +184,6 @@ function Base.getindex(cascade::CascadeDecay, inds::NTuple{N, Integer}) where {N
     names_tuple = ntuple(i -> cascade.names[inds[i]], Val(N))
     return CascadeDecay(
         chain_tuple,
-        cascade.system,
         cascade.reference_topology,
         coupling_tuple,
         names_tuple,
@@ -195,7 +193,6 @@ end
 function Base.getindex(cascade::CascadeDecay, ind::Integer)
     return CascadeDecay(
         (cascade.chains[ind],),
-        cascade.system,
         cascade.reference_topology,
         (cascade.couplings[ind],),
         (cascade.names[ind],),
@@ -222,8 +219,8 @@ end
     merge(cascade1, cascade2, cascades...)
 
 Concatenate decay chains from compatible [`CascadeDecay`](@ref) models. All
-inputs must share the same `system` and `reference_topology`. Duplicate chain
-names are rejected.
+inputs must share the same `reference_topology` and compatible external spin
+axes. Duplicate chain names are rejected.
 
 This extends `Base.merge` for `CascadeDecay` arguments.
 """
@@ -232,9 +229,10 @@ function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay, cascades::Ca
 end
 
 function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay)
-    cascade1.system == cascade2.system &&
-        cascade1.reference_topology == cascade2.reference_topology ||
-        throw(ArgumentError("merged models must share system and reference_topology"))
+    cascade1.reference_topology == cascade2.reference_topology ||
+        throw(ArgumentError("merged models must share reference_topology"))
+    _external_two_js(cascade1.chains[1]) == _external_two_js(cascade2.chains[1]) ||
+        throw(ArgumentError("merged models must share external spin assignments"))
     combined_names = (cascade1.names..., cascade2.names...)
     length(combined_names) == length(unique(combined_names)) ||
         throw(ArgumentError("merged models contain duplicate chain names"))
@@ -242,7 +240,6 @@ function Base.merge(cascade1::CascadeDecay, cascade2::CascadeDecay)
     couplings = (cascade1.couplings..., cascade2.couplings...)
     return CascadeDecay(
         chains,
-        cascade1.system,
         cascade1.reference_topology,
         couplings,
         combined_names,
@@ -293,11 +290,11 @@ Coherent helicity amplitude `sum(cᵢ * Aᵢ)` for all chains in `cascade`.
 function amplitude(cascade::CascadeDecay{Nc}, point::KinematicPoint) where {Nc}
     point.task.reference_topology == cascade.reference_topology ||
         throw(ArgumentError("point task reference_topology must match cascade reference_topology"))
-    amp1 = amplitude(cascade.chains[1], cascade.system, point)
+    amp1 = amplitude(cascade.chains[1], point)
     Nc == 1 && return cascade.couplings[1] .* amp1
     res = cascade.couplings[1] .* amp1
     for i in 2:Nc
-        res .+= cascade.couplings[i] .* amplitude(cascade.chains[i], cascade.system, point)
+        res .+= cascade.couplings[i] .* amplitude(cascade.chains[i], point)
     end
     return res
 end

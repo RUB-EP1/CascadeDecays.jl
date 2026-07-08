@@ -1,14 +1,17 @@
 """
-    DecayChain(topology; propagators, vertices)
+    DecayChain(topology, spins; propagators, vertices)
 
 Static cascade model made from a validated flat topology and typed payloads.
 The public constructor accepts bracket-addressed `address => payload` pairs and
-stores the resolved flat graph information in typed static arrays.
+stores the resolved flat graph information in typed static arrays. The `spins`
+input is consumed at construction time to build `line_two_js(chain)`; it is not
+stored on the chain.
 """
 struct DecayChain{
         Nf,
         Np,
         Nv,
+        Nl,
         P,
         V,
         T <: DecayTopology,
@@ -17,7 +20,7 @@ struct DecayChain{
     propagators::SVector{Np, P}
     vertices::SVector{Nv, V}
     propagating_line_inds::SVector{Np, Int}
-    propagator_two_js::SVector{Np, Int}
+    line_two_js::SVector{Nl, Int}
 end
 
 function DecayChain(
@@ -25,26 +28,35 @@ function DecayChain(
         propagators::SVector{Np, P},
         vertices::SVector{Nv, V},
         propagating_line_inds::SVector{Np, Int},
-        propagator_two_js::SVector{Np, Int},
-    ) where {Np, Nv, P, V}
+        line_two_js::SVector{Nl, Int},
+    ) where {Np, Nv, Nl, P, V}
     Nv == nvertices(topology) ||
         throw(ArgumentError("number of vertices must match topology"))
+    Nl == nlines(topology) ||
+        throw(ArgumentError("line_two_js must have one entry per topology line"))
     all(line_ind -> isinternal_line_ind(topology, line_ind), propagating_line_inds) ||
         throw(ArgumentError("propagators may only be attached to internal lines"))
     length(unique(propagating_line_inds)) == Np ||
         throw(ArgumentError("propagating lines must be unique"))
     sort(collect(propagating_line_inds)) == internal_line_inds(topology) ||
         throw(ArgumentError("provide exactly one propagator spec for each internal line"))
-    return DecayChain{nfinal(topology), Np, Nv, P, V, typeof(topology)}(
+    return DecayChain{nfinal(topology), Np, Nv, Nl, P, V, typeof(topology)}(
         topology,
+        propagators,
+        vertices,
+        propagating_line_inds,
+        line_two_js,
+    )
+end
+
+function DecayChain(
+        topology::DecayTopology,
+        spins::SystemSpinsOrSpinParities,
         propagators,
         vertices,
         propagating_line_inds,
         propagator_two_js,
     )
-end
-
-function DecayChain(topology::DecayTopology, propagators, vertices, propagating_line_inds, propagator_two_js)
     propagator_tuple = Tuple(propagators)
     vertex_tuple = Tuple(vertices)
     line_tuple = Tuple(Int(line_ind) for line_ind in propagating_line_inds)
@@ -55,12 +67,29 @@ function DecayChain(topology::DecayTopology, propagators, vertices, propagating_
         throw(ArgumentError("propagator_two_js and propagating_line_inds must have the same length"))
     length(vertex_tuple) == nvertices(topology) ||
         throw(ArgumentError("number of vertices must match topology"))
+    all(line_ind -> isinternal_line_ind(topology, line_ind), line_tuple) ||
+        throw(ArgumentError("propagators may only be attached to internal lines"))
+    length(unique(line_tuple)) == length(line_tuple) ||
+        throw(ArgumentError("propagating lines must be unique"))
+    sort(collect(line_tuple)) == internal_line_inds(topology) ||
+        throw(ArgumentError("provide exactly one propagator spec for each internal line"))
+    _check_spins(topology, spins)
+
+    line_two_j_values = MVector{nlines(topology), Int}(undef)
+    for (i, line_ind) in pairs(final_line_inds(topology))
+        line_two_j_values[line_ind] = Int(final_two_js(spins)[i])
+    end
+    for (line_ind, two_j) in zip(line_tuple, two_j_tuple)
+        line_two_j_values[line_ind] = Int(two_j)
+    end
+    line_two_j_values[root_line_ind(topology)] = Int(root_two_j(spins))
+
     return DecayChain(
         topology,
         SVector{length(propagator_tuple)}(propagator_tuple),
         SVector{length(vertex_tuple)}(vertex_tuple),
         SVector{length(line_tuple), Int}(line_tuple),
-        SVector{length(two_j_tuple), Int}(two_j_tuple),
+        SVector(line_two_j_values),
     )
 end
 
@@ -72,13 +101,16 @@ function _vertex_payload_for(vertex_specs::Tuple, vertex_ids::Tuple, vertex_ind:
 end
 
 """
-    DecayChain(topology; propagators, vertices)
+    DecayChain(topology, spins; propagators, vertices)
 
 Build a static cascade model from bracket-addressed payload pairs. User-facing
-addresses are resolved immediately to internal line and vertex ids.
+addresses are resolved immediately to internal line and vertex ids. External,
+internal, and root spins are stored as the line-indexed `line_two_js(chain)`;
+parities are consumed by LS helpers before chain construction.
 """
 function DecayChain(
-        topology::DecayTopology;
+        topology::DecayTopology,
+        spins::SystemSpinsOrSpinParities;
         propagators::Tuple{Vararg{PropagatorSpec}},
         vertices::Tuple{Vararg{Pair{<:Any, <:Any}}},
     )
@@ -97,6 +129,7 @@ function DecayChain(
     )
     return DecayChain(
         topology,
+        spins,
         Tuple(spec.second.lineshape for spec in propagators),
         ordered_vertices,
         propagating_line_tuple,
@@ -129,26 +162,11 @@ vertex_masses2(chain::DecayChain, x::DecayChainKinematics, vertex_ind::Integer) 
 vertex_helicities(chain::DecayChain, two_λs, vertex_ind::Integer) =
     vertex_helicities(chain.topology, two_λs, vertex_ind)
 
-function line_two_js(chain::DecayChain{Nf, Np}, system::CascadeSystem) where {Nf, Np}
-    _check_system(chain.topology, system)
-    final_inds = Tuple(final_line_inds(chain))
-    prop_inds = Tuple(propagating_line_inds(chain))
-    final_js = final_two_js(system)
-    prop_js = chain.propagator_two_js
-    root_j = root_two_j(system)
-    return SVector(
-        ntuple(Val(Nf + Np + 1)) do line_ind
-            i = findfirst(==(line_ind), final_inds)
-            i !== nothing && return Int(final_js[i])
-            i = findfirst(==(line_ind), prop_inds)
-            i !== nothing && return Int(prop_js[i])
-            return Int(root_j)
-        end
-    )
-end
+line_two_js(chain::DecayChain) = chain.line_two_js
+propagator_two_js(chain::DecayChain) = chain.line_two_js[propagating_line_inds(chain)]
 
-function vertex_spins(chain::DecayChain, system::CascadeSystem, vertex_ind::Integer)
-    two_js = line_two_js(chain, system)
+function vertex_spins(chain::DecayChain, vertex_ind::Integer)
+    two_js = line_two_js(chain)
     l0, l1, l2 = vertex_line_inds(chain, vertex_ind)
     return (two_js[l0], two_js[l1], two_js[l2])
 end

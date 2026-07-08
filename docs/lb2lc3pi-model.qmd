@@ -47,10 +47,7 @@ m_pi_minus = 0.13957039
 m_lc = 2.28646
 m_lb = 5.61960
 
-system = CascadeSystem(
-    SystemSpinParities("1/2+", "0-", "0-", "0-"; jp0="1/2+"),
-    SystemMasses(m_lc, m_pi_plus, m_pi_minus, m_pi_minus; m0=m_lb),
-)
+quantum = SystemSpinParities("1/2+", "0-", "0-", "0-"; jp0="1/2+")
 
 # Placeholder resonance parameters. Replace these with the values used in the
 # analysis model or expose them as fit parameters.
@@ -65,7 +62,7 @@ propagators_a1_23 = (
     ((2, 3), 4) => Propagator(jp"1+", a1_1260),
     (2, 3) => Propagator(jp"1-", rho_770),
 )
-chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, system, propagators_a1_23)
+chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, quantum, propagators_a1_23)
 
 # 2. a1 -> rho(24) pi3
 topology_a1_24 = DecayTopology((1, ((2, 4), 3)))
@@ -73,7 +70,7 @@ propagators_a1_24 = (
     ((2, 4), 3) => Propagator(jp"1+", a1_1260),
     (2, 4) => Propagator(jp"1-", rho_770),
 )
-chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, system, propagators_a1_24)
+chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, quantum, propagators_a1_24)
 
 # 3. Lc** -> Sigma_c(12) pi3, with pi4 as the spectator
 topology_sigmac_123 = DecayTopology((((1, 2), 3), 4))
@@ -81,7 +78,7 @@ propagators_sigmac_123 = (
     ((1, 2), 3) => Propagator(jp"3/2+", lcstar),
     (1, 2) => Propagator(jp"1/2+", sigmac_2455),
 )
-chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, system, propagators_sigmac_123)
+chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, quantum, propagators_sigmac_123)
 
 # 4. Lc** -> Sigma_c(12) pi4, with pi3 as the spectator
 topology_sigmac_124 = DecayTopology((((1, 2), 4), 3))
@@ -89,7 +86,7 @@ propagators_sigmac_124 = (
     ((1, 2), 4) => Propagator(jp"3/2+", lcstar),
     (1, 2) => Propagator(jp"1/2+", sigmac_2455),
 )
-chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, system, propagators_sigmac_124)
+chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, quantum, propagators_sigmac_124)
 ```
 
 At this point all channels are ordinary `DecayChain` values. The construction is
@@ -111,7 +108,6 @@ c_sigmac = 5.0 + 0.0im
 
 model = CascadeDecay(
     (chain_a1_23, chain_a1_24, chain_sigmac_123, chain_sigmac_124),
-    system,
     topology_a1_23;
     couplings=(c_a1, c_a1, c_sigmac, c_sigmac),
     names=(
@@ -137,7 +133,7 @@ nothing
 ```
 
 The result is a static model description. Each `DecayChain` has the same
-external system, but its own topology and Breit-Wigner propagators. The
+external quantum numbers, but its own topology and Breit-Wigner propagators. The
 `minimal_ls_decay_chain` calls choose the first allowed LS coupling at every
 binary vertex from the supplied spin-parity assignments.
 

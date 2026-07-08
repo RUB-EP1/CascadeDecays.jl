@@ -281,23 +281,20 @@ function classify(A, B; atol = 1e-10)
     return (; sign, diff_plus, diff_minus)
 end
 
-function toy_system(spin_particle)
+function toy_quantum(spin_particle)
     two_js = ntuple(i -> i == spin_particle ? 1 : 0, 3)
     tbs = ThreeBodySystem(ms, ThreeBodySpins(two_js...; two_h0 = 1))
     labels = ntuple(i -> i == spin_particle ? "1/2+" : "0-", 3)
-    system = CascadeSystem(
-        SystemSpinParities(labels...; jp0 = "1/2+"),
-        SystemMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0),
-    )
+    quantum = SystemSpinParities(labels...; jp0 = "1/2+")
     parities = ntuple(i -> i == spin_particle ? '+' : '-', 3)
     Ps = ThreeBodyParities(parities...; P0 = '+')
-    return (; two_js, tbs, system, Ps)
+    return (; two_js, tbs, quantum, Ps)
 end
 
 isobar_jp_for(spin_particle, k) = k == spin_particle ? jp"1-" : jp"1/2-"
 
 function compare_toy_amplitudes(spin_particle)
-    (; tbs, system, Ps) = toy_system(spin_particle)
+    (; tbs, quantum, Ps) = toy_quantum(spin_particle)
     rows = String[]
     for k in (1, 2, 3)
         topology = three_body_topology(k)
@@ -305,7 +302,7 @@ function compare_toy_amplitudes(spin_particle)
         tbd_chain = DecayChainLS(; k, Xlineshape = unit_X, jp, Ps, tbs)
         cd_chain = minimal_ls_decay_chain(
             topology,
-            system,
+            quantum,
             ((three_body_isobar_pair(k) => Propagator(jp, UNIT_LINESHAPE)),),
         )
         task = KinematicTask(
@@ -317,7 +314,7 @@ function compare_toy_amplitudes(spin_particle)
         point = KinematicPoint(task, objs)
 
         A_tbd = tbd_reference_amplitude(objs, tbs, tbd_chain, REF_K).amplitude
-        A_cd = amplitude(cd_chain, system, point)
+        A_cd = amplitude(cd_chain, point)
         c = classify(A_tbd, A_cd)
         push!(rows, @sprintf(
             "%-8d %-14s %-18.2e %-18.2e",

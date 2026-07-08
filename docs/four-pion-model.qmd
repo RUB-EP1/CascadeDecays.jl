@@ -108,11 +108,8 @@ parents = DataFrame(
 transform!(
     parents,
     [:jp_label, :mass] => ByRow() do jp_label, mass
-        CascadeSystem(
-            SystemSpinParities("0-", "0-", "0-", "0-"; jp0=jp_label),
-            SystemMasses(M_PI, M_PI, M_PI, M_PI; m0=mass),
-        )
-    end => :system,
+        SystemSpinParities("0-", "0-", "0-", "0-"; jp0=jp_label)
+    end => :quantum,
 )
 
 two_body = DataFrame(
@@ -332,20 +329,20 @@ ls_label((two_l, two_s)) =
 ls_list_label(couplings) = isempty(couplings) ? "forbidden" : join(ls_label.(couplings), ", ")
 
 cascade_ls = crossjoin(
-    select(parents, :parent, :system),
+    select(parents, :parent, :quantum),
     select(three_body, :r3, :jp => :r3_jp),
     select(two_body, :r2, :jp => :r2_jp),
 )
 
 transform!(
     cascade_ls,
-    [:system, :r3_jp, :r2_jp] => ByRow() do system, r3_jp, r2_jp
+    [:quantum, :r3_jp, :r2_jp] => ByRow() do quantum, r3_jp, r2_jp
         row = first(cascade_topologies)
         propagators = (
             (row.tree[1][1], row.tree[1][2]) => Propagator(r3_jp, ConstantLineshape(:R3)),
             row.tree[1][1] => Propagator(r2_jp, ConstantLineshape(:R2)),
         )
-        couplings = possible_vertex_couplings(row.topology, system, propagators)
+        couplings = possible_vertex_couplings(row.topology, quantum, propagators)
         (;
             parent_ls = couplings[1].second,
             r3_ls = couplings[2].second,
@@ -364,20 +361,20 @@ transform!(
 )
 
 pair_pair_ls = crossjoin(
-    select(parents, :parent, :system),
+    select(parents, :parent, :quantum),
     select(two_body, :r2 => :r2a, :jp => :r2a_jp),
     select(two_body, :r2 => :r2b, :jp => :r2b_jp),
 )
 
 transform!(
     pair_pair_ls,
-    [:system, :r2a_jp, :r2b_jp] => ByRow() do system, r2a_jp, r2b_jp
+    [:quantum, :r2a_jp, :r2b_jp] => ByRow() do quantum, r2a_jp, r2b_jp
         row = first(pair_pair_topologies)
         propagators = (
             row.tree[1] => Propagator(r2a_jp, ConstantLineshape(:R2a)),
             row.tree[2] => Propagator(r2b_jp, ConstantLineshape(:R2b)),
         )
-        couplings = possible_vertex_couplings(row.topology, system, propagators)
+        couplings = possible_vertex_couplings(row.topology, quantum, propagators)
         (;
             parent_ls = couplings[1].second,
             r2a_ls = couplings[2].second,
@@ -456,7 +453,7 @@ nothing
 ```{julia}
 #| label: dynamic-chain-table
 dynamic_rows = crossjoin(
-    select(subset(parents, :parent => ByRow(==("chi_c2"))), :parent, :system),
+    select(subset(parents, :parent => ByRow(==("chi_c2"))), :parent, :quantum),
     select(cascade_topologies, :stage, :tree, :topology, :bracket),
     select(subset(three_body, :r3 => ByRow(==("a1"))), :r3, :jp => :r3_jp, :lineshape => :r3_lineshape),
     select(subset(two_body, :r2 => ByRow(==("rho"))), :r2, :jp => :r2_jp, :lineshape => :r2_lineshape),
@@ -474,8 +471,8 @@ transform!(
 
 transform!(
     dynamic_rows,
-    [:topology, :system, :propagators] => ByRow() do topology, system, propagators
-        all_ls_decay_chains(topology, system, propagators)
+    [:topology, :quantum, :propagators] => ByRow() do topology, quantum, propagators
+        all_ls_decay_chains(topology, quantum, propagators)
     end => :chains,
 )
 transform!(
@@ -484,11 +481,9 @@ transform!(
 )
 
 toy_chains = Tuple(reduce(vcat, dynamic_rows.chains))
-toy_system = only(unique(dynamic_rows.system))
 toy_topologies = Tuple(unique(chain.topology for chain in toy_chains))
 toy_model = CascadeDecay(
     toy_chains,
-    toy_system,
     first(toy_topologies);
     couplings=ntuple(_ -> 1.0 + 0.0im, length(toy_chains)),
     names=Tuple("a1rho_$(i)" for i in eachindex(toy_chains)),

@@ -103,14 +103,13 @@ end
 
 function _external_wigner_matrices(
         chain::DecayChain,
-        system::CascadeSystem,
         angles::SVector{Nf, WignerAngles},
     ) where {Nf}
     final_lines = final_line_inds(chain.topology)
     length(angles) == length(final_lines) ||
         throw(ArgumentError("angles must have one entry per final-state particle"))
     ext_lines = _external_axis_line_inds(chain.topology)
-    two_js = line_two_js(chain, system)
+    two_js = line_two_js(chain)
     return ntuple(Val(Nf + 1)) do i
         line = ext_lines[i]
         wigner_angles = i <= Nf ? angles[i] : _trivial_wigner
@@ -147,10 +146,9 @@ end
 function _apply_external_wigner_rotations(
         F::AbstractArray,
         chain::DecayChain,
-        system::CascadeSystem,
         angles::SVector{Nf, WignerAngles},
     ) where {Nf}
-    Ds = _external_wigner_matrices(chain, system, angles)
+    Ds = _external_wigner_matrices(chain, angles)
     all(D -> size(D) == (1, 1), Ds) && return F
     return _contract_external_wigner_rotations(F, Ds)
 end
