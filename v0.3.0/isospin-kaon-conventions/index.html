@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Isospin and kaon charge-conjugation conventions · CascadeDecays.jl</title><meta name="title" content="Isospin and kaon charge-conjugation conventions · CascadeDecays.jl"/><meta property="og:title" content="Isospin and kaon charge-conjugation conventions · CascadeDecays.jl"/><meta property="twitter:title" content="Isospin and kaon charge-conjugation conventions · CascadeDecays.jl"/><meta name="description" content="Documentation for CascadeDecays.jl."/><meta property="og:description" content="Documentation for CascadeDecays.jl."/><meta property="twitter:description" content="Documentation for CascadeDecays.jl."/><meta property="og:url" content="https://rub-ep1.github.io/CascadeDecays.jl/isospin-kaon-conventions/"/><meta property="twitter:url" content="https://rub-ep1.github.io/CascadeDecays.jl/isospin-kaon-conventions/"/><link rel="canonical" href="https://rub-ep1.github.io/CascadeDecays.jl/isospin-kaon-conventions/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">CascadeDecays.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../notation/">Topology and numbering</a></li><li><a class="tocitem" href="../amplitude-computation/">Amplitude computation</a></li><li><a class="tocitem" href="../kinematic-task/">Routing four-vectors</a></li><li><a class="tocitem" href="../tutorial/">Using a decay chain</a></li><li><a class="tocitem" href="../lb2lc3pi-model/">Building a full model for a decay</a></li><li><a class="tocitem" href="../four-pion-model/">Four-pion model-building catalogue</a></li><li class="is-active"><a class="tocitem" href>Isospin and kaon charge-conjugation conventions</a><ul class="internal"><li><a class="tocitem" href="#Goal"><span>Goal</span></a></li><li><a class="tocitem" href="#Isospin-doublets"><span>Isospin doublets</span></a></li><li><a class="tocitem" href="#Charge-conjugation-must-be-applied-to-currents"><span>Charge conjugation must be applied to currents</span></a></li><li><a class="tocitem" href="#Axial-kaons-and-the-two-1-nonets"><span>Axial kaons and the two <span>$1^+$</span> nonets</span></a></li><li><a class="tocitem" href="#K\\bar-K-isospin-states"><span><span>$K\bar K$</span> isospin states</span></a></li><li><a class="tocitem" href="#Three-and-four-body-construction"><span>Three- and four-body construction</span></a></li><li><a class="tocitem" href="#Constraints-for-\\chi_{c0}-and-\\chi_{c2}"><span>Constraints for <span>$\chi_{c0}$</span> and <span>$\chi_{c2}$</span></span></a></li><li><a class="tocitem" href="#Practical-implementation-recipe"><span>Practical implementation recipe</span></a></li><li><a class="tocitem" href="#Minimal-checks"><span>Minimal checks</span></a></li></ul></li><li><a class="tocitem" href="../cascade-vs-dpd/">Cross-checking with ThreeBodyDecays</a></li><li><a class="tocitem" href="../api-reference/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Isospin and kaon charge-conjugation conventions</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Isospin and kaon charge-conjugation conventions</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/isospin-kaon-conventions.qmd#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="isospin_kaon_conventions"><a class="docs-heading-anchor" href="#isospin_kaon_conventions">Isospin and kaon charge-conjugation conventions</a><a id="isospin_kaon_conventions-1"></a><a class="docs-heading-anchor-permalink" href="#isospin_kaon_conventions" title="Permalink"></a></h1><h2 id="Goal"><a class="docs-heading-anchor" href="#Goal">Goal</a><a id="Goal-1"></a><a class="docs-heading-anchor-permalink" href="#Goal" title="Permalink"></a></h2><p>This note fixes a sign convention for isospin doublets and charge conjugation in amplitudes with pions and kaons, with the target application</p><p class="math-container">\[
+\chi_{c0},\chi_{c2} \to \pi\pi K\bar K .\]</p><p>The initial charmonium states have</p><p class="math-container">\[
+I=0, \qquad C=+, \qquad J^{PC}=0^{++},2^{++} .\]</p><p>The important point is that Clebsch–Gordan coefficients fix only the isospin recoupling signs. The charge-conjugation signs of meson pairs must be fixed from the meson currents.</p><p>Regeneration note: this tutorial is checked in as generated artifacts and is not rendered by <code>docs/make.jl</code> in CI. After editing this notebook, run</p><pre><code class="language-sh hljs">julia --project=docs docs/render-generated-docs.jl</code></pre><p>and commit the updated <code>docs/generated/isospin-kaon-conventions.md</code> file.</p><h2 id="Isospin-doublets"><a class="docs-heading-anchor" href="#Isospin-doublets">Isospin doublets</a><a id="Isospin-doublets-1"></a><a class="docs-heading-anchor-permalink" href="#Isospin-doublets" title="Permalink"></a></h2><p>Use the light-quark doublet</p><p class="math-container">\[
+q=
+\begin{pmatrix}
+u\\ d
+\end{pmatrix},\]</p><p>with the SU(2)-conjugate doublet convention</p><p class="math-container">\[
+\widehat C q
+= -i\sigma_2 q^*
+=
+\begin{pmatrix}
+-\tilde d\\
+\tilde u
+\end{pmatrix} .\]</p><p>Here the tilde denotes the isospin-conjugate antiquark object. This convention is the source of the relative minus sign in antikaon doublets.</p><p>For pseudoscalar kaons,</p><p class="math-container">\[
+K=
+\begin{pmatrix}
+K^+\\ K^0
+\end{pmatrix},
+\qquad
+K^+=u\bar s,
+\qquad
+K^0=d\bar s .\]</p><p>The corresponding antikaon doublet in the same convention is</p><p class="math-container">\[
+\bar K=
+\begin{pmatrix}
+-\bar K^0\\ K^-
+\end{pmatrix},
+\qquad
+\bar K^0=s\bar d,
+\qquad
+K^-=s\bar u .\]</p><p>For vector kaons,</p><p class="math-container">\[
+K^*=\begin{pmatrix}
+K^{*+}\\ K^{*0}
+\end{pmatrix},
+\qquad
+\bar K^*=\begin{pmatrix}
+-\bar K^{*0}\\ K^{*-}
+\end{pmatrix} .\]</p><p>These are isospin conventions. They do not yet determine the physical charge-conjugation sign of the meson state.</p><h2 id="Charge-conjugation-must-be-applied-to-currents"><a class="docs-heading-anchor" href="#Charge-conjugation-must-be-applied-to-currents">Charge conjugation must be applied to currents</a><a id="Charge-conjugation-must-be-applied-to-currents-1"></a><a class="docs-heading-anchor-permalink" href="#Charge-conjugation-must-be-applied-to-currents" title="Permalink"></a></h2><p>A kaon is not just a light-quark doublet. It is represented by a quark bilinear. Therefore the safe operation is</p><p class="math-container">\[
+\text{quark-field convention}
+\longrightarrow
+\text{meson current}
+\longrightarrow
+\text{meson-state phase}.\]</p><p>For a bilinear current</p><p class="math-container">\[
+J_\Gamma=\bar q_1\Gamma q_2,\]</p><p>charge conjugation gives</p><p class="math-container">\[
+C\,J_\Gamma\,C^{-1}
+=
+\eta_\Gamma\,\bar q_2\Gamma q_1,\]</p><p>where</p><p class="math-container">\[
+\mathcal C^{-1}\Gamma\mathcal C
+=
+\eta_\Gamma\,\Gamma^T .\]</p><p>The most useful cases are</p><p class="math-container">\[
+\begin{array}{c|c|c}
+\text{state type} &amp; \Gamma &amp; \eta_\Gamma \\
+\hline
+0^- &amp; i\gamma_5 &amp; +1 \\
+0^+ &amp; 1 &amp; +1 \\
+1^- &amp; \gamma_\rho &amp; -1 \\
+1^{++}\text{-type axial} &amp; \gamma_\rho\gamma_5 &amp; +1 \\
+1^{+-}\text{-type axial} &amp; \sigma_{\rho\sigma}\gamma_5\;\text{or equivalent} &amp; -1 \\
+\end{array}\]</p><p>The sign for the axial vector current is important. It is not caused by the absence or presence of an explicit factor of <span>$i$</span>. Charge conjugation is unitary, so it does not complex-conjugate <span>$i$</span>. The sign follows from the Dirac matrix identity.</p><p>For the vector current,</p><p class="math-container">\[
+\mathcal C^{-1}\gamma_\rho\mathcal C=-\gamma_\rho^T,\]</p><p>hence</p><p class="math-container">\[
+\eta_{\gamma_\rho}=-1.\]</p><p>For the axial-vector current,</p><p class="math-container">\[
+\mathcal C^{-1}(\gamma_\rho\gamma_5)\mathcal C
+=
+(-\gamma_\rho^T)(+\gamma_5^T)
+=-\gamma_\rho^T\gamma_5^T .\]</p><p>But</p><p class="math-container">\[
+(\gamma_\rho\gamma_5)^T
+=
+\gamma_5^T\gamma_\rho^T
+=-\gamma_\rho^T\gamma_5^T,\]</p><p>because <span>$\{\gamma_\rho,\gamma_5\}=0$</span>. Therefore</p><p class="math-container">\[
+\mathcal C^{-1}(\gamma_\rho\gamma_5)\mathcal C
+=(\gamma_\rho\gamma_5)^T,
+\qquad
+\eta_{\gamma_\rho\gamma_5}=+1 .\]</p><p>So, in the above isospin convention,</p><p class="math-container">\[
+C K = +\bar K,
+\qquad
+C K^* = -\bar K^* .\]</p><p>This is the origin of the common molecular convention</p><p class="math-container">\[
+|K\bar K^*;C=+\rangle
+=
+\frac{1}{\sqrt2}
+\left(
+|K\bar K^*\rangle
+-
+|K^*\bar K\rangle
+\right),\]</p><p>and</p><p class="math-container">\[
+|K\bar K^*;C=-\rangle
+=
+\frac{1}{\sqrt2}
+\left(
+|K\bar K^*\rangle
++
+|K^*\bar K\rangle
+\right).\]</p><p>The relative minus in the <span>$C=+$</span> molecular state is not a Clebsch sign. It is the vector-current charge-conjugation sign.</p><p>More generally, if <span>$X$</span> is an excited kaon created by <span>$\bar s\Gamma_X q$</span>, define</p><p class="math-container">\[
+C X = \eta_X \bar X .\]</p><p>Then a two-channel kaonic system satisfies</p><p class="math-container">\[
+C|K\bar X\rangle
+=
+\eta_X |X\bar K\rangle,
+\qquad
+C|X\bar K\rangle
+=
+\eta_X |K\bar X\rangle,\]</p><p>up to the fixed isospin-doublet phases. The <span>$C$</span>-projected combination is therefore</p><p class="math-container">\[
+|K\bar X;C=\lambda\rangle
+=
+\frac{1}{\sqrt2}
+\left(
+|K\bar X\rangle
++\lambda\eta_X |X\bar K\rangle
+\right),
+\qquad
+\lambda=\pm1 .\]</p><p>For <span>$X=K^*$</span>, <span>$\eta_X=-1$</span>, hence the <span>$C=+$</span> combination has a minus sign. For an axial kaon of <span>$1^{++}$</span>-type, <span>$\eta_X=+1$</span>, so the <span>$C=+$</span> combination has a plus sign. For an axial kaon of <span>$1^{+-}$</span>-type, <span>$\eta_X=-1$</span>, so the <span>$C=+$</span> combination has a minus sign.</p><h2 id="Axial-kaons-and-the-two-1-nonets"><a class="docs-heading-anchor" href="#Axial-kaons-and-the-two-1-nonets">Axial kaons and the two <span>$1^+$</span> nonets</a><a id="Axial-kaons-and-the-two-1-nonets-1"></a><a class="docs-heading-anchor-permalink" href="#Axial-kaons-and-the-two-1-nonets" title="Permalink"></a></h2><p>The quark model contains two different <span>$1^+$</span> structures:</p><p class="math-container">\[
+{}^3P_1: \quad J^{PC}=1^{++},\]</p><p>and</p><p class="math-container">\[
+{}^1P_1: \quad J^{PC}=1^{+-}.\]</p><p>They have different charge-conjugation signs in the non-strange neutral sector,</p><p class="math-container">\[
+\eta_C({}^3P_1)=+1,
+\qquad
+\eta_C({}^1P_1)=-1.\]</p><p>For isovector states one usually quotes <span>$G$</span>-parity,</p><p class="math-container">\[
+G=C\,e^{i\pi I_2}.\]</p><p>With the usual convention, for <span>$I=1$</span>,</p><p class="math-container">\[
+G=-C.\]</p><p>Thus</p><p class="math-container">\[
+a_1(1^{++}):\quad G=-,
+\qquad
+b_1(1^{+-}):\quad G=+ .\]</p><p>The strange axial kaons do not have a definite <span>$C$</span>-parity by themselves, but their signs in a <span>$K\bar K_1\pm K_1\bar K$</span> construction must be inherited from the underlying nonet/current basis. In practice:</p><p class="math-container">\[
+K_{1A}\sim {}^3P_1
+\quad\Rightarrow\quad
+\eta_{K_{1A}}=+1,\]</p><p>whereas</p><p class="math-container">\[
+K_{1B}\sim {}^1P_1
+\quad\Rightarrow\quad
+\eta_{K_{1B}}=-1.\]</p><p>Physical <span>$K_1(1270)$</span> and <span>$K_1(1400)$</span> are mixtures of <span>$K_{1A}$</span> and <span>$K_{1B}$</span>. Therefore one should assign the charge-conjugation sign in the <span>$(K_{1A},K_{1B})$</span> basis first, then rotate to the physical <span>$K_1$</span> states. Assigning a single memory-based sign directly to <span>$K_1(1270)$</span> or <span>$K_1(1400)$</span> is unsafe.</p><h2 id="K\\bar-K-isospin-states"><a class="docs-heading-anchor" href="#K\\bar-K-isospin-states"><span>$K\bar K$</span> isospin states</a><a id="K\\bar-K-isospin-states-1"></a><a class="docs-heading-anchor-permalink" href="#K\\bar-K-isospin-states" title="Permalink"></a></h2><p>Using</p><p class="math-container">\[
+K=
+\begin{pmatrix}K^+\\K^0\end{pmatrix},
+\qquad
+\bar K=
+\begin{pmatrix}-\bar K^0\\K^-\end{pmatrix},\]</p><p>ordinary Clebsch–Gordan coefficients give</p><p class="math-container">\[
+|K\bar K;I=1,M=0\rangle
+=
+\frac{1}{\sqrt2}
+\left(
+-|K^+K^-\rangle
++|K^0\bar K^0\rangle
+\right),\]</p><p>and</p><p class="math-container">\[
+|K\bar K;I=0,M=0\rangle
+=
+-\frac{1}{\sqrt2}
+\left(
+|K^+K^-\rangle
++|K^0\bar K^0\rangle
+\right).\]</p><p>Thus</p><p class="math-container">\[
+|K^+K^-\rangle
+=-\frac{1}{\sqrt2}
+\left(
+|I=1,M=0\rangle
++|I=0,M=0\rangle
+\right),\]</p><p>and</p><p class="math-container">\[
+|K^0\bar K^0\rangle
+=\frac{1}{\sqrt2}
+\left(
+|I=1,M=0\rangle
+-|I=0,M=0\rangle
+\right).\]</p><h2 id="Three-and-four-body-construction"><a class="docs-heading-anchor" href="#Three-and-four-body-construction">Three- and four-body construction</a><a id="Three-and-four-body-construction-1"></a><a class="docs-heading-anchor-permalink" href="#Three-and-four-body-construction" title="Permalink"></a></h2><p>For pions, use the isovector convention</p><p class="math-container">\[
+\pi^+ = |1,+1\rangle,
+\qquad
+\pi^0 = |1,0\rangle,
+\qquad
+\pi^- = |1,-1\rangle .\]</p><p>For a three-body state such as <span>$\pi K\bar K$</span>, couple first the kaon pair,</p><p class="math-container">\[
+\left|\left(K\bar K\right)I_{K\bar K}M_{K\bar K};\pi\right\rangle,\]</p><p>then couple to the pion:</p><p class="math-container">\[
+\left|IM;I_{K\bar K}\right\rangle
+=
+\sum_{\mu_\pi,\mu_K,\mu_{\bar K}}
+\langle \tfrac12\mu_K,\tfrac12\mu_{\bar K}|I_{K\bar K}M_{K\bar K}\rangle
+\langle I_{K\bar K}M_{K\bar K},1\mu_\pi|IM\rangle
+|K_{\mu_K}\bar K_{\mu_{\bar K}}\pi_{\mu_\pi}\rangle .\]</p><p>Here <span>$\bar K$</span> means the isospin-conjugate antikaon doublet, so the physical <span>$K^-$</span> already carries the convention-dependent sign through</p><p class="math-container">\[
+\bar K_{-1/2}=K^- .\]</p><p>For <span>$\pi\pi K\bar K$</span>, useful couplings are</p><p class="math-container">\[
+(\pi\pi)_{I_{\pi\pi}}(K\bar K)_{I_{K\bar K}}
+\to I=0,\]</p><p>or sequential chains such as</p><p class="math-container">\[
+\pi\,(K\bar K^*)_{I,C},
+\qquad
+K\,(\pi\bar K)_{I},
+\qquad
+\bar K\,(\pi K)_{I} .\]</p><p>The first type needs both isospin and charge-conjugation bookkeeping if the kaon system contains excited kaons.</p><h2 id="Constraints-for-\\chi_{c0}-and-\\chi_{c2}"><a class="docs-heading-anchor" href="#Constraints-for-\\chi_{c0}-and-\\chi_{c2}">Constraints for <span>$\chi_{c0}$</span> and <span>$\chi_{c2}$</span></a><a id="Constraints-for-\\chi_{c0}-and-\\chi_{c2}-1"></a><a class="docs-heading-anchor-permalink" href="#Constraints-for-\\chi_{c0}-and-\\chi_{c2}" title="Permalink"></a></h2><p>For annihilation decays of</p><p class="math-container">\[
+\chi_{c0},\chi_{c2}:
+\qquad
+I^GJ^{PC}=0^+0^{++},\;0^+2^{++},\]</p><p>one should enforce on the full final state</p><p class="math-container">\[
+I_{\rm tot}=0,
+\qquad
+C_{\rm tot}=+ .\]</p><p>For topologies of the form</p><p class="math-container">\[
+(\pi\pi)(K\bar K),\]</p><p>this is mostly an isospin-recouping problem. The <span>$K\bar K$</span> signs are fixed by the antikaon doublet convention above.</p><p>For topologies with excited kaons, for example</p><p class="math-container">\[
+K\bar K^*,
+\qquad
+K^*\bar K,
+\qquad
+K\bar K_0^*,
+\qquad
+K_2^*\bar K,\]</p><p>one must additionally apply charge conjugation at the level of the corresponding meson current. The rule is</p><p class="math-container">\[
+C\left(\bar s\Gamma q\right)C^{-1}
+=
+\eta_\Gamma\,\bar q\Gamma s .\]</p><p>The value of <span>$\eta_\Gamma$</span> depends on the spin-parity structure of the kaon resonance:</p><p class="math-container">\[
+\begin{array}{c|c|c}
+\text{current type} &amp; \Gamma &amp; \eta_\Gamma \\
+\hline
+0^- &amp; i\gamma_5 &amp; +1 \\
+1^- &amp; \gamma_\rho &amp; -1 \\
+0^+ &amp; 1 &amp; +1 \\
+1^{++}\text{-type axial} &amp; \gamma_\rho\gamma_5 &amp; +1 \\
+1^{+-}\text{-type axial} &amp; \sigma_{\rho\sigma}\gamma_5\;\text{or equivalent} &amp; -1 \\
+2^+ &amp; \text{derivative tensor current} &amp; \text{fix from chosen current}
+\end{array}\]</p><p>The last line is intentionally not compressed into a memory rule: for tensor or derivative currents, the sign should be derived from the explicit interpolating current used in the amplitude convention.</p><h2 id="Practical-implementation-recipe"><a class="docs-heading-anchor" href="#Practical-implementation-recipe">Practical implementation recipe</a><a id="Practical-implementation-recipe-1"></a><a class="docs-heading-anchor-permalink" href="#Practical-implementation-recipe" title="Permalink"></a></h2><ol><li>Fix the light-quark convention:</li></ol><p class="math-container">\[
+(u,d) \mapsto (-\tilde d,\tilde u).\]</p><ol><li>Define all kaon and antikaon doublets using this convention:</li></ol><p class="math-container">\[
+K=(K^+,K^0)^T,
+\qquad
+\bar K=(-\bar K^0,K^-)^T .\]</p><ol><li><p>Use ordinary Clebsch–Gordan coefficients for all isospin coupling.</p></li><li><p>Never use Clebsches to infer the charge-conjugation sign of a  <span>$K\bar K^*$</span>-type pair.</p></li><li><p>For each excited kaon, define the meson current <span>$\bar s\Gamma q$</span> and  evaluate</p></li></ol><p class="math-container">\[
+C(\bar s\Gamma q)C^{-1}.\]</p><ol><li><p>Build <span>$C=+$</span> and <span>$C=-$</span> combinations only after the current-level sign  is known.</p></li><li><p>For <span>$\chi_{c0}/\chi_{c2}\to\pi\pi K\bar K$</span>, keep only full  amplitudes with</p></li></ol><p class="math-container">\[
+I_{\rm tot}=0,
+\qquad
+C_{\rm tot}=+.\]</p><h2 id="Minimal-checks"><a class="docs-heading-anchor" href="#Minimal-checks">Minimal checks</a><a id="Minimal-checks-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-checks" title="Permalink"></a></h2><p>The convention gives</p><p class="math-container">\[
+|K\bar K;I=0\rangle
+=-\frac{1}{\sqrt2}
+\left(|K^+K^-\rangle+|K^0\bar K^0\rangle\right),\]</p><p>and</p><p class="math-container">\[
+|K\bar K^*;C=+\rangle
+=\frac{1}{\sqrt2}
+\left(|K\bar K^*\rangle-|K^*\bar K\rangle\right).\]</p><p>These two signs have different origins:</p><ul><li>the first is an SU(2) doublet convention;</li><li>the second is the vector-current sign under charge conjugation.</li></ul><p>Keeping this separation avoids sign mistakes in <span>$\pi\pi K\bar K$</span> amplitude models.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../four-pion-model/">« Four-pion model-building catalogue</a><a class="docs-footer-nextpage" href="../cascade-vs-dpd/">Cross-checking with ThreeBodyDecays »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 8 July 2026 21:30">Wednesday 8 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
