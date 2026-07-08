@@ -21,15 +21,15 @@ include("propagator.jl")
 # topology
 export DecayTopology
 export relation, root_line_ind, final_line_inds, nlines, nvertices, nfinal
-export line_ind_for, vertex_ind_for
-export incoming_line_inds, outgoing_line_inds, incoming_line_ind
-export child_line_inds, vertex_line_inds, final_descendants
-export produced_by, consumed_by
-export internal_line_inds, propagating_line_inds
-export isroot_line_ind, isfinal_line_ind, isinternal_line_ind
-export has_canonical_line_order
 export bracket_notation
 # Additional topology inspection helpers are intentionally left unexported:
+# line_ind_for, vertex_ind_for
+# incoming_line_inds, outgoing_line_inds, incoming_line_ind
+# child_line_inds, vertex_line_inds, final_descendants
+# produced_by, consumed_by
+# internal_line_inds, propagating_line_inds
+# isroot_line_ind, isfinal_line_ind, isinternal_line_ind
+# has_canonical_line_order
 # arity, is_binary_vertex, and line_inds_at_vertex.
 include("topology.jl")
 

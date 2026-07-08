@@ -56,24 +56,24 @@ end
     @test nfinal(topology) == 3
     @test root_line_ind(topology) == 5
     @test final_line_inds(topology) == SVector(1, 2, 3)
-    @test internal_line_inds(topology) == [4]
-    @test has_canonical_line_order(topology)
+    @test CascadeDecays.internal_line_inds(topology) == [4]
+    @test CascadeDecays.has_canonical_line_order(topology)
 
-    @test outgoing_line_inds(topology, 1) == [3, 4]
-    @test child_line_inds(topology, 1) == SVector(4, 3)
-    @test @inferred(child_line_inds(topology, 1)) == SVector(4, 3)
-    @test @inferred(vertex_line_inds(topology, 1)) == (5, 4, 3)
-    @test final_descendants(topology, 4) == [1, 2]
-    @test outgoing_line_inds(topology, 2) == [1, 2]
-    @test child_line_inds(topology, 2) == SVector(1, 2)
+    @test CascadeDecays.outgoing_line_inds(topology, 1) == [3, 4]
+    @test CascadeDecays.child_line_inds(topology, 1) == SVector(4, 3)
+    @test @inferred(CascadeDecays.child_line_inds(topology, 1)) == SVector(4, 3)
+    @test @inferred(CascadeDecays.vertex_line_inds(topology, 1)) == (5, 4, 3)
+    @test CascadeDecays.final_descendants(topology, 4) == [1, 2]
+    @test CascadeDecays.outgoing_line_inds(topology, 2) == [1, 2]
+    @test CascadeDecays.child_line_inds(topology, 2) == SVector(1, 2)
     @test CascadeDecays.arity(topology, 1) == 2
     @test CascadeDecays.is_binary_vertex(topology, 1)
     @test CascadeDecays.line_inds_at_vertex(topology, 1) == (5, 4, 3)
 
-    @test produced_by(topology, 4) == 1
-    @test consumed_by(topology, 4) == 2
-    @test produced_by(topology, 5) === nothing
-    @test consumed_by(topology, 3) === nothing
+    @test CascadeDecays.produced_by(topology, 4) == 1
+    @test CascadeDecays.consumed_by(topology, 4) == 2
+    @test CascadeDecays.produced_by(topology, 5) === nothing
+    @test CascadeDecays.consumed_by(topology, 3) === nothing
 
     @test bracket_notation(topology) == "((1,2),3)"
 
@@ -83,18 +83,18 @@ end
     @test nfinal(flat_topology) == 4
     @test root_line_ind(flat_topology) == 5
     @test final_line_inds(flat_topology) == SVector(1, 2, 3, 4)
-    @test internal_line_inds(flat_topology) == Int[]
-    @test outgoing_line_inds(flat_topology, 1) == [1, 2, 3, 4]
-    @test child_line_inds(flat_topology, 1) == SVector(1, 2, 3, 4)
-    @test @inferred(child_line_inds(flat_topology, 1)) == SVector(1, 2, 3, 4)
+    @test CascadeDecays.internal_line_inds(flat_topology) == Int[]
+    @test CascadeDecays.outgoing_line_inds(flat_topology, 1) == [1, 2, 3, 4]
+    @test CascadeDecays.child_line_inds(flat_topology, 1) == SVector(1, 2, 3, 4)
+    @test @inferred(CascadeDecays.child_line_inds(flat_topology, 1)) == SVector(1, 2, 3, 4)
     @test CascadeDecays.arity(flat_topology, 1) == 4
     @test !CascadeDecays.is_binary_vertex(flat_topology, 1)
     @test CascadeDecays.line_inds_at_vertex(flat_topology, 1) == (5, 1, 2, 3, 4)
-    @test final_descendants(flat_topology, root_line_ind(flat_topology)) == [1, 2, 3, 4]
-    @test line_ind_for(flat_topology, (1, 2, 3, 4)) == root_line_ind(flat_topology)
-    @test vertex_ind_for(flat_topology, (1, 2, 3, 4)) == 1
+    @test CascadeDecays.final_descendants(flat_topology, root_line_ind(flat_topology)) == [1, 2, 3, 4]
+    @test CascadeDecays.line_ind_for(flat_topology, (1, 2, 3, 4)) == root_line_ind(flat_topology)
+    @test CascadeDecays.vertex_ind_for(flat_topology, (1, 2, 3, 4)) == 1
     @test bracket_notation(flat_topology) == "(1,2,3,4)"
-    @test_throws ArgumentError vertex_line_inds(flat_topology, 1)
+    @test_throws ArgumentError CascadeDecays.vertex_line_inds(flat_topology, 1)
 
     mixed_topology = DecayTopology((1, (2, 3, 4)))
     @test nlines(mixed_topology) == 6
@@ -102,21 +102,21 @@ end
     @test nfinal(mixed_topology) == 4
     @test root_line_ind(mixed_topology) == 6
     @test final_line_inds(mixed_topology) == SVector(1, 2, 3, 4)
-    @test internal_line_inds(mixed_topology) == [5]
-    @test has_canonical_line_order(mixed_topology)
-    @test child_line_inds(mixed_topology, 1) == SVector(1, 5)
-    @test child_line_inds(mixed_topology, 2) == SVector(2, 3, 4)
+    @test CascadeDecays.internal_line_inds(mixed_topology) == [5]
+    @test CascadeDecays.has_canonical_line_order(mixed_topology)
+    @test CascadeDecays.child_line_inds(mixed_topology, 1) == SVector(1, 5)
+    @test CascadeDecays.child_line_inds(mixed_topology, 2) == SVector(2, 3, 4)
     @test CascadeDecays.arity(mixed_topology, 1) == 2
     @test CascadeDecays.arity(mixed_topology, 2) == 3
     @test CascadeDecays.is_binary_vertex(mixed_topology, 1)
     @test !CascadeDecays.is_binary_vertex(mixed_topology, 2)
-    @test vertex_line_inds(mixed_topology, 1) == (6, 1, 5)
-    @test_throws ArgumentError vertex_line_inds(mixed_topology, 2)
+    @test CascadeDecays.vertex_line_inds(mixed_topology, 1) == (6, 1, 5)
+    @test_throws ArgumentError CascadeDecays.vertex_line_inds(mixed_topology, 2)
     @test CascadeDecays.line_inds_at_vertex(mixed_topology, 2) == (5, 2, 3, 4)
-    @test final_descendants(mixed_topology, root_line_ind(mixed_topology)) == [1, 2, 3, 4]
-    @test final_descendants(mixed_topology, 5) == [2, 3, 4]
-    @test line_ind_for(mixed_topology, (2, 3, 4)) == 5
-    @test vertex_ind_for(mixed_topology, (2, 3, 4)) == 2
+    @test CascadeDecays.final_descendants(mixed_topology, root_line_ind(mixed_topology)) == [1, 2, 3, 4]
+    @test CascadeDecays.final_descendants(mixed_topology, 5) == [2, 3, 4]
+    @test CascadeDecays.line_ind_for(mixed_topology, (2, 3, 4)) == 5
+    @test CascadeDecays.vertex_ind_for(mixed_topology, (2, 3, 4)) == 2
     @test bracket_notation(mixed_topology) == "(1,(2,3,4))"
 end
 
@@ -255,7 +255,7 @@ end
     @test nfinal(chain) == 3
     @test propagator_two_js(chain) == SVector(2)
     @test bracket_notation(chain) == "((1,2),3)"
-    @test final_descendants(chain, 4) == [1, 2]
+    @test CascadeDecays.final_descendants(chain, 4) == [1, 2]
     @test chain.propagators[1](2.0) == 1.0
 
     @test_throws ArgumentError DecayChain(
@@ -517,9 +517,9 @@ end
         (4, 2),
     )
 
-    @test has_canonical_line_order(topology)
-    @test outgoing_line_inds(topology, 1) == [4, 6]
-    @test child_line_inds(topology, 1) == SVector(6, 4)
+    @test CascadeDecays.has_canonical_line_order(topology)
+    @test CascadeDecays.outgoing_line_inds(topology, 1) == [4, 6]
+    @test CascadeDecays.child_line_inds(topology, 1) == SVector(6, 4)
     @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
