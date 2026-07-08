@@ -46,11 +46,16 @@ function _normalize_child_order(child_order, nv::Integer)
     if child_order isa AbstractMatrix
         size(child_order, 2) == nv ||
             throw(ArgumentError("child_order matrix must have one column per vertex"))
-        return ntuple(v -> Tuple(Int(child_order[row, v]) for row in axes(child_order, 1)), nv)
+        N = size(child_order, 1)
+        return ntuple(v -> ntuple(row -> Int(child_order[row, v]), Val(N)), nv)
     end
     tuple_order = Tuple(child_order)
     length(tuple_order) == nv ||
         throw(ArgumentError("child_order must have one entry per vertex"))
+    if !isempty(tuple_order) && all(x -> length(x) == length(first(tuple_order)), tuple_order)
+        N = length(first(tuple_order))
+        return ntuple(v -> NTuple{N, Int}(tuple_order[v]), nv)
+    end
     return ntuple(v -> Tuple(Int(line_ind) for line_ind in tuple_order[v]), nv)
 end
 

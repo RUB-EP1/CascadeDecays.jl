@@ -61,6 +61,8 @@ end
 
     @test outgoing_line_inds(topology, 1) == [3, 4]
     @test child_line_inds(topology, 1) == SVector(4, 3)
+    @test @inferred(child_line_inds(topology, 1)) == SVector(4, 3)
+    @test @inferred(vertex_line_inds(topology, 1)) == (5, 4, 3)
     @test final_descendants(topology, 4) == [1, 2]
     @test outgoing_line_inds(topology, 2) == [1, 2]
     @test child_line_inds(topology, 2) == SVector(1, 2)
@@ -84,6 +86,7 @@ end
     @test internal_line_inds(flat_topology) == Int[]
     @test outgoing_line_inds(flat_topology, 1) == [1, 2, 3, 4]
     @test child_line_inds(flat_topology, 1) == SVector(1, 2, 3, 4)
+    @test @inferred(child_line_inds(flat_topology, 1)) == SVector(1, 2, 3, 4)
     @test arity(flat_topology, 1) == 4
     @test !is_binary_vertex(flat_topology, 1)
     @test line_inds_at_vertex(flat_topology, 1) == (5, 1, 2, 3, 4)
