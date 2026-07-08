@@ -60,45 +60,30 @@ end
 
 _collect_final_labels!(labels::Vector{Int}, tree) = throw(_bracket_error())
 
-function _assign_lines!(
-        line_ind_for_address::Dict{Any, Int},
-        next_internal::Base.RefValue{Int},
-        leaf::Integer,
-    )
-    line_ind_for_address[leaf] = Int(leaf)
-    return line_ind_for_address[leaf]
+struct _TopologyLeaf
+    line::Int
 end
 
-function _assign_lines!(
-        line_ind_for_address::Dict{Any, Int},
-        next_internal::Base.RefValue{Int},
-        address::Tuple,
-    )
-    length(address) >= 2 || throw(_bracket_error())
-    for child in address
-        _assign_lines!(line_ind_for_address, next_internal, child)
-    end
+struct _TopologyBranch{C <: Tuple}
+    line::Int
+    children::C
+end
+
+_line(node::_TopologyLeaf) = node.line
+_line(node::_TopologyBranch) = node.line
+
+_annotate_topology_tree(leaf::Integer, next_internal::Base.RefValue{Int}) =
+    _TopologyLeaf(Int(leaf))
+
+function _annotate_topology_tree(tree::Tuple, next_internal::Base.RefValue{Int})
+    length(tree) >= 2 || throw(_bracket_error())
+    children = map(child -> _annotate_topology_tree(child, next_internal), tree)
     line = next_internal[]
     next_internal[] += 1
-    line_ind_for_address[address] = line
-    return line
+    return _TopologyBranch(line, children)
 end
 
-_assign_lines!(line_ind_for_address::Dict{Any, Int}, next_internal::Base.RefValue{Int}, address) =
-    throw(_bracket_error())
-
-_collect_vertex_addresses_preorder!(addresses, leaf::Integer) = addresses
-
-function _collect_vertex_addresses_preorder!(addresses, address::Tuple)
-    length(address) >= 2 || throw(_bracket_error())
-    push!(addresses, address)
-    for child in address
-        _collect_vertex_addresses_preorder!(addresses, child)
-    end
-    return addresses
-end
-
-_collect_vertex_addresses_preorder!(addresses, address) = throw(_bracket_error())
+_annotate_topology_tree(tree, next_internal::Base.RefValue{Int}) = throw(_bracket_error())
 
 _count_vertices(leaf::Integer) = 0
 
@@ -114,6 +99,22 @@ function _address_final_labels(address)
     return Tuple(labels)
 end
 
+_vertex_record(node::_TopologyBranch) =
+    (_line(node), Tuple(_line(child) for child in node.children))
+
+_vertex_records_preorder(node::_TopologyLeaf) = ()
+
+function _vertex_records_preorder(node::_TopologyBranch)
+    child_records = map(_vertex_records_preorder, node.children)
+    return (_vertex_record(node), _flatten_records(child_records)...)
+end
+
+_flatten_records(records::Tuple{}) = ()
+
+function _flatten_records(records::Tuple)
+    return (first(records)..., _flatten_records(Base.tail(records))...)
+end
+
 function DecayTopology(tree::Tuple)
     final_labels = sort!(_collect_final_labels!(Int[], tree))
     final_labels == collect(1:length(final_labels)) ||
@@ -121,21 +122,17 @@ function DecayTopology(tree::Tuple)
     nfinal = length(final_labels)
     nvertices = _count_vertices(tree)
     nlines = nfinal + nvertices
-    line_ind_for_address = Dict{Any, Int}()
-    _assign_lines!(line_ind_for_address, Ref(nfinal + 1), tree)
-    vertex_addresses = _collect_vertex_addresses_preorder!(Any[], tree)
+    annotated_tree = _annotate_topology_tree(tree, Ref(nfinal + 1))
+    vertex_records = _vertex_records_preorder(annotated_tree)
     relation = zeros(Int, nlines, nvertices)
-    child_order = Vector{Tuple{Vararg{Int}}}(undef, nvertices)
-    for (vertex_ind, address) in pairs(vertex_addresses)
-        parent = line_ind_for_address[address]
+    child_order = map(last, vertex_records)
+    for (vertex_ind, (parent, children)) in pairs(vertex_records)
         relation[parent, vertex_ind] = -1
-        children = Tuple(line_ind_for_address[child] for child in address)
         for child in children
             relation[child, vertex_ind] = 1
         end
-        child_order[vertex_ind] = children
     end
-    return _decay_topology_from_relation(relation; root = nlines, finals = Tuple(1:nfinal), child_order = Tuple(child_order))
+    return _decay_topology_from_relation(relation; root = nlines, finals = Tuple(1:nfinal), child_order)
 end
 
 """
