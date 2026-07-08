@@ -63,7 +63,10 @@ end
     @test child_line_inds(topology, 1) == SVector(4, 3)
     @test final_descendants(topology, 4) == [1, 2]
     @test outgoing_line_inds(topology, 2) == [1, 2]
-    @test child_line_inds(topology, 2) == [1, 2]
+    @test child_line_inds(topology, 2) == SVector(1, 2)
+    @test arity(topology, 1) == 2
+    @test is_binary_vertex(topology, 1)
+    @test line_inds_at_vertex(topology, 1) == (5, 4, 3)
 
     @test produced_by(topology, 4) == 1
     @test consumed_by(topology, 4) == 2
@@ -71,6 +74,24 @@ end
     @test consumed_by(topology, 3) === nothing
 
     @test bracket_notation(topology) == "((1,2),3)"
+
+    flat_topology = DecayTopology((1, 2, 3, 4))
+    @test nlines(flat_topology) == 5
+    @test nvertices(flat_topology) == 1
+    @test nfinal(flat_topology) == 4
+    @test root_line_ind(flat_topology) == 5
+    @test final_line_inds(flat_topology) == SVector(1, 2, 3, 4)
+    @test internal_line_inds(flat_topology) == Int[]
+    @test outgoing_line_inds(flat_topology, 1) == [1, 2, 3, 4]
+    @test child_line_inds(flat_topology, 1) == SVector(1, 2, 3, 4)
+    @test arity(flat_topology, 1) == 4
+    @test !is_binary_vertex(flat_topology, 1)
+    @test line_inds_at_vertex(flat_topology, 1) == (5, 1, 2, 3, 4)
+    @test final_descendants(flat_topology, root_line_ind(flat_topology)) == [1, 2, 3, 4]
+    @test line_ind_for(flat_topology, (1, 2, 3, 4)) == root_line_ind(flat_topology)
+    @test vertex_ind_for(flat_topology, (1, 2, 3, 4)) == 1
+    @test bracket_notation(flat_topology) == "(1,2,3,4)"
+    @test_throws ArgumentError vertex_line_inds(flat_topology, 1)
 end
 
 @testset "Quantum numbers and kinematic routing" begin
@@ -175,6 +196,21 @@ end
     x_helicity = DecayChainKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
+
+    flat_reference = DecayTopology((1, 2, 3))
+    flat_task = KinematicTask(
+        (ref_topology,);
+        reference_topology = flat_reference,
+        wigner_finals = (1, 2, 3),
+        initial_frame = CurrentFrame(),
+    )
+    flat_point = KinematicPoint(flat_task, objs)
+    flat_alignments = alignment_angles_at(flat_point, ref_topology)
+    @test bracket_notation(flat_task.reference_topology) == "(1,2,3)"
+    @test length(flat_alignments) == 3
+    @test flat_alignments[1] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test flat_alignments[2] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test flat_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 end
 
 @testset "DecayChain payload mapping" begin
@@ -211,6 +247,15 @@ end
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
         (2, 4),
+    )
+
+    flat_topology = DecayTopology((1, 2, 3))
+    flat_system = SystemSpins(0, 0, 0; two_h0 = 0)
+    @test_throws ArgumentError DecayChain(
+        flat_topology,
+        flat_system;
+        propagators = (),
+        vertices = ((1, 2, 3) => TestVertex(:flat),),
     )
 end
 
@@ -448,7 +493,7 @@ end
 
     @test has_canonical_line_order(topology)
     @test outgoing_line_inds(topology, 1) == [4, 6]
-    @test child_line_inds(topology, 1) == [6, 4]
+    @test child_line_inds(topology, 1) == SVector(6, 4)
     @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
@@ -490,7 +535,8 @@ end
 
     @test_throws ArgumentError DecayTopology(((1, 3), 4))
     @test_throws ArgumentError DecayTopology((1, (2, (3, 3))))
-    @test_throws ArgumentError DecayTopology((1, 2, 3))
+    @test bracket_notation(DecayTopology((1, 2, 3))) == "(1,2,3)"
+    @test_throws ArgumentError DecayTopology((1,))
 end
 
 @testset "Topology-generated kinematics" begin

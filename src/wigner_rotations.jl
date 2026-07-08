@@ -31,18 +31,24 @@ function _find_path_to_line(topology::DecayTopology, current_line::Int, target::
     current_line == target && return ()
     vertex_ind = consumed_by(topology, current_line)
     vertex_ind === nothing && return nothing
-    for child in child_line_inds(topology, vertex_ind)
+    for (child_position, child) in pairs(child_line_inds(topology, vertex_ind))
         path = _find_path_to_line(topology, child, target)
         path === nothing && continue
-        return ((vertex_ind = vertex_ind, child_line = child), path...)
+        return ((vertex_ind = vertex_ind, child_line = child, child_position = child_position), path...)
     end
     return nothing
 end
 
-function _helicity_step_instruction(topology::DecayTopology, vertex_ind::Integer, child_line::Integer)
+function _helicity_step_instruction(
+        topology::DecayTopology,
+        vertex_ind::Integer,
+        child_line::Integer,
+        child_position::Integer,
+    )
     indices = _indices_for_line_ind(topology, child_line)
-    _, child1, child2 = vertex_line_inds(topology, vertex_ind)
-    return child_line == child2 ? ToHelicityFrameParticle2(indices) : ToHelicityFrame(indices)
+    return is_binary_vertex(topology, vertex_ind) && child_position == 2 ?
+        ToHelicityFrameParticle2(indices) :
+        ToHelicityFrame(indices)
 end
 
 """
@@ -66,7 +72,7 @@ function helicity_frame_path(
     for step in _path_steps_to_line(topology, line_ind)
         program = (
             program...,
-            _helicity_step_instruction(topology, step.vertex_ind, step.child_line),
+            _helicity_step_instruction(topology, step.vertex_ind, step.child_line, step.child_position),
         )
     end
     return program
