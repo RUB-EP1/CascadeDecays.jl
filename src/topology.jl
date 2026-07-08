@@ -8,7 +8,7 @@ Final-state particles are numbered by the integer leaves. The left/right order
 inside each tuple is preserved because helicity conventions depend on child
 order. Internally the topology is stored as a flat line-vertex graph.
 """
-struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C <: Tuple}
+struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C <: Tuple{Vararg{Tuple}}}
     relation::SMatrix{Nl, Nv, T, L}
     root::Int
     finals::SVector{Nf, Int}
@@ -21,11 +21,9 @@ function _decay_topology_from_relation(
         finals::SVector{Nf, Int};
         child_order::C,
         validate::Bool = true,
-    ) where {Nl, Nv, Nf, T <: Integer, L, C <: Tuple}
+    ) where {Nl, Nv, Nf, T <: Integer, L, C <: Tuple{Vararg{Tuple}}}
     length(child_order) == Nv ||
         throw(ArgumentError("child_order must have one entry per vertex"))
-    all(child -> child isa Tuple, child_order) ||
-        throw(ArgumentError("each child_order entry must be a tuple of child line ids"))
     topology = DecayTopology{Nl, Nv, Nf, T, L, C}(relation, Int(root), finals, child_order)
     validate && validate_topology(topology)
     return topology
@@ -45,29 +43,38 @@ function _decay_topology_from_relation(
     return _decay_topology_from_relation(static_relation, root, final_lines; child_order, validate)
 end
 
-_bracket_leaf(x::Integer) = Int(x)
-_bracket_leaf(x) = throw(ArgumentError("bracket leaves must be integer final-state labels, got $x"))
+_bracket_error() = ArgumentError("topology bracket must be a nested tuple of at least two integer leaves")
 
-function _collect_final_labels!(labels::Vector{Int}, tree)
-    if tree isa Integer
-        push!(labels, Int(tree))
-    elseif tree isa Tuple && length(tree) >= 2
-        for child in tree
-            _collect_final_labels!(labels, child)
-        end
-    else
-        throw(ArgumentError("topology bracket must be a nested tuple of at least two integer leaves"))
+function _collect_final_labels!(labels::Vector{Int}, leaf::Integer)
+    push!(labels, Int(leaf))
+    return labels
+end
+
+function _collect_final_labels!(labels::Vector{Int}, tree::Tuple)
+    length(tree) >= 2 || throw(_bracket_error())
+    for child in tree
+        _collect_final_labels!(labels, child)
     end
     return labels
 end
 
-function _assign_lines!(line_ind_for_address::Dict{Any, Int}, next_internal::Base.RefValue{Int}, address)
-    if address isa Integer
-        line_ind_for_address[address] = _bracket_leaf(address)
-        return line_ind_for_address[address]
-    end
-    address isa Tuple && length(address) >= 2 ||
-        throw(ArgumentError("topology bracket must be a nested tuple of at least two integer leaves"))
+_collect_final_labels!(labels::Vector{Int}, tree) = throw(_bracket_error())
+
+function _assign_lines!(
+        line_ind_for_address::Dict{Any, Int},
+        next_internal::Base.RefValue{Int},
+        leaf::Integer,
+    )
+    line_ind_for_address[leaf] = Int(leaf)
+    return line_ind_for_address[leaf]
+end
+
+function _assign_lines!(
+        line_ind_for_address::Dict{Any, Int},
+        next_internal::Base.RefValue{Int},
+        address::Tuple,
+    )
+    length(address) >= 2 || throw(_bracket_error())
     for child in address
         _assign_lines!(line_ind_for_address, next_internal, child)
     end
@@ -77,8 +84,13 @@ function _assign_lines!(line_ind_for_address::Dict{Any, Int}, next_internal::Bas
     return line
 end
 
-function _collect_vertex_addresses_preorder!(addresses, address)
-    address isa Tuple && length(address) >= 2 || return addresses
+_assign_lines!(line_ind_for_address::Dict{Any, Int}, next_internal::Base.RefValue{Int}, address) =
+    throw(_bracket_error())
+
+_collect_vertex_addresses_preorder!(addresses, leaf::Integer) = addresses
+
+function _collect_vertex_addresses_preorder!(addresses, address::Tuple)
+    length(address) >= 2 || throw(_bracket_error())
     push!(addresses, address)
     for child in address
         _collect_vertex_addresses_preorder!(addresses, child)
@@ -86,12 +98,16 @@ function _collect_vertex_addresses_preorder!(addresses, address)
     return addresses
 end
 
-function _count_vertices(tree)
-    tree isa Integer && return 0
-    tree isa Tuple && length(tree) >= 2 ||
-        throw(ArgumentError("topology bracket must be a nested tuple of at least two integer leaves"))
+_collect_vertex_addresses_preorder!(addresses, address) = throw(_bracket_error())
+
+_count_vertices(leaf::Integer) = 0
+
+function _count_vertices(tree::Tuple)
+    length(tree) >= 2 || throw(_bracket_error())
     return 1 + sum(_count_vertices, tree)
 end
+
+_count_vertices(tree) = throw(_bracket_error())
 
 function _address_final_labels(address)
     labels = _collect_final_labels!(Int[], address)
@@ -329,8 +345,9 @@ function vertex_address(topology::DecayTopology, vertex_ind::Integer)
     return _line_ind_address(topology, incoming_line_ind(topology, vertex_ind))
 end
 
-function _compact_vertex_label(address)
-    address isa Integer && return string(address)
+_compact_vertex_label(address::Integer) = string(address)
+
+function _compact_vertex_label(address::Tuple)
     return "(" * join((_compact_vertex_label(child) for child in address), ",") * ")"
 end
 
