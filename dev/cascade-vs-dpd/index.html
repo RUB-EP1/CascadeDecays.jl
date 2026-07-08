@@ -140,23 +140,20 @@ nothing</code></pre><pre><code class="nohighlight hljs">target   spin_particle r
     return (; sign, diff_plus, diff_minus)
 end
 
-function toy_system(spin_particle)
+function toy_quantum(spin_particle)
     two_js = ntuple(i -&gt; i == spin_particle ? 1 : 0, 3)
     tbs = ThreeBodySystem(ms, ThreeBodySpins(two_js...; two_h0 = 1))
     labels = ntuple(i -&gt; i == spin_particle ? &quot;1/2+&quot; : &quot;0-&quot;, 3)
-    system = CascadeSystem(
-        SystemSpinParities(labels...; jp0 = &quot;1/2+&quot;),
-        SystemMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0),
-    )
+    quantum = SystemSpinParities(labels...; jp0 = &quot;1/2+&quot;)
     parities = ntuple(i -&gt; i == spin_particle ? &#39;+&#39; : &#39;-&#39;, 3)
     Ps = ThreeBodyParities(parities...; P0 = &#39;+&#39;)
-    return (; two_js, tbs, system, Ps)
+    return (; two_js, tbs, quantum, Ps)
 end
 
 isobar_jp_for(spin_particle, k) = k == spin_particle ? jp&quot;1-&quot; : jp&quot;1/2-&quot;
 
 function compare_toy_amplitudes(spin_particle)
-    (; tbs, system, Ps) = toy_system(spin_particle)
+    (; tbs, quantum, Ps) = toy_quantum(spin_particle)
     rows = String[]
     for k in (1, 2, 3)
         topology = three_body_topology(k)
@@ -164,7 +161,7 @@ function compare_toy_amplitudes(spin_particle)
         tbd_chain = DecayChainLS(; k, Xlineshape = unit_X, jp, Ps, tbs)
         cd_chain = minimal_ls_decay_chain(
             topology,
-            system,
+            quantum,
             ((three_body_isobar_pair(k) =&gt; Propagator(jp, UNIT_LINESHAPE)),),
         )
         task = KinematicTask(
@@ -176,7 +173,7 @@ function compare_toy_amplitudes(spin_particle)
         point = KinematicPoint(task, objs)
 
         A_tbd = tbd_reference_amplitude(objs, tbs, tbd_chain, REF_K).amplitude
-        A_cd = amplitude(cd_chain, system, point)
+        A_cd = amplitude(cd_chain, point)
         c = classify(A_tbd, A_cd)
         push!(rows, @sprintf(
             &quot;%-8d %-14s %-18.2e %-18.2e&quot;,
@@ -211,4 +208,4 @@ spin_particle = 3
 k        sign           max |TBD-CD|       max |TBD+CD|
 1        +1             4.22e-15           1.41e+00          
 2        +1             1.45e-15           1.38e+00          
-3        +1             1.12e-15           1.35e+00</code></pre><p>These amplitude checks are a useful warning. The fixed reference phase <span>$\exp(i\lambda_3\phi_{12})$</span> is necessary and it fixes the particle-3 endpoint phase in the non-reference chains. With physical LS choices the remaining differences are global signs. The two clean central signs are:</p><ul><li><code>(23)1</code> with particle 2 spin gives <code>-1</code>;</li><li><code>(31)2</code> with particle 1 spin gives <code>-1</code>.</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../isospin-kaon-conventions/">« Isospin and kaon charge-conjugation conventions</a><a class="docs-footer-nextpage" href="../api-reference/">API reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 7 July 2026 14:11">Tuesday 7 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+3        +1             1.12e-15           1.35e+00</code></pre><p>These amplitude checks are a useful warning. The fixed reference phase <span>$\exp(i\lambda_3\phi_{12})$</span> is necessary and it fixes the particle-3 endpoint phase in the non-reference chains. With physical LS choices the remaining differences are global signs. The two clean central signs are:</p><ul><li><code>(23)1</code> with particle 2 spin gives <code>-1</code>;</li><li><code>(31)2</code> with particle 1 spin gives <code>-1</code>.</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../isospin-kaon-conventions/">« Isospin and kaon charge-conjugation conventions</a><a class="docs-footer-nextpage" href="../api-reference/">API reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 8 July 2026 13:32">Wednesday 8 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

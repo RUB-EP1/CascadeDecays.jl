@@ -9,10 +9,7 @@ m_pi_minus = 0.13957039
 m_lc = 2.28646
 m_lb = 5.61960
 
-system = CascadeSystem(
-    SystemSpinParities(&quot;1/2+&quot;, &quot;0-&quot;, &quot;0-&quot;, &quot;0-&quot;; jp0=&quot;1/2+&quot;),
-    SystemMasses(m_lc, m_pi_plus, m_pi_minus, m_pi_minus; m0=m_lb),
-)
+quantum = SystemSpinParities(&quot;1/2+&quot;, &quot;0-&quot;, &quot;0-&quot;, &quot;0-&quot;; jp0=&quot;1/2+&quot;)
 
 # Placeholder resonance parameters. Replace these with the values used in the
 # analysis model or expose them as fit parameters.
@@ -27,7 +24,7 @@ propagators_a1_23 = (
     ((2, 3), 4) =&gt; Propagator(jp&quot;1+&quot;, a1_1260),
     (2, 3) =&gt; Propagator(jp&quot;1-&quot;, rho_770),
 )
-chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, system, propagators_a1_23)
+chain_a1_23 = minimal_ls_decay_chain(topology_a1_23, quantum, propagators_a1_23)
 
 # 2. a1 -&gt; rho(24) pi3
 topology_a1_24 = DecayTopology((1, ((2, 4), 3)))
@@ -35,7 +32,7 @@ propagators_a1_24 = (
     ((2, 4), 3) =&gt; Propagator(jp&quot;1+&quot;, a1_1260),
     (2, 4) =&gt; Propagator(jp&quot;1-&quot;, rho_770),
 )
-chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, system, propagators_a1_24)
+chain_a1_24 = minimal_ls_decay_chain(topology_a1_24, quantum, propagators_a1_24)
 
 # 3. Lc** -&gt; Sigma_c(12) pi3, with pi4 as the spectator
 topology_sigmac_123 = DecayTopology((((1, 2), 3), 4))
@@ -43,7 +40,7 @@ propagators_sigmac_123 = (
     ((1, 2), 3) =&gt; Propagator(jp&quot;3/2+&quot;, lcstar),
     (1, 2) =&gt; Propagator(jp&quot;1/2+&quot;, sigmac_2455),
 )
-chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, system, propagators_sigmac_123)
+chain_sigmac_123 = minimal_ls_decay_chain(topology_sigmac_123, quantum, propagators_sigmac_123)
 
 # 4. Lc** -&gt; Sigma_c(12) pi4, with pi3 as the spectator
 topology_sigmac_124 = DecayTopology((((1, 2), 4), 3))
@@ -51,12 +48,11 @@ propagators_sigmac_124 = (
     ((1, 2), 4) =&gt; Propagator(jp&quot;3/2+&quot;, lcstar),
     (1, 2) =&gt; Propagator(jp&quot;1/2+&quot;, sigmac_2455),
 )
-chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, system, propagators_sigmac_124)</code></pre><p>At this point all channels are ordinary <code>DecayChain</code> values. The construction is explicit but repetitive: each channel needs a bracket topology, a tuple of bracket-addressed propagators, and one call to <code>minimal_ls_decay_chain</code>. This is useful for auditing the model, but it also shows where a future convenience layer could reduce boilerplate for charge-reflected channels.</p><p>The two <span>$a_1$</span> chains should share a production coupling if the two identical <span>$\pi^-$</span> assignments are symmetrized. The two <span>$\Sigma_c$</span> chains are handled the same way. For now the tying is done by passing the same coefficient object in the two corresponding positions.</p><pre><code class="language-julia hljs">c_a1 = 1.0 + 0.0im
+chain_sigmac_124 = minimal_ls_decay_chain(topology_sigmac_124, quantum, propagators_sigmac_124)</code></pre><p>At this point all channels are ordinary <code>DecayChain</code> values. The construction is explicit but repetitive: each channel needs a bracket topology, a tuple of bracket-addressed propagators, and one call to <code>minimal_ls_decay_chain</code>. This is useful for auditing the model, but it also shows where a future convenience layer could reduce boilerplate for charge-reflected channels.</p><p>The two <span>$a_1$</span> chains should share a production coupling if the two identical <span>$\pi^-$</span> assignments are symmetrized. The two <span>$\Sigma_c$</span> chains are handled the same way. For now the tying is done by passing the same coefficient object in the two corresponding positions.</p><pre><code class="language-julia hljs">c_a1 = 1.0 + 0.0im
 c_sigmac = 5.0 + 0.0im
 
 model = CascadeDecay(
     (chain_a1_23, chain_a1_24, chain_sigmac_123, chain_sigmac_124),
-    system,
     topology_a1_23;
     couplings=(c_a1, c_a1, c_sigmac, c_sigmac),
     names=(
@@ -71,7 +67,7 @@ nothing</code></pre><pre><code class="nohighlight hljs">CascadeDecay with 4 chai
          a1-&gt;rho23pi4  1.0 + 0.0im  (1,((2,3),4))
          a1-&gt;rho24pi3  1.0 + 0.0im  (1,((2,4),3))
   lcstar-&gt;sigmac12pi3  5.0 + 0.0im  (((1,2),3),4)
-  lcstar-&gt;sigmac12pi4  5.0 + 0.0im  (((1,2),4),3)</code></pre><p>The result is a static model description. Each <code>DecayChain</code> has the same external system, but its own topology and Breit-Wigner propagators. The <code>minimal_ls_decay_chain</code> calls choose the first allowed LS coupling at every binary vertex from the supplied spin-parity assignments.</p><h2 id="Quick-toy-spectra"><a class="docs-heading-anchor" href="#Quick-toy-spectra">Quick toy spectra</a><a id="Quick-toy-spectra-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-toy-spectra" title="Permalink"></a></h2><p>The same objects are enough for quick model-shape checks. Here <code>RamboOnDiet</code> generates flat four-body phase-space events. Each event is weighted by</p><p class="math-container">\[w = J_{\mathrm{PS}}\; I_{\mathrm{unpolarized}},\]</p><p>where <code>J_PS</code> is the phase-space weight returned by <code>RamboOnDiet</code> and <code>I_unpolarized</code> is <code>unpolarized_intensity(model, point)</code>.</p><p>To make the structures visible, the toy projection also evaluates the two channel groups separately: the two <span>$a_1$</span> chains and the two <span>$\Lambda_c^{**}$</span> chains. The full model remains coherent, so the black total curve can include interference that is not present in the two component intensities.</p><pre><code class="language-julia hljs">using FourVectors
+  lcstar-&gt;sigmac12pi4  5.0 + 0.0im  (((1,2),4),3)</code></pre><p>The result is a static model description. Each <code>DecayChain</code> has the same external quantum numbers, but its own topology and Breit-Wigner propagators. The <code>minimal_ls_decay_chain</code> calls choose the first allowed LS coupling at every binary vertex from the supplied spin-parity assignments.</p><h2 id="Quick-toy-spectra"><a class="docs-heading-anchor" href="#Quick-toy-spectra">Quick toy spectra</a><a id="Quick-toy-spectra-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-toy-spectra" title="Permalink"></a></h2><p>The same objects are enough for quick model-shape checks. Here <code>RamboOnDiet</code> generates flat four-body phase-space events. Each event is weighted by</p><p class="math-container">\[w = J_{\mathrm{PS}}\; I_{\mathrm{unpolarized}},\]</p><p>where <code>J_PS</code> is the phase-space weight returned by <code>RamboOnDiet</code> and <code>I_unpolarized</code> is <code>unpolarized_intensity(model, point)</code>.</p><p>To make the structures visible, the toy projection also evaluates the two channel groups separately: the two <span>$a_1$</span> chains and the two <span>$\Lambda_c^{**}$</span> chains. The full model remains coherent, so the black total curve can include interference that is not present in the two component intensities.</p><pre><code class="language-julia hljs">using FourVectors
 using Plots
 using Random
 using RamboOnDiet
@@ -157,4 +153,4 @@ nothing</code></pre><p>For observables involving one of the two identical <span>
     size=(900, 400),
     bottom_margin=5Plots.PlotMeasures.mm,
     left_margin=5Plots.PlotMeasures.mm
-)</code></pre><p><img src="../lb2lc3pi-model_files/figure-commonmark/dalitz-projections-output-1.svg" alt="Dalitz projections with identical-pion symmetrization checks."/></p><h2 id="What-the-example-exposes"><a class="docs-heading-anchor" href="#What-the-example-exposes">What the example exposes</a><a id="What-the-example-exposes-1"></a><a class="docs-heading-anchor-permalink" href="#What-the-example-exposes" title="Permalink"></a></h2><p>This example is intentionally procedural. It makes the current API friction visible:</p><ul><li>resonance labels live in variable names, not in the model object;</li><li>the two symmetrized channel pairs are tied by manually repeating couplings;</li><li>every topology and propagator list is written by hand;</li><li>there is no helper yet for “build all charge permutations of this subdecay”.</li></ul><p>Once the full model is assembled, named indexing already covers one common workflow: selecting channel families (<code>model[is_a1]</code>, <code>model[is_lcstar]</code>) and evaluating their intensities with the same kinematic task as the coherent sum.</p><p>Those are useful pressure points for the next convenience layer. The low-level objects are explicit enough to audit, but a production analysis will likely want a small channel builder on top of them.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial/">« Using a decay chain</a><a class="docs-footer-nextpage" href="../four-pion-model/">Four-pion model-building catalogue »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 7 July 2026 14:11">Tuesday 7 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+)</code></pre><p><img src="../lb2lc3pi-model_files/figure-commonmark/dalitz-projections-output-1.svg" alt="Dalitz projections with identical-pion symmetrization checks."/></p><h2 id="What-the-example-exposes"><a class="docs-heading-anchor" href="#What-the-example-exposes">What the example exposes</a><a id="What-the-example-exposes-1"></a><a class="docs-heading-anchor-permalink" href="#What-the-example-exposes" title="Permalink"></a></h2><p>This example is intentionally procedural. It makes the current API friction visible:</p><ul><li>resonance labels live in variable names, not in the model object;</li><li>the two symmetrized channel pairs are tied by manually repeating couplings;</li><li>every topology and propagator list is written by hand;</li><li>there is no helper yet for “build all charge permutations of this subdecay”.</li></ul><p>Once the full model is assembled, named indexing already covers one common workflow: selecting channel families (<code>model[is_a1]</code>, <code>model[is_lcstar]</code>) and evaluating their intensities with the same kinematic task as the coherent sum.</p><p>Those are useful pressure points for the next convenience layer. The low-level objects are explicit enough to audit, but a production analysis will likely want a small channel builder on top of them.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial/">« Using a decay chain</a><a class="docs-footer-nextpage" href="../four-pion-model/">Four-pion model-building catalogue »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 8 July 2026 13:32">Wednesday 8 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
