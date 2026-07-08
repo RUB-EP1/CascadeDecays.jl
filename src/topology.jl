@@ -154,16 +154,35 @@ _line_range(topology::DecayTopology) = Base.OneTo(nlines(topology))
 _vertex_range(topology::DecayTopology) = Base.OneTo(nvertices(topology))
 _allunique(xs) = length(unique(xs)) == length(xs)
 
+"""
+    incoming_line_inds(topology, vertex_ind)
+
+Return incoming graph lines at topology vertex `vertex_ind` in canonical line
+order. Valid rooted-tree topologies have exactly one incoming line per vertex;
+use [`incoming_line_ind`](@ref) when that invariant is required.
+"""
 function incoming_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
     return [line_ind for line_ind in _line_range(topology) if relation(topology)[line_ind, vertex_ind] == -1]
 end
 
+"""
+    outgoing_line_inds(topology, vertex_ind)
+
+Return outgoing graph lines at topology vertex `vertex_ind` in canonical line
+order as read from [`relation`](@ref). Use [`child_line_inds`](@ref) when the
+stored child order matters for traversal or helicity conventions.
+"""
 function outgoing_line_inds(topology::DecayTopology, vertex_ind::Integer)
     _require_vertex(topology, vertex_ind)
     return [line_ind for line_ind in _line_range(topology) if relation(topology)[line_ind, vertex_ind] == 1]
 end
 
+"""
+    incoming_line_ind(topology, vertex_ind)
+
+Return the unique incoming graph line at topology vertex `vertex_ind`.
+"""
 function incoming_line_ind(topology::DecayTopology, vertex_ind::Integer)
     lines = incoming_line_inds(topology, vertex_ind)
     length(lines) == 1 || throw(ArgumentError("vertex_ind $vertex_ind does not have exactly one incoming line"))
