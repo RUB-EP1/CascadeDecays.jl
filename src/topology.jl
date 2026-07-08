@@ -8,7 +8,7 @@ Final-state particles are numbered by the integer leaves. The left/right order
 inside each tuple is preserved because helicity conventions depend on child
 order. Internally the topology is stored as a flat line-vertex graph.
 """
-struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C}
+struct DecayTopology{Nl, Nv, Nf, T <: Integer, L, C <: Tuple}
     relation::SMatrix{Nl, Nv, T, L}
     root::Int
     finals::SVector{Nf, Int}
@@ -19,10 +19,13 @@ function _decay_topology_from_relation(
         relation::SMatrix{Nl, Nv, T, L},
         root::Integer,
         finals::SVector{Nf, Int};
-        child_order::C,
+        child_order,
         validate::Bool = true,
-    ) where {Nl, Nv, Nf, T <: Integer, L, C}
-    topology = DecayTopology{Nl, Nv, Nf, T, L, C}(relation, Int(root), finals, child_order)
+    ) where {Nl, Nv, Nf, T <: Integer, L}
+    tuple_child_order = _normalize_child_order(child_order, Nv)
+    topology = DecayTopology{Nl, Nv, Nf, T, L, typeof(tuple_child_order)}(
+        relation, Int(root), finals, tuple_child_order,
+    )
     validate && validate_topology(topology)
     return topology
 end
@@ -38,17 +41,17 @@ function _decay_topology_from_relation(
     final_tuple = Tuple(Int(line_ind) for line_ind in finals)
     final_lines = SVector{length(final_tuple), Int}(final_tuple)
     static_relation = SMatrix{Nl, Nv, T, Nl * Nv}(relation)
-    static_child_order = _normalize_child_order(child_order, Nv)
-    return _decay_topology_from_relation(static_relation, root, final_lines; child_order = static_child_order, validate)
+    return _decay_topology_from_relation(static_relation, root, final_lines; child_order, validate)
+end
+
+function _normalize_child_order(child_order::AbstractMatrix, nv::Integer)
+    size(child_order, 2) == nv ||
+        throw(ArgumentError("child_order matrix must have one column per vertex"))
+    N = size(child_order, 1)
+    return ntuple(v -> ntuple(row -> Int(child_order[row, v]), Val(N)), nv)
 end
 
 function _normalize_child_order(child_order, nv::Integer)
-    if child_order isa AbstractMatrix
-        size(child_order, 2) == nv ||
-            throw(ArgumentError("child_order matrix must have one column per vertex"))
-        N = size(child_order, 1)
-        return ntuple(v -> ntuple(row -> Int(child_order[row, v]), Val(N)), nv)
-    end
     tuple_order = Tuple(child_order)
     length(tuple_order) == nv ||
         throw(ArgumentError("child_order must have one entry per vertex"))

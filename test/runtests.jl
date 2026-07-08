@@ -56,6 +56,8 @@ end
     @test nfinal(topology) == 3
     @test root_line_ind(topology) == 5
     @test final_line_inds(topology) == SVector(1, 2, 3)
+    @test topology.child_order == ((4, 3), (1, 2))
+    @test typeof(topology.child_order) <: NTuple{2, NTuple{2, Int}}
     @test CascadeDecays.internal_line_inds(topology) == [4]
     @test CascadeDecays.has_canonical_line_order(topology)
 
@@ -102,6 +104,8 @@ end
     @test nfinal(mixed_topology) == 4
     @test root_line_ind(mixed_topology) == 6
     @test final_line_inds(mixed_topology) == SVector(1, 2, 3, 4)
+    @test mixed_topology.child_order == ((1, 5), (2, 3, 4))
+    @test typeof(mixed_topology.child_order) <: Tuple{NTuple{2, Int}, NTuple{3, Int}}
     @test CascadeDecays.internal_line_inds(mixed_topology) == [5]
     @test CascadeDecays.has_canonical_line_order(mixed_topology)
     @test CascadeDecays.child_line_inds(mixed_topology, 1) == SVector(1, 5)
@@ -118,6 +122,20 @@ end
     @test CascadeDecays.line_ind_for(mixed_topology, (2, 3, 4)) == 5
     @test CascadeDecays.vertex_ind_for(mixed_topology, (2, 3, 4)) == 2
     @test bracket_notation(mixed_topology) == "(1,(2,3,4))"
+
+    relation = [
+        0 1
+        0 1
+        1 0
+        1 -1
+        -1 0
+    ]
+    matrix_child_order = SMatrix{2, 2, Int, 4}(4, 3, 1, 2)
+    relation_topology = CascadeDecays._decay_topology_from_relation(
+        relation; root = 5, finals = SVector(1, 2, 3), child_order = matrix_child_order,
+    )
+    @test relation_topology.child_order == ((4, 3), (1, 2))
+    @test typeof(relation_topology.child_order) <: NTuple{2, NTuple{2, Int}}
 end
 
 @testset "Quantum numbers and kinematic routing" begin
