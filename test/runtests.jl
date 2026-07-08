@@ -95,6 +95,29 @@ end
     @test vertex_ind_for(flat_topology, (1, 2, 3, 4)) == 1
     @test bracket_notation(flat_topology) == "(1,2,3,4)"
     @test_throws ArgumentError vertex_line_inds(flat_topology, 1)
+
+    mixed_topology = DecayTopology((1, (2, 3, 4)))
+    @test nlines(mixed_topology) == 6
+    @test nvertices(mixed_topology) == 2
+    @test nfinal(mixed_topology) == 4
+    @test root_line_ind(mixed_topology) == 6
+    @test final_line_inds(mixed_topology) == SVector(1, 2, 3, 4)
+    @test internal_line_inds(mixed_topology) == [5]
+    @test has_canonical_line_order(mixed_topology)
+    @test child_line_inds(mixed_topology, 1) == SVector(1, 5)
+    @test child_line_inds(mixed_topology, 2) == SVector(2, 3, 4)
+    @test arity(mixed_topology, 1) == 2
+    @test arity(mixed_topology, 2) == 3
+    @test is_binary_vertex(mixed_topology, 1)
+    @test !is_binary_vertex(mixed_topology, 2)
+    @test vertex_line_inds(mixed_topology, 1) == (6, 1, 5)
+    @test_throws ArgumentError vertex_line_inds(mixed_topology, 2)
+    @test line_inds_at_vertex(mixed_topology, 2) == (5, 2, 3, 4)
+    @test final_descendants(mixed_topology, root_line_ind(mixed_topology)) == [1, 2, 3, 4]
+    @test final_descendants(mixed_topology, 5) == [2, 3, 4]
+    @test line_ind_for(mixed_topology, (2, 3, 4)) == 5
+    @test vertex_ind_for(mixed_topology, (2, 3, 4)) == 2
+    @test bracket_notation(mixed_topology) == "(1,(2,3,4))"
 end
 
 @testset "Quantum numbers and kinematic routing" begin
