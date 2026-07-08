@@ -19,13 +19,14 @@ function _decay_topology_from_relation(
         relation::SMatrix{Nl, Nv, T, L},
         root::Integer,
         finals::SVector{Nf, Int};
-        child_order,
+        child_order::C,
         validate::Bool = true,
-    ) where {Nl, Nv, Nf, T <: Integer, L}
-    tuple_child_order = _normalize_child_order(child_order, Nv)
-    topology = DecayTopology{Nl, Nv, Nf, T, L, typeof(tuple_child_order)}(
-        relation, Int(root), finals, tuple_child_order,
-    )
+    ) where {Nl, Nv, Nf, T <: Integer, L, C <: Tuple}
+    length(child_order) == Nv ||
+        throw(ArgumentError("child_order must have one entry per vertex"))
+    all(child -> child isa Tuple, child_order) ||
+        throw(ArgumentError("each child_order entry must be a tuple of child line ids"))
+    topology = DecayTopology{Nl, Nv, Nf, T, L, C}(relation, Int(root), finals, child_order)
     validate && validate_topology(topology)
     return topology
 end
@@ -34,7 +35,7 @@ function _decay_topology_from_relation(
         relation::AbstractMatrix{T};
         root::Integer,
         finals,
-        child_order,
+        child_order::Tuple,
         validate::Bool = true,
     ) where {T <: Integer}
     Nl, Nv = size(relation)
@@ -42,24 +43,6 @@ function _decay_topology_from_relation(
     final_lines = SVector{length(final_tuple), Int}(final_tuple)
     static_relation = SMatrix{Nl, Nv, T, Nl * Nv}(relation)
     return _decay_topology_from_relation(static_relation, root, final_lines; child_order, validate)
-end
-
-function _normalize_child_order(child_order::AbstractMatrix, nv::Integer)
-    size(child_order, 2) == nv ||
-        throw(ArgumentError("child_order matrix must have one column per vertex"))
-    N = size(child_order, 1)
-    return ntuple(v -> ntuple(row -> Int(child_order[row, v]), Val(N)), nv)
-end
-
-function _normalize_child_order(child_order, nv::Integer)
-    tuple_order = Tuple(child_order)
-    length(tuple_order) == nv ||
-        throw(ArgumentError("child_order must have one entry per vertex"))
-    if !isempty(tuple_order) && all(x -> length(x) == length(first(tuple_order)), tuple_order)
-        N = length(first(tuple_order))
-        return ntuple(v -> NTuple{N, Int}(tuple_order[v]), nv)
-    end
-    return ntuple(v -> Tuple(Int(line_ind) for line_ind in tuple_order[v]), nv)
 end
 
 _bracket_leaf(x::Integer) = Int(x)

@@ -130,9 +130,8 @@ end
         1 -1
         -1 0
     ]
-    matrix_child_order = SMatrix{2, 2, Int, 4}(4, 3, 1, 2)
     relation_topology = CascadeDecays._decay_topology_from_relation(
-        relation; root = 5, finals = SVector(1, 2, 3), child_order = matrix_child_order,
+        relation; root = 5, finals = SVector(1, 2, 3), child_order = ((4, 3), (1, 2)),
     )
     @test relation_topology.child_order == ((4, 3), (1, 2))
     @test typeof(relation_topology.child_order) <: NTuple{2, NTuple{2, Int}}
