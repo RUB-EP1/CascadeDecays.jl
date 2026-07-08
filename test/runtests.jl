@@ -56,21 +56,85 @@ end
     @test nfinal(topology) == 3
     @test root_line_ind(topology) == 5
     @test final_line_inds(topology) == SVector(1, 2, 3)
-    @test internal_line_inds(topology) == [4]
-    @test has_canonical_line_order(topology)
+    @test topology.child_order == ((4, 3), (1, 2))
+    @test typeof(topology.child_order) <: NTuple{2, NTuple{2, Int}}
+    @test CascadeDecays.internal_line_inds(topology) == [4]
+    @test CascadeDecays.has_canonical_line_order(topology)
 
-    @test outgoing_line_inds(topology, 1) == [3, 4]
-    @test child_line_inds(topology, 1) == SVector(4, 3)
-    @test final_descendants(topology, 4) == [1, 2]
-    @test outgoing_line_inds(topology, 2) == [1, 2]
-    @test child_line_inds(topology, 2) == [1, 2]
+    @test CascadeDecays.outgoing_line_inds(topology, 1) == [3, 4]
+    @test CascadeDecays.child_line_inds(topology, 1) == SVector(4, 3)
+    @test @inferred(CascadeDecays.child_line_inds(topology, 1)) == SVector(4, 3)
+    @test @inferred(CascadeDecays.vertex_line_inds(topology, 1)) == (5, 4, 3)
+    @test CascadeDecays.final_descendants(topology, 4) == [1, 2]
+    @test CascadeDecays.outgoing_line_inds(topology, 2) == [1, 2]
+    @test CascadeDecays.child_line_inds(topology, 2) == SVector(1, 2)
+    @test CascadeDecays.arity(topology, 1) == 2
+    @test CascadeDecays.is_binary_vertex(topology, 1)
+    @test CascadeDecays.line_inds_at_vertex(topology, 1) == (5, 4, 3)
 
-    @test produced_by(topology, 4) == 1
-    @test consumed_by(topology, 4) == 2
-    @test produced_by(topology, 5) === nothing
-    @test consumed_by(topology, 3) === nothing
+    @test CascadeDecays.produced_by(topology, 4) == 1
+    @test CascadeDecays.consumed_by(topology, 4) == 2
+    @test CascadeDecays.produced_by(topology, 5) === nothing
+    @test CascadeDecays.consumed_by(topology, 3) === nothing
 
     @test bracket_notation(topology) == "((1,2),3)"
+
+    flat_topology = DecayTopology((1, 2, 3, 4))
+    @test nlines(flat_topology) == 5
+    @test nvertices(flat_topology) == 1
+    @test nfinal(flat_topology) == 4
+    @test root_line_ind(flat_topology) == 5
+    @test final_line_inds(flat_topology) == SVector(1, 2, 3, 4)
+    @test CascadeDecays.internal_line_inds(flat_topology) == Int[]
+    @test CascadeDecays.outgoing_line_inds(flat_topology, 1) == [1, 2, 3, 4]
+    @test CascadeDecays.child_line_inds(flat_topology, 1) == SVector(1, 2, 3, 4)
+    @test @inferred(CascadeDecays.child_line_inds(flat_topology, 1)) == SVector(1, 2, 3, 4)
+    @test CascadeDecays.arity(flat_topology, 1) == 4
+    @test !CascadeDecays.is_binary_vertex(flat_topology, 1)
+    @test CascadeDecays.line_inds_at_vertex(flat_topology, 1) == (5, 1, 2, 3, 4)
+    @test CascadeDecays.final_descendants(flat_topology, root_line_ind(flat_topology)) == [1, 2, 3, 4]
+    @test CascadeDecays.line_ind_for(flat_topology, (1, 2, 3, 4)) == root_line_ind(flat_topology)
+    @test CascadeDecays.vertex_ind_for(flat_topology, (1, 2, 3, 4)) == 1
+    @test bracket_notation(flat_topology) == "(1,2,3,4)"
+    @test_throws ArgumentError CascadeDecays.vertex_line_inds(flat_topology, 1)
+
+    mixed_topology = DecayTopology((1, (2, 3, 4)))
+    @test nlines(mixed_topology) == 6
+    @test nvertices(mixed_topology) == 2
+    @test nfinal(mixed_topology) == 4
+    @test root_line_ind(mixed_topology) == 6
+    @test final_line_inds(mixed_topology) == SVector(1, 2, 3, 4)
+    @test mixed_topology.child_order == ((1, 5), (2, 3, 4))
+    @test typeof(mixed_topology.child_order) <: Tuple{NTuple{2, Int}, NTuple{3, Int}}
+    @test CascadeDecays.internal_line_inds(mixed_topology) == [5]
+    @test CascadeDecays.has_canonical_line_order(mixed_topology)
+    @test CascadeDecays.child_line_inds(mixed_topology, 1) == SVector(1, 5)
+    @test CascadeDecays.child_line_inds(mixed_topology, 2) == SVector(2, 3, 4)
+    @test CascadeDecays.arity(mixed_topology, 1) == 2
+    @test CascadeDecays.arity(mixed_topology, 2) == 3
+    @test CascadeDecays.is_binary_vertex(mixed_topology, 1)
+    @test !CascadeDecays.is_binary_vertex(mixed_topology, 2)
+    @test CascadeDecays.vertex_line_inds(mixed_topology, 1) == (6, 1, 5)
+    @test_throws ArgumentError CascadeDecays.vertex_line_inds(mixed_topology, 2)
+    @test CascadeDecays.line_inds_at_vertex(mixed_topology, 2) == (5, 2, 3, 4)
+    @test CascadeDecays.final_descendants(mixed_topology, root_line_ind(mixed_topology)) == [1, 2, 3, 4]
+    @test CascadeDecays.final_descendants(mixed_topology, 5) == [2, 3, 4]
+    @test CascadeDecays.line_ind_for(mixed_topology, (2, 3, 4)) == 5
+    @test CascadeDecays.vertex_ind_for(mixed_topology, (2, 3, 4)) == 2
+    @test bracket_notation(mixed_topology) == "(1,(2,3,4))"
+
+    relation = [
+        0 1
+        0 1
+        1 0
+        1 -1
+        -1 0
+    ]
+    relation_topology = CascadeDecays._decay_topology_from_relation(
+        relation; root = 5, finals = SVector(1, 2, 3), child_order = ((4, 3), (1, 2)),
+    )
+    @test relation_topology.child_order == ((4, 3), (1, 2))
+    @test typeof(relation_topology.child_order) <: NTuple{2, NTuple{2, Int}}
 end
 
 @testset "Quantum numbers and kinematic routing" begin
@@ -175,6 +239,21 @@ end
     x_helicity = DecayChainKinematics(ref_topology, boosted_objs; initial_frame = HelicityRootFrame())
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).ϕ ≈ 0.4
     @test vertex_angles(x_helicity, ref_topology, ((1, 2), 3)).cosθ ≈ cos(0.3)
+
+    flat_reference = DecayTopology((1, 2, 3))
+    flat_task = KinematicTask(
+        (ref_topology,);
+        reference_topology = flat_reference,
+        wigner_finals = (1, 2, 3),
+        initial_frame = CurrentFrame(),
+    )
+    flat_point = KinematicPoint(flat_task, objs)
+    flat_alignments = alignment_angles_at(flat_point, ref_topology)
+    @test bracket_notation(flat_task.reference_topology) == "(1,2,3)"
+    @test length(flat_alignments) == 3
+    @test flat_alignments[1] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test flat_alignments[2] != (α = 0.0, cosβ = 1.0, γ = 0.0)
+    @test flat_alignments[3] != (α = 0.0, cosβ = 1.0, γ = 0.0)
 end
 
 @testset "DecayChain payload mapping" begin
@@ -193,7 +272,7 @@ end
     @test nfinal(chain) == 3
     @test propagator_two_js(chain) == SVector(2)
     @test bracket_notation(chain) == "((1,2),3)"
-    @test final_descendants(chain, 4) == [1, 2]
+    @test CascadeDecays.final_descendants(chain, 4) == [1, 2]
     @test chain.propagators[1](2.0) == 1.0
 
     @test_throws ArgumentError DecayChain(
@@ -211,6 +290,15 @@ end
         (TestVertex(:mother), TestVertex(:isobar)),
         (4,),
         (2, 4),
+    )
+
+    flat_topology = DecayTopology((1, 2, 3))
+    flat_system = SystemSpins(0, 0, 0; two_h0 = 0)
+    @test_throws ArgumentError DecayChain(
+        flat_topology,
+        flat_system;
+        propagators = (),
+        vertices = ((1, 2, 3) => TestVertex(:flat),),
     )
 end
 
@@ -446,9 +534,9 @@ end
         (4, 2),
     )
 
-    @test has_canonical_line_order(topology)
-    @test outgoing_line_inds(topology, 1) == [4, 6]
-    @test child_line_inds(topology, 1) == [6, 4]
+    @test CascadeDecays.has_canonical_line_order(topology)
+    @test CascadeDecays.outgoing_line_inds(topology, 1) == [4, 6]
+    @test CascadeDecays.child_line_inds(topology, 1) == SVector(6, 4)
     @test bracket_notation(topology) == "(((1,2),3),4)"
 
     @test vertex_masses2(topology, x, 1) == (9.0, 2.3, 16.0)
@@ -490,7 +578,8 @@ end
 
     @test_throws ArgumentError DecayTopology(((1, 3), 4))
     @test_throws ArgumentError DecayTopology((1, (2, (3, 3))))
-    @test_throws ArgumentError DecayTopology((1, 2, 3))
+    @test bracket_notation(DecayTopology((1, 2, 3))) == "(1,2,3)"
+    @test_throws ArgumentError DecayTopology((1,))
 end
 
 @testset "Topology-generated kinematics" begin

@@ -34,6 +34,8 @@ function DecayChain(
         throw(ArgumentError("number of vertices must match topology"))
     Nl == nlines(topology) ||
         throw(ArgumentError("line_two_js must have one entry per topology line"))
+    all(vertex_ind -> is_binary_vertex(topology, vertex_ind), Base.OneTo(nvertices(topology))) ||
+        throw(ArgumentError("DecayChain currently requires binary topology vertices"))
     all(line_ind -> isinternal_line_ind(topology, line_ind), propagating_line_inds) ||
         throw(ArgumentError("propagators may only be attached to internal lines"))
     length(unique(propagating_line_inds)) == Np ||

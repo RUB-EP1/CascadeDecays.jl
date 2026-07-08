@@ -28,6 +28,8 @@ function helicity_angle_program(
     while true
         parent = incoming_line_ind(topology, current_vertex_ind)
         children = child_line_inds(topology, current_vertex_ind)
+        is_binary_vertex(topology, current_vertex_ind) ||
+            throw(ArgumentError("helicity angle programs currently require binary topology vertices"))
         if parent == target_parent
             return (
                 program...,
