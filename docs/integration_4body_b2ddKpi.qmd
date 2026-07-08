@@ -25,6 +25,7 @@ four-vectors and routed into local vertex and propagator calls.
 ```{julia}
 #| label: setup
 using CascadeDecays
+using CascadeDecays: has_canonical_line_order
 using FourVectors
 using HadronicLineshapes
 using JSON

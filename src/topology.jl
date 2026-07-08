@@ -136,6 +136,13 @@ function DecayTopology(tree::Tuple)
     return _decay_topology_from_relation(relation; root = nlines, finals = Tuple(1:nfinal), child_order = Tuple(child_order))
 end
 
+"""
+    relation(topology)
+
+Return the line-vertex incidence matrix of a decay topology. Rows are graph
+lines and columns are vertices; `-1` marks the incoming line at a vertex, `+1`
+marks outgoing child lines, and `0` marks unrelated line-vertex pairs.
+"""
 relation(topology::DecayTopology) = topology.relation
 root_line_ind(topology::DecayTopology) = topology.root
 
