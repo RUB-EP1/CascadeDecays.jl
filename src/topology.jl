@@ -100,7 +100,7 @@ function _address_final_labels(address)
 end
 
 _vertex_record(node::_TopologyBranch) =
-    (_line(node), Tuple(_line(child) for child in node.children))
+    (_line(node), map(_line, node.children))
 
 _vertex_records_preorder(node::_TopologyLeaf) = ()
 
