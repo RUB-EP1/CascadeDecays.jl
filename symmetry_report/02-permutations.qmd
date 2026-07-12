@@ -1,0 +1,271 @@
+---
+title: "Permutation symmetry"
+---
+
+## The master rule
+
+Let particles $i$ and $j$ be identical (same species, hence same mass, spin
+$s$, and all internal quantum numbers). The physical $n$-body final state is
+(anti)symmetrized in the Fock space, so the fixed-frame amplitude of
+@sec-fixed-frame-def satisfies
+
+::: {#thm-master}
+## Master permutation rule
+$$
+M_{\lambda_0;\,\dots\lambda_i\dots\lambda_j\dots}
+(\dots,p_i,\dots,p_j,\dots)
+\;=\;
+\eta_{ij}\;
+M_{\lambda_0;\,\dots\lambda_j\dots\lambda_i\dots}
+(\dots,p_j,\dots,p_i,\dots),
+$$
+where the **pair** $(p,\lambda)$ is swapped between the two slots, and
+$\eta_{ij}=+1$ for bosons, $-1$ for fermions.
+:::
+
+Notation: the subscript position denotes the slot ("first kaon", "second
+kaon"), and both the momentum and the helicity travel together when the slots
+are exchanged.
+
+**Why this is safe.** Each one-particle helicity state $|p,\lambda\rangle$ is
+defined by one fixed convention (same convention for both particles, since
+they are the same species). The two-identical-particle state is
+$\tfrac{1}{\sqrt2}(|a\rangle|b\rangle + \eta\,|b\rangle|a\rangle)$ with
+$a=(p_i,\lambda_i)$, $b=(p_j,\lambda_j)$; the amplitude inherits the symmetry
+of the state. No Wigner rotation appears because nothing is re-aligned: the
+same global frame is used before and after the swap.
+
+**Robustness.** The rule holds for *any* single choice of one-particle phase
+convention (e.g. $R(\phi,\theta,-\phi)$ or $R(\phi,\theta,0)$): the
+convention-dependent phases are attached to the $(p,\lambda)$ pair and move
+with it. What is *not* allowed is mixing conventions between particles, or
+comparing amplitudes whose helicities are quantized in different frames — that
+is where phantom phases enter.
+
+::: {.callout-important}
+## What the theorem does **not** say
+
+For spinning particles, $M_{\lambda_0;\{\lambda\}}(p_1,\dots,p_n)$ is **not a
+function of the invariants alone**: at fixed $\lambda$'s it also depends on
+the orientation of the configuration relative to the space-fixed quantization
+axes. Consequently the aligned amplitude $A_{\lambda_0;\{\lambda\}}(\sigma)$
+— the restriction of $M$ to standard-orientation configurations — is **not a
+permutation eigenfunction**, and the theorem does *not* imply
+$A(\sigma_j,\sigma_i) = \eta\,A(\sigma_i,\sigma_j)$.
+
+The invalid step to watch for is the innocent-looking substitution
+$$
+M(\dots,p_j,\dots,p_i,\dots) \;\overset{!}{=}\; A(\sigma_j,\sigma_i)
+\qquad\text{(wrong),}
+$$
+because the slot-swapped configuration is *not* in standard orientation: the
+swap reflects the decay plane. Restoring the standard orientation costs a
+rotation, and its Wigner phases are exactly the $(-1)^{\lambda_0\pm\lambda_2}$
+factors seen in practice. The worked example below makes this quantitative;
+the $\Xi_b$ toy check (`cases/02-xib2pKK/toy_alignment_check.jl`) verifies
+every step numerically.
+:::
+
+## Constructing a symmetric amplitude from chains
+
+Given any model amplitude $A$ (a sum of decay chains, written as a
+fixed-frame function), the (anti)symmetrized amplitude
+$$
+M = \frac{1}{\sqrt{N}}\sum_{\pi \in \text{perms of identical particles}}
+\eta^{|\pi|}\, A\big(\pi(\text{slots})\big)
+$$
+satisfies @thm-master by construction, for *arbitrary* couplings. Two
+consequences:
+
+1. **No coupling constraints are strictly required** if one explicitly sums
+   over permuted kinematics. The couplings of "mirror" chains are then a
+   single shared parameter by construction.
+2. Alternatively, one keeps all chains (e.g. both $(12)3$ and $(13)2$ with
+   $2,3$ identical) as separate terms and *derives* the relation between their
+   couplings such that the sum obeys @thm-master. The two routes must agree;
+   comparing them is a useful internal check.
+
+The practical difficulty is that fitters do not evaluate fixed-frame
+amplitudes: they evaluate aligned amplitudes in invariants. The rest of the
+chapter builds the dictionary.
+
+## Exchange phases at a two-body vertex
+
+For a single vertex $R\to 1\,2$ the exchange properties can be stated exactly.
+
+### LS basis {#sec-ls-exchange}
+
+The two-particle state coupled to $|J M; L S\rangle$ picks up, under exchange
+of the two daughters,
+
+- a spatial factor $(-1)^L$ (the relative momentum flips),
+- a spin-recoupling factor $(-1)^{s_1+s_2-S}$ from the Clebsch–Gordan
+  reordering.
+
+Hence
+$$
+P_{12}\,|J M; LS\rangle_{(12)}
+= (-1)^{L+s_1+s_2-S}\, |J M; LS\rangle_{(21)} .
+$$ {#eq-ls-exchange}
+
+Special cases:
+
+- two spinless particles: $(-1)^L$;
+- two identical **bosons** of integer spin $s$: $(-1)^{L+2s-S}=(-1)^{L+S}$ —
+  this confirms the $(-1)^{L+S}$ expectation for the spinful-boson case;
+- two spin-$\tfrac12$ fermions: $(-1)^{L+1-S}=(-1)^{L+S+1}$; requiring
+  antisymmetry reproduces the familiar "$L+S$ even" rule for identical
+  fermion pairs (e.g. $pp$).
+
+For identical particles Bose/Fermi statistics allows only partial waves with
+$$
+(-1)^{L+2s-S} = \eta_{12}
+\qquad\Longrightarrow\qquad
+\text{(bosons)}\; L+S \;\text{even}.
+$$
+
+### Helicity basis {#sec-hel-exchange}
+
+Expressing @eq-ls-exchange in the helicity basis with the standard Jacob–Wick
+recoupling (see the conventions chapter) and using both Clebsch–Gordan
+symmetries gives
+$$
+P_{12}\,|J M; \lambda_1\lambda_2\rangle_{(12)}
+= (-1)^{J-s_1-s_2}\,
+|J M; \lambda_2\lambda_1\rangle_{(21)} .
+$$ {#eq-hel-exchange}
+
+*Derivation sketch.* Write $|JM;LS\rangle$ in the helicity basis with
+coefficients
+$c_{LS,\lambda_1\lambda_2} = \sqrt{\tfrac{2L+1}{2J+1}}\,
+\langle L0;S\lambda|J\lambda\rangle
+\langle s_1\lambda_1; s_2\,{-\lambda_2}|S\lambda\rangle$. The two
+Clebsch–Gordan symmetries give
+$c^{(21)}_{LS,\lambda_2\lambda_1} = (-1)^{L+S-J} c^{(12)}_{LS,\lambda_1\lambda_2}$,
+and combining with @eq-ls-exchange yields the phase
+$(-1)^{(L+s_1+s_2-S)+(L+S-J)} = (-1)^{s_1+s_2-J}$, which equals
+$(-1)^{J-s_1-s_2}$ since $J-s_1-s_2$ is an integer. $\square$
+
+For identical particles ($s_1=s_2=s$):
+$$
+P_{12}\,|J M; \lambda_1\lambda_2\rangle = (-1)^{J-2s}\,|J M; \lambda_2\lambda_1\rangle ,
+$$
+so Bose/Fermi symmetry of the isobar decay requires
+$$
+H_{\lambda_2\lambda_1} = \eta_{12}\,(-1)^{J-2s}\, H_{\lambda_1\lambda_2}
+= (-1)^{J}\, H_{\lambda_1\lambda_2}
+$$
+(the last equality using $\eta_{12}=(-1)^{2s}$). For two identical spinless
+bosons this is the familiar "even $J$ only".
+
+::: {.callout-note}
+## Status
+@eq-ls-exchange follows from elementary Clebsch–Gordan properties.
+@eq-hel-exchange is derived algebraically from it; it agrees with the standard
+result quoted in the literature [@Chung:1971ri]. Both should still be
+confirmed numerically against an explicit fixed-frame construction — ledger
+items [L1, L2](99-ledger.qmd).
+:::
+
+## Permutations across chains: alignment phases
+
+The subtle part of any real analysis is not the single vertex but the full
+cascade evaluated in *aligned* kinematics. Consider a three-body decay with
+identical particles $i$ and $j$. In DPD variables the exchange
+$p_i\leftrightarrow p_j$ maps $\sigma_i\leftrightarrow\sigma_j$ (with
+$\sigma_k$ untouched), but it also reverses the orientation of the decay
+plane relative to the standard orientation. Restoring the standard
+orientation requires a rotation, whose Wigner matrices at special angles
+($\pi$ about $\hat y$ or $\hat z$) produce helicity-dependent signs such as
+$(-1)^{J-\lambda}$ or $(-1)^{\lambda}$ — *these are the permutation phases
+seen in practice*.
+
+The general procedure:
+
+1. Write the exchange as an operation on the fixed-frame amplitude
+   (@thm-master) — trivial.
+2. Express the fixed-frame amplitude through the aligned amplitude
+   $O^{\lambda_0}_{\{\lambda\}}(\sigma)$ and the overall rotation
+   $R(\alpha,\beta,\gamma)$.
+3. Note that the permuted configuration corresponds to a *different* overall
+   rotation $R' = R\cdot r_\pi$, with $r_\pi$ a fixed rotation (independent of
+   the dynamic variables, typically by $\pi$).
+4. Move $r_\pi$ through the $D$-functions onto the helicity indices of $O$.
+   The result is the chain-level symmetry relation with explicit phases.
+
+### Worked example: $\Xi_b^-\to p K^- K^-$
+
+With the numbering $\Xi_b^-(0)\to K^-(1)\,p(2)\,K^-(3)$, the symmetrized
+amplitude in aligned (invariant-argument) form reads
+$$
+A_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3)
+= O^{c}_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3)
++ \varepsilon_{\lambda_0\lambda_2}\,
+O^{c}_{\lambda_0,\lambda_2}(\sigma_3,\sigma_1),
+\qquad
+\varepsilon_{\lambda_0\lambda_2} = \pm(-1)^{\lambda_0\pm\lambda_2},
+$$
+where $O^c$ is the chain amplitude in the reference ordering and the exact
+exponent is tied to the choice of standard orientation (see below). It
+follows immediately that the aligned amplitude is *not* symmetric under the
+swap of its invariant arguments:
+$$
+A_{\lambda_0,\lambda_2}(\sigma_3,\sigma_1)
+= \varepsilon_{\lambda_0\lambda_2}\,
+A_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3).
+$$ {#eq-xib-invariant-swap}
+This is **not** in contradiction with @thm-master — it is its image in
+aligned coordinates. The reconciliation, verified numerically to machine
+precision with a manifestly Bose-symmetric covariant toy model
+(`cases/02-xib2pKK/toy_alignment_check.jl`):
+
+1. Fixed frame (test A): $M_{\lambda_0\lambda_2}(p_3,p_2,p_1) =
+   +M_{\lambda_0\lambda_2}(p_1,p_2,p_3)$ holds exactly, at *any* orientation.
+2. Geometry (test D): with the standard orientation "momenta in the
+   $xz$-plane, proton along $+\hat z$, kaon-1 at $p_x>0$", the slot-swapped
+   configuration is not standard; instead
+   $$
+   \big(p_3^*,p_2^*,p_1^*\big)\Big|_{(\sigma_1,\sigma_3)}
+   = R_z(\pi)\,\big(p_1^*,p_2^*,p_3^*\big)\Big|_{(\sigma_3,\sigma_1)} .
+   $$
+   The compensating rotation is about the **proton axis** — this is why the
+   spectator-2 orientation gives a diagonal phase at all.
+3. Phase (tests B, C): $R_z(\pi)$ acts on the two spinning particles, parent
+   ($\lambda_0$, quantized along $\hat z$) and proton ($\lambda_2$, momentum
+   along $\hat z$), giving in the conventions of the toy script
+   ($R(\phi,\theta,-\phi)$ helicity spinors, proton along $+\hat z$)
+   $$
+   \varepsilon_{\lambda_0\lambda_2} = (-1)^{\lambda_0-\lambda_2},
+   $$
+   i.e. the pattern $(+,-,-,+)$ over
+   $(\lambda_0,\lambda_2)=(\pm\tfrac12,\pm\tfrac12)$. In conventions where
+   the proton is aligned along $-\hat z$ (or with the opposite $D$-function
+   phase direction) the exponent trades $\lambda_0-\lambda_2$ for
+   $\lambda_0+\lambda_2$, an overall $(-1)^{2\lambda_2}=-1$ relative sign —
+   absorbable into the couplings within one fit, fatal when comparing codes.
+
+A physical corollary: with $\varepsilon=(-1)^{\lambda_0-\lambda_2}$ the
+helicity-diagonal aligned amplitudes are symmetric in
+$(\sigma_1,\sigma_3)$ while the off-diagonal ones are antisymmetric and
+vanish on the $\sigma_1=\sigma_3$ line — which components vanish is itself
+convention-dependent (it follows the quantization directions), another reason
+intensity-level intuition is unreliable here. Details in the
+[case study](cases/02-xib2pKK/notes.qmd); the component-level derivation is
+collected in the [technical appendix](appendix-microscopic.qmd).
+
+## Pitfalls
+
+- **Applying state-vector symmetry relations blindly.** Relations like
+  @eq-hel-exchange hold for two-particle states in *their* pair rest frame
+  with *their* quantization axis; inserting them into a multi-chain cascade
+  without re-aligning frames produces wrong phases.
+- **Half-integer helicities.** Phases like $(-1)^{\lambda_0+\lambda_2}$ vs.
+  $(-1)^{\lambda_0-\lambda_2}$ differ by $(-1)^{2\lambda_2}=-1$ for fermions.
+  Such overall signs can hide in coupling redefinitions in a single fit but
+  break comparisons between codes. Always pin the exact exponent.
+- **Intensity-level checks are weak.** $|M|^2$ symmetric under
+  $\sigma_i\leftrightarrow\sigma_j$ is necessary but far from sufficient;
+  amplitude-level checks with fixed helicities are the meaningful ones.
+- **Chain-dependent particle-2 assignments.** In chain $(12)3$ particle 2 is
+  the Jacob–Wick "second particle"; in chain $(23)1$ it may be the first. The
+  bookkeeping must follow the chain definitions, not the particle names.

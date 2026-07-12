@@ -1,0 +1,62 @@
+---
+title: "Case 1: $\\pi^+\\pi^-\\pi^-$ and $D^0D^0\\pi^+$"
+---
+
+**Status:** <span class="badge-derived">mostly understood</span> — LS-basis
+exchange phase to be pinned down and checked numerically.
+
+## Setting
+
+All particles spinless; identical pair = the two $\pi^-$ (or the two $D^0$).
+This is the minimal laboratory for permutation symmetry: no helicity indices
+on the identical particles, no fermion signs, and for a scalar (or fixed-spin)
+parent the alignment structure is as simple as it gets.
+
+Numbering convention (ThreeBodyDecays-style, chains labeled by spectator):
+$0\to \pi^+(1)\,\pi^-(2)\,\pi^-(3)$; the physical isobars ($\rho^0$, $f_0$,
+…) live in the pairs $(12)$ and $(31)$, i.e. chains with spectators 3 and 2.
+
+## Expected result
+
+Bose symmetry under $2\leftrightarrow3$ should reduce to the coupling
+identification
+$$
+g_{R_{(12)}\pi_3} = g_{R_{(31)}\pi_2}
+\quad\text{(same isobar }R\text{)},
+$$
+*in a suitable phase convention*, together with the within-isobar partial-wave
+restriction where applicable ($D^0D^0$ pair: even $L$ only).
+
+Two subtleties to resolve:
+
+1. **The order of daughters inside the isobar differs between chains.** In
+   chain $(12)$ the isobar decays to $\pi^+\pi^-$ in that order; in $(31)$ to
+   $\pi^-\pi^+$. Reversing the order at the vertex costs $(-1)^{L_R}$ for
+   spinless daughters (LS exchange rule, permutation chapter). Whether this
+   sign lands in the coupling relation depends on how each chain's vertex
+   ordering is defined in the framework — this must be traced explicitly.
+2. **LS basis of the parent vertex.** Even in the LS basis the particle swap
+   is claimed to produce a non-trivial phase, expected of the form
+   $(-1)^{L+S}$-type — more precisely $(-1)^{L+s_1+s_2-S}$ per vertex per
+   the derivation in the permutation chapter, which reduces to $(-1)^L$ at
+   each spinless vertex here. The precise combination appearing in the
+   chain-to-chain relation (parent vertex × isobar vertex × alignment) is
+   the thing to compute and check.
+
+## Worked plan
+
+1. Write the fixed-frame symmetrized amplitude explicitly
+   (route (a) of Recipe P).
+2. Write the two-chain DPD amplitude with free couplings and derive the
+   coupling relation from the master rule (route (b)).
+3. Confirm (1) ≡ (2) numerically at random Dalitz points.
+4. Repeat with a spin-1 parent (e.g. $a_1^-\to\pi^+\pi^-\pi^-$-like quantum
+   numbers) to expose the alignment phases on $\lambda_0$ that are invisible
+   for a scalar parent.
+5. $D^0D^0\pi^+$: same exercise with the even-$L$ restriction in the
+   $D^0D^0$ pair and the doubly-charged $D^0\pi^+$ isobar chains.
+
+## Artifacts
+
+- (to appear) `check_3pi.jl` — numerical slot-swap and coupling-relation
+  tests.

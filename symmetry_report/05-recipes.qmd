@@ -1,0 +1,84 @@
+---
+title: "Recipes"
+---
+
+::: {.callout-warning}
+## Draft status
+
+These recipes are the distilled deliverable of the project. They are updated
+as case studies confirm each step; steps marked ⚠ are not yet validated by a
+completed case study.
+:::
+
+## Recipe P — identical particles in a cascade model
+
+**Given:** a chain-based helicity model for $0\to 1\dots n$ with identical
+particles $i,j$.
+
+1. **Fix conventions.** One one-particle helicity convention, one Wigner-$D$
+   convention, one standard orientation for the aligned amplitude. Record them
+   against the registry table.
+2. **State the constraint in the fixed frame:**
+   $M(\dots,(p_i,\lambda_i),\dots,(p_j,\lambda_j),\dots) =
+   \eta_{ij}\,M(\text{slots swapped})$ — no phases beyond $\eta_{ij}=\pm1$.
+3. **Choose the implementation route:**
+   a. *Explicit symmetrization:* evaluate the full chain sum at the original
+      and at the slot-swapped kinematics and add with $\eta_{ij}$. Couplings
+      unconstrained; symmetry holds by construction.
+   b. *Coupling relations:* keep mirror chains as separate terms and impose
+      the derived relations between their couplings, including the alignment
+      phases. Fewer evaluations; requires step 4.
+4. ⚠ **Derive the alignment phase** for route (b): express the slot swap as a
+   fixed rotation $r_\pi$ of the standard orientation, and push it through the
+   overall $D$-functions onto the helicity indices. For planar (3-body)
+   configurations expect $d^j(\pi)$-type factors, i.e. signs like
+   $(-1)^{J-\lambda}$, $(-1)^{\lambda_0\pm\lambda_k}$.
+5. **Within-isobar identical pairs** ($R\to aa$): restrict partial waves by
+   $(-1)^{L+2s-S}=\eta$ (LS basis) or $H_{\lambda_2\lambda_1} =
+   (-1)^{J}H_{\lambda_1\lambda_2}$ (helicity basis).
+6. **Verify** with the numerical battery (slot-swap test, then
+   aligned-representation test, then tensor bridge).
+
+## Recipe C — charge conjugation constraints
+
+**Given:** a C-eigenstate initial state and C-invariant dynamics (strong/EM),
+or an effective C symmetry of a subsystem.
+
+1. **Assign $\eta_C$ per species from interpolating currents**, never from
+   memory. For mixed states ($K_1(1270)/K_1(1400)$): assign in the
+   $(K_{1A},K_{1B})$ basis, then rotate.
+2. **State the constraint in the fixed frame** (@eq-c-master): conjugate all
+   species, keep momenta, helicities, and parent polarization untouched;
+   multiply by $\eta_C^{(0)}\prod_i\eta_C^{(i)}$.
+3. **Self-conjugate final states:** relabel slots to standard species order —
+   a pure argument permutation with *no* statistics sign — obtaining a
+   constraint on the single amplitude function, e.g.
+   $M_{\lambda_0}(p_1,p_2,p_3,p_4) = \eta_C^{(0)}\kappa\,
+   M_{\lambda_0}(p_2,p_1,p_4,p_3)$ for $K^+K^-\pi^+\pi^-$.
+4. ⚠ **Translate to chain couplings:** conjugate chains get related couplings;
+   the phase = current-level $\eta_C$ factors × alignment phases (recipe P,
+   step 4, reused).
+5. **Verify:** conjugation test, then aligned-representation test.
+
+## Recipe CP — conjugate decays (weak)
+
+1. ⚠ Fix the parity phase convention on one-particle states (ledger L6) and
+   the resulting fixed-frame P action.
+2. ⚠ Write the CP relation between $M^{0\to f}$ and
+   $M^{\bar 0\to\bar f}$: reversed momenta, flipped helicities,
+   $(-1)^{s-\lambda}$-type phases, weak phases conjugated.
+3. Use it to share hadronic parameters between conjugate final states in a
+   combined fit; CP violation enters only through weak-phase differences.
+4. Verify against tensor amplitudes with explicitly conjugated currents.
+
+## Decision table
+
+| Situation | What relates the terms | Recipe |
+|-----------|------------------------|--------|
+| identical spinless in final state | Bose symmetry | P (simplest) |
+| identical particles with spin / fermion spectators | Bose/Fermi + alignment | P |
+| $R\to aa$ isobar | Bose/Fermi at vertex | P step 5 |
+| C eigenstate, strong decay, self-conjugate final state | exact C | C |
+| weak decay, subsystem produced by gluons/photon | effective C of subsystem | C (restricted) ⚠ |
+| weak decay vs conjugate decay | CP | CP |
+| nothing of the above | nothing — couplings independent | — |

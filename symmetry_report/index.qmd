@@ -1,0 +1,100 @@
+---
+title: "Overview"
+---
+
+## Motivation
+
+Implementing discrete-symmetry constraints — identical particles, charge
+conjugation, and CP — in helicity-formalism amplitudes for cascade decays is
+notoriously error-prone. The helicity amplitude carries explicit spin indices,
+so it is *not* an eigenstate of particle permutation; swapping two particles
+changes the kinematic point *and* mixes helicity components with non-trivial
+phases. Every practical analysis (three-pion systems, $\Xi_b^-\to pK^-K^-$,
+$B_s^0\to J/\psi\, p\bar p$, $J/\psi\to \eta\, p\bar p$,
+$\chi_{c0,2}\to K\bar K\pi\pi$) has required solving essentially the same
+problem from scratch, each time in slightly different conventions.
+
+This report collects the rules once and for all: clear recipes for imposing
+permutation symmetry and charge conjugation in the helicity formalism,
+systematic cross-check methods against covariant (tensor) amplitudes, and a
+registry of the conventions where sign mistakes hide.
+
+## Strategy
+
+Reasoning directly with helicity *state vectors* $|p; j,\lambda\rangle$ and
+their transformation properties is deliberately postponed. It is hard to track
+all phase conventions at the state level, and easy to arrive at contradictions.
+Instead the working object is the **practical amplitude**: a concrete complex
+function of four-vectors carrying helicity labels,
+$$
+M_{\lambda_0;\,\lambda_1\dots\lambda_n}(p_1,\dots,p_n),
+$$
+evaluated by explicit code (chain amplitudes with Wigner rotations, or tensor
+contractions with explicit spinors/polarization vectors).
+
+The anchoring principle of the report (stated precisely in
+[the permutation chapter](02-permutations.qmd)) is:
+
+> **Impose symmetries on the fixed-frame amplitude; derive chain-level rules by
+> tracking alignment rotations.**
+>
+> When all helicities are defined in one common frame, particle exchange is a
+> pure slot swap of $(p_i,\lambda_i)$ pairs (with the statistics sign), and
+> charge conjugation touches neither momenta nor spin labels. All non-trivial
+> phases — such as $(-1)^{\lambda_0\pm\lambda_2}$ in $\Xi_b^-\to pK^-K^-$ —
+> arise *only* when the amplitude is re-expressed in chain-specific aligned
+> frames (Dalitz-plot-decomposition style). They are Wigner-rotation
+> bookkeeping, not new physics input.
+
+This turns each cumbersome case into a two-step procedure: (1) write the
+symmetry constraint in the fixed frame, where it is trivial; (2) translate to
+the aligned/chain representation used by the fitter, computing the induced
+phases once, explicitly, and verifying them numerically.
+
+## Case studies
+
+Ordered by increasing complexity of the symmetry structure:
+
+| # | System | Symmetry content | Status |
+|---|--------|------------------|--------|
+| 1 | [$\pi^+\pi^-\pi^-$, $D^0D^0\pi^+$](cases/01-three-pions/notes.qmd) | identical spinless particles | mostly understood; LS-basis exchange phase to pin down |
+| 2 | [$\Xi_b^-\to pK^-K^-$](cases/02-xib2pKK/notes.qmd) | identical bosons + fermion spectator, weak decay | master formula derived by closure and cross-checked; prior exponent convention still to map |
+| 3 | [$J/\psi\to \eta\, p\bar p$](cases/03-jpsi2etappbar/notes.qmd) | strong decay: C, P both good — clean playground | to do |
+| 4 | [$B_s^0\to J/\psi\, p\bar p$](cases/04-bs2jpsippbar/notes.qmd) | weak decay; effective C from gluonic $p\bar p$ production | cross-checked vs tensors; to revisit |
+| 5 | [$\chi_{c0,2}\to K\bar K\pi\pi$](cases/05-chic2KKpipi/notes.qmd) | 4-body, C=+, $K_{1A}/K_{1B}$ mixing | open |
+
+Each case study lives in its own subfolder under `cases/`, where additional
+notes, derivations, and check scripts accumulate.
+
+## Chapter guide
+
+1. [Conventions and notation](01-conventions.qmd) — the fixed-frame amplitude,
+   chain amplitudes, and the convention registry.
+2. [Permutation symmetry](02-permutations.qmd) — the master rule, LS-basis and
+   helicity-basis exchange phases, alignment-induced phases.
+3. [Charge conjugation and CP](03-charge-conjugation.qmd) — C as an internal
+   symmetry, current-level signs, CP relations for weak decays.
+4. [Cross-check methodology](04-cross-checks.qmd) — tensor-amplitude bridge,
+   numerical symmetry tests.
+5. [Recipes](05-recipes.qmd) — the distilled step-by-step procedures.
+6. [Claims ledger](99-ledger.qmd) — every non-trivial statement with its
+   verification status.
+7. [Technical appendix](appendix-microscopic.qmd) — the microscopic derivation
+   of the permutation theorem image for $\Xi_b^-\to pK^-K^-$.
+
+## Related material in this repository
+
+- `docs/isospin-kaon-conventions.qmd` — isospin doublet conventions and
+  current-level charge-conjugation signs for kaons, including the
+  $K_{1A}/K_{1B}$ discussion relevant for case 5.
+- `docs/four-pion-model.qmd` — the four-pion cascade model tutorial.
+- `ThreeBodyDecays.jl` / `CascadeDecays.jl` — numerical implementations used
+  for the cross-checks.
+
+## Rendering
+
+```sh
+cd symmetry_report
+quarto render        # -> _report/index.html
+quarto preview       # live preview while editing
+```

@@ -16,3 +16,9 @@ docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl
 docs/.DS_Store
+.DS_Store
+
+# symmetry report build artifacts
+symmetry_report/_report/
+symmetry_report/.quarto/
+symmetry_report/.DS_Store

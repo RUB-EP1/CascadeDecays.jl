@@ -1,0 +1,40 @@
+---
+title: "Claims ledger"
+---
+
+Every non-trivial statement used in this report, with its verification
+status. Statuses:
+
+<span class="badge-derived">derived</span> — derivation written down in this
+report; <span class="badge-checked">cross-checked</span> — confirmed by an
+independent method (tensor bridge or numerics), with a link to the artifact;
+<span class="badge-conjecture">conjecture</span> — plausible, used
+provisionally; <span class="badge-open">open</span> — question without a
+candidate answer.
+
+The target end state: every row either
+<span class="badge-checked">cross-checked</span> or removed.
+
+| ID | Claim | Where | Status |
+|----|-------|-------|--------|
+| L1 | LS-basis exchange phase $(-1)^{L+s_1+s_2-S}$ (@eq-ls-exchange) | permutations ch. | <span class="badge-derived">derived</span> — numeric check pending |
+| L2 | Helicity-basis exchange phase $(-1)^{J-s_1-s_2}$ (@eq-hel-exchange) | permutations ch. | <span class="badge-derived">derived</span> (algebra from L1) — numeric check pending |
+| L3 | Master permutation rule on the fixed-frame amplitude (@thm-master), incl. convention-robustness | permutations ch. | <span class="badge-checked">cross-checked</span> — covariant toy model, test A of `cases/02-xib2pKK/toy_alignment_check.jl`; DPD-side check via case 1 still pending |
+| L3a | The aligned amplitude $A(\sigma)$ is **not** a permutation eigenfunction; $M(p_j,p_i\ \text{swap}) \ne A(\sigma\ \text{swap})$ — slot swap leaves the standard orientation, compensating rotation $R_z(\pi)$ about the spectator axis generates the phase | permutations ch., case 2 | <span class="badge-checked">cross-checked</span> — tests C, D of the toy script |
+| L4 | $\Xi_b^-\to pK^-K^-$ master formula: symmetrization phase $\varepsilon_{\lambda_0'\lambda_2}=(-1)^{\lambda_0'-\lambda_2}$ in the toy conventions (proton along $+\hat z$, $R(\phi,\theta,-\phi)$), **derived** by closure — the orientation shift $(\gamma,\phi_W)\to(\gamma+\pi,\phi_W+\pi)$ under the kaon swap forces the bracket phase; the opposite exponent gives Fermi statistics. Prior derivation's $(-1)^{\lambda_0+\lambda_2}$ maps by the convention-bound sign $(-1)^{2\lambda_2}$ | case 2; technical appendix | <span class="badge-checked">derived + cross-checked</span> (tensor prior work; toy tests B, E, F) — mapping to the prior convention set still to be pinned |
+| L5 | C acts trivially on parent polarization in the fixed frame; all spin complications are alignment phases (resolves $\chi_{c2}$ worry) | C chapter, case 5 | <span class="badge-derived">derived</span> from C internality — numeric check pending |
+| L6 | Fixed-frame parity action / one-particle parity phase convention | C chapter | <span class="badge-open">open</span> — to fix via case 3 |
+| L7 | Effective C relation for gluon-produced $p\bar p$ in $B_s^0\to J/\psi p\bar p$ | case 4 | <span class="badge-checked">cross-checked</span> (tensor, prior work) — precise operator-level statement pending |
+| L8 | Current-level $\eta_C$ signs: $K^*$: $-$, $1^{++}$: $+$, $1^{+-}$: $-$; impose in $(K_{1A},K_{1B})$ basis then rotate | `docs/isospin-kaon-conventions.qmd` | <span class="badge-derived">derived</span> (Dirac-matrix identities) |
+| L9 | $\kappa=+1$ for the $K^+K^-\pi^+\pi^-$ C relation (@eq-c-selfconj) | case 5 | <span class="badge-conjecture">conjecture</span> |
+| L10 | Four-body permutation/conjugation alignment rotation is non-planar (full rotation, not a sign) | case 5 | <span class="badge-conjecture">conjecture</span> |
+| L11 | Coupling identification $g_{R_{(12)}\pi_3}=g_{R_{(31)}\pi_2}$ for spinless systems, incl. vertex-ordering sign | case 1 | <span class="badge-conjecture">conjecture</span> — trace $(-1)^{L_R}$ bookkeeping |
+
+## Convention items to fix (registry)
+
+| ID | Item | Status |
+|----|------|--------|
+| R1 | One-particle helicity convention ($R(\phi,\theta,-\phi)$ vs $R(\phi,\theta,0)$) | <span class="badge-open">open</span> |
+| R2 | Antiparticle spinor phase ($v = C\bar u^T$ variant) | <span class="badge-open">open</span> |
+| R3 | $\epsilon^{0123}$ sign | <span class="badge-open">open</span> |
+| R4 | DPD standard orientation per case study | <span class="badge-open">open</span> — record per case |
