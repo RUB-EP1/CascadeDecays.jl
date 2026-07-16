@@ -521,11 +521,34 @@ transform!(
 nothing
 ```
 
+The first generated event illustrates the topology-local coordinates stored in
+a `KinematicPoint` before the amplitude is evaluated.
+
+```{julia}
+#| label: kinematic-point-example
+#| output: asis
+first_point = KinematicPoint(task, first(events.momenta))
+reference_kinematics = kinematics_at(first_point, task.reference_topology)
+
+point_summary = DataFrame(
+    field=["reference topology", "stored topologies", "line masses2", "vertex angles"],
+    value=[
+        "`" * replace(bracket_notation(task.reference_topology), "," => ", ") * "`",
+        string(length(first_point.kinematics)),
+        join(round.(reference_kinematics.line_masses2; digits=4), ", "),
+        join(
+            ["(cosθ=$(round(a.cosθ; digits=4)), ϕ=$(round(a.ϕ; digits=4)))" for a in reference_kinematics.vertex_angles],
+            ", ",
+        ),
+    ],
+)
+
+show_table(point_summary)
+```
+
 ```{julia}
 #| label: benchmark
 #| output: asis
-KinematicPoint(task, first(events.momenta))
-first_point = KinematicPoint(task, first(events.momenta))
 amplitude(toy_model, first_point)
 
 kinematics_seconds = @elapsed begin
