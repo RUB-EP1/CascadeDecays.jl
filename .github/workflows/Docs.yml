@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "docs/**"
+      - "examples/**"
       - "src/**"
       - "*.toml"
       - ".github/workflows/Docs.yml"
@@ -15,6 +16,7 @@ on:
       - main
     paths:
       - "docs/**"
+      - "examples/**"
       - "src/**"
       - "*.toml"
       - ".github/workflows/Docs.yml"
