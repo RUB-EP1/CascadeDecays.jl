@@ -99,10 +99,10 @@ nothing
 ```{julia}
 #| label: parent-and-resonance-tables
 parents = DataFrame(
-    parent = ["chi_c0", "chi_c2"],
-    jp_label = ["0+", "2+"],
-    jp = [jp"0+", jp"2+"],
-    mass = [M_CHIC0, M_CHIC2],
+    parent=["chi_c0", "chi_c2"],
+    jp_label=["0+", "2+"],
+    jp=[jp"0+", jp"2+"],
+    mass=[M_CHIC0, M_CHIC2],
 )
 
 transform!(
@@ -113,17 +113,17 @@ transform!(
 )
 
 two_body = DataFrame(
-    r2 = ["f0", "rho", "f2"],
-    jp = [jp"0+", jp"1-", jp"2+"],
-    mass = [M_F0, M_RHO, M_F2],
-    width = [Γ_F0, Γ_RHO, Γ_F2],
+    r2=["f0", "rho", "f2"],
+    jp=[jp"0+", jp"1-", jp"2+"],
+    mass=[M_F0, M_RHO, M_F2],
+    width=[Γ_F0, Γ_RHO, Γ_F2],
 )
 
 three_body = DataFrame(
-    r3 = ["a1", "a2", "pi0", "pi1", "pi2"],
-    jp = [jp"1+", jp"2+", jp"0-", jp"1-", jp"2-"],
-    mass = [M_A1, M_A2, M_PI0R, M_PI1, M_PI2],
-    width = [Γ_A1, Γ_A2, Γ_PI0R, Γ_PI1, Γ_PI2],
+    r3=["a1", "a2", "pi0", "pi1", "pi2"],
+    jp=[jp"1+", jp"2+", jp"0-", jp"1-", jp"2-"],
+    mass=[M_A1, M_A2, M_PI0R, M_PI1, M_PI2],
+    width=[Γ_A1, Γ_A2, Γ_PI0R, Γ_PI1, Γ_PI2],
 )
 nothing
 ```
@@ -168,8 +168,8 @@ minus_swap = Dict(1 => 1, 3 => 3, 2 => 4, 4 => 2)
 charge_conjugation = Dict(1 => 2, 2 => 1, 3 => 4, 4 => 3)
 
 bose_maps = DataFrame(
-    operation = ["identity", "swap pi+", "swap pi-", "swap pi+ and pi-"],
-    pmap = [
+    operation=["identity", "swap pi+", "swap pi-", "swap pi+ and pi-"],
+    pmap=[
         identity_map,
         plus_swap,
         minus_swap,
@@ -205,13 +205,13 @@ transform!(
         spectator = tree[2]
         triple = Tuple(vcat(collect(pair), bachelor))
         (;
-            topology = DecayTopology(tree),
-            R3_charge = sum(CHARGE[i] for i in triple) == +1 ? "+" : "-",
-            R3_pions = join(particle_label.(triple), " "),
-            R2_pair = join(particle_label.(pair), " "),
-            bachelor = particle_label(bachelor),
-            spectator = particle_label(spectator),
-            bracket = "`" * tree_label(tree) * "`",
+            topology=DecayTopology(tree),
+            R3_charge=sum(CHARGE[i] for i in triple) == +1 ? "+" : "-",
+            R3_pions=join(particle_label.(triple), " "),
+            R2_pair=join(particle_label.(pair), " "),
+            bachelor=particle_label(bachelor),
+            spectator=particle_label(spectator),
+            bracket="`" * tree_label(tree) * "`",
         )
     end => AsTable,
 )
@@ -265,10 +265,10 @@ pair_pair_checks = transform(
 push!(
     pair_pair_checks,
     (
-        operation = "charge conjugation",
-        pmap = charge_conjugation,
-        stage = "conjugate seed",
-        raw_tree = map_tree(pair_pair_seed, charge_conjugation),
+        operation="charge conjugation",
+        pmap=charge_conjugation,
+        stage="conjugate seed",
+        raw_tree=map_tree(pair_pair_seed, charge_conjugation),
     ),
 )
 
@@ -293,10 +293,10 @@ transform!(
     pair_pair_topologies,
     :tree => ByRow() do tree
         (;
-            topology = DecayTopology(tree),
-            R2a_pair = join(particle_label.(tree[1]), " "),
-            R2b_pair = join(particle_label.(tree[2]), " "),
-            bracket = "`" * tree_label(tree) * "`",
+            topology=DecayTopology(tree),
+            R2a_pair=join(particle_label.(tree[1]), " "),
+            R2b_pair=join(particle_label.(tree[2]), " "),
+            bracket="`" * tree_label(tree) * "`",
         )
     end => AsTable,
 )
@@ -344,10 +344,10 @@ transform!(
         )
         couplings = possible_vertex_couplings(row.topology, quantum, propagators)
         (;
-            parent_ls = couplings[1].second,
-            r3_ls = couplings[2].second,
-            r2_ls = couplings[3].second,
-            n_ls = prod(length(c.second) for c in couplings),
+            parent_ls=couplings[1].second,
+            r3_ls=couplings[2].second,
+            r2_ls=couplings[3].second,
+            n_ls=prod(length(c.second) for c in couplings),
         )
     end => AsTable,
 )
@@ -376,10 +376,10 @@ transform!(
         )
         couplings = possible_vertex_couplings(row.topology, quantum, propagators)
         (;
-            parent_ls = couplings[1].second,
-            r2a_ls = couplings[2].second,
-            r2b_ls = couplings[3].second,
-            n_ls = prod(length(c.second) for c in couplings),
+            parent_ls=couplings[1].second,
+            r2a_ls=couplings[2].second,
+            r2b_ls=couplings[3].second,
+            n_ls=prod(length(c.second) for c in couplings),
         )
     end => AsTable,
 )
@@ -512,7 +512,7 @@ const N_BENCH_EVENTS = 100
 rng = MersenneTwister(20260707)
 generator = PhaseSpaceGenerator(fill(M_PI, 4), M_CHIC2)
 
-events = DataFrame(event = [rand(rng, generator) for _ in 1:N_BENCH_EVENTS])
+events = DataFrame(event=[rand(rng, generator) for _ in 1:N_BENCH_EVENTS])
 transform!(
     events,
     :event => ByRow(event -> Tuple(event.momenta)) => :momenta,
@@ -521,11 +521,34 @@ transform!(
 nothing
 ```
 
+The first generated event illustrates the topology-local coordinates stored in
+a `KinematicPoint` before the amplitude is evaluated.
+
+```{julia}
+#| label: kinematic-point-example
+#| output: asis
+first_point = KinematicPoint(task, first(events.momenta))
+reference_kinematics = kinematics_at(first_point, task.reference_topology)
+
+point_summary = DataFrame(
+    field=["reference topology", "stored topologies", "line masses2", "vertex angles"],
+    value=[
+        "`" * replace(bracket_notation(task.reference_topology), "," => ", ") * "`",
+        string(length(first_point.kinematics)),
+        join(round.(reference_kinematics.line_masses2; digits=4), ", "),
+        join(
+            ["(cosθ=$(round(a.cosθ; digits=4)), ϕ=$(round(a.ϕ; digits=4)))" for a in reference_kinematics.vertex_angles],
+            ", ",
+        ),
+    ],
+)
+
+show_table(point_summary)
+```
+
 ```{julia}
 #| label: benchmark
 #| output: asis
-KinematicPoint(task, first(events.momenta))
-first_point = KinematicPoint(task, first(events.momenta))
 amplitude(toy_model, first_point)
 
 kinematics_seconds = @elapsed begin
@@ -541,9 +564,9 @@ intensity_seconds = @elapsed begin
 end
 
 benchmark = DataFrame(
-    step = ["KinematicPoint construction", "coherent amplitude", "sum(abs2, amplitude)"],
-    events = N_BENCH_EVENTS,
-    total_ms = 1000 .* [kinematics_seconds, amplitude_seconds, intensity_seconds],
+    step=["KinematicPoint construction", "coherent amplitude", "sum(abs2, amplitude)"],
+    events=N_BENCH_EVENTS,
+    total_ms=1000 .* [kinematics_seconds, amplitude_seconds, intensity_seconds],
 )
 
 transform!(
