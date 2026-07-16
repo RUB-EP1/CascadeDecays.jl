@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>pp to pp K+ K- amplitude model · CascadeDecays.jl</title><meta name="title" content="pp to pp K+ K- amplitude model · CascadeDecays.jl"/><meta property="og:title" content="pp to pp K+ K- amplitude model · CascadeDecays.jl"/><meta property="twitter:title" content="pp to pp K+ K- amplitude model · CascadeDecays.jl"/><meta name="description" content="Documentation for CascadeDecays.jl."/><meta property="og:description" content="Documentation for CascadeDecays.jl."/><meta property="twitter:description" content="Documentation for CascadeDecays.jl."/><meta property="og:url" content="https://rub-ep1.github.io/CascadeDecays.jl/examples/pp2ppKK-model/"/><meta property="twitter:url" content="https://rub-ep1.github.io/CascadeDecays.jl/examples/pp2ppKK-model/"/><link rel="canonical" href="https://rub-ep1.github.io/CascadeDecays.jl/examples/pp2ppKK-model/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CascadeDecays.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../notation/">Topology and numbering</a></li><li><a class="tocitem" href="../../amplitude-computation/">Amplitude computation</a></li><li><a class="tocitem" href="../../kinematic-task/">Routing four-vectors</a></li><li><a class="tocitem" href="../../tutorial/">Using a decay chain</a></li><li><a class="tocitem" href="../../lb2lc3pi-model/">Building a full model for a decay</a></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>pp to pp K+ K- amplitude model</a><ul class="internal"><li><a class="tocitem" href="#1.-User-inputs"><span>1. User inputs</span></a></li><li><a class="tocitem" href="#2.-The-three-explicit-topologies"><span>2. The three explicit topologies</span></a></li><li><a class="tocitem" href="#3.-Lineshapes-and-angular-momenta"><span>3. Lineshapes and angular momenta</span></a></li><li><a class="tocitem" href="#4.-Explicit-labeled-proton-sum"><span>4. Explicit labeled-proton sum</span></a></li><li><a class="tocitem" href="#5.-Flat-phase-space-with-RamboOnDiet"><span>5. Flat phase space with <code>RamboOnDiet</code></span></a></li><li><a class="tocitem" href="#6.-Interference-matrix"><span>6. Interference matrix</span></a></li><li><a class="tocitem" href="#7.-The-two-resonance-projections"><span>7. The two resonance projections</span></a></li><li><a class="tocitem" href="#8.-Crossed-channel-\\phi-templates"><span>8. Crossed-channel <span>$\phi$</span> templates</span></a></li><li><a class="tocitem" href="#9.-What-to-change-next"><span>9. What to change next</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../../four-pion-model/">Four-pion model-building catalogue</a></li><li><a class="tocitem" href="../../isospin-kaon-conventions/">Isospin and kaon charge-conjugation conventions</a></li><li><a class="tocitem" href="../../cascade-vs-dpd/">Cross-checking with ThreeBodyDecays</a></li><li><a class="tocitem" href="../../api-reference/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>pp to pp K+ K- amplitude model</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>pp to pp K+ K- amplitude model</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/examples/pp2ppKK-model.qmd#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="pp2ppKK_model"><a class="docs-heading-anchor" href="#pp2ppKK_model">A pp to pp K+ K- amplitude model</a><a id="pp2ppKK_model-1"></a><a class="docs-heading-anchor-permalink" href="#pp2ppKK_model" title="Permalink"></a></h1><p>This tutorial constructs a compact amplitude model for</p><p class="math-container">\[pp \to p_1\,p_2\,K^+\,K^-,
+\qquad \sqrt{s}=3.5\ \mathrm{GeV}.\]</p><p>It contains exactly three labeled chains:</p><p class="math-container">\[\phi(1020)\to K^+K^-,\qquad
+\Lambda(1520)\to p_1K^-,\qquad
+\Lambda(1520)\to p_2K^-.\]</p><p>The two <span>$\Lambda(1520)$</span> copies are written explicitly and use the same complex coupling. <code>RamboOnDiet</code> supplies flat four-body phase space; the model intensity supplies the event weight.</p><p>At this energy, the scattering is expected to proceed mostly through <span>$t$</span>-channel exchange. It therefore does not populate a single production partial wave, but a range of them. Nonetheless, to keep this first model small, we select one effective <span>$0^+$</span> production partial wave. A realistic production model can add the other partial waves as extra coherent chains without changing the event-generation code.</p><h2 id="1.-User-inputs"><a class="docs-heading-anchor" href="#1.-User-inputs">1. User inputs</a><a id="1.-User-inputs-1"></a><a class="docs-heading-anchor-permalink" href="#1.-User-inputs" title="Permalink"></a></h2><p>All numbers that one normally changes are collected in three named tuples. Masses and widths are in GeV.</p><pre><code class="language-julia hljs">using CascadeDecays
+using DataFrames
+using FourVectors
+using HadronicLineshapes
+using LinearAlgebra: Hermitian
+using Plots
+using Random
+using RamboOnDiet
+using ThreeBodyDecays:
+    @jp_str,
+    OverlapContribution,
+    fit_fractions,
+    interference_terms,
+    total_intensity
+
+theme(:boxed)
+
+function show_table(table)
+    io = IOBuffer()
+    context = IOContext(io, :displaysize =&gt; (100, 120))
+    show(context, table; allrows=true, allcols=true, truncate=0)
+    text = String(take!(io))
+    println(join(rstrip.(split(text, &#39;\n&#39;)), &#39;\n&#39;))
+end
+
+const particles = (
+    proton=0.9382720813,
+    kaon=0.493677,
+)
+
+const resonances = (
+    phi=(mass=1.019461, width=0.004249),
+    lambda1520=(mass=1.5195, width=0.0156),
+)
+
+const settings = (
+    sqrt_s=3.5,
+    n_events=50_000,
+    seed=0x3500,
+    c_phi=2.0 + 0.0im,
+    c_lambda1520=5.0 + 0.0im,
+)
+
+@assert settings.sqrt_s &gt; 2particles.proton + 2particles.kaon
+nothing</code></pre><p>Final-state labels are fixed once and used everywhere below:</p><table><tr><th style="text-align: right">label</th><th style="text-align: left">particle</th><th style="text-align: center"><span>$J^P$</span></th></tr><tr><td style="text-align: right"><code>1</code></td><td style="text-align: left"><span>$p_1$</span></td><td style="text-align: center"><span>$1/2^+$</span></td></tr><tr><td style="text-align: right"><code>2</code></td><td style="text-align: left"><span>$p_2$</span></td><td style="text-align: center"><span>$1/2^+$</span></td></tr><tr><td style="text-align: right"><code>3</code></td><td style="text-align: left"><span>$K^+$</span></td><td style="text-align: center"><span>$0^-$</span></td></tr><tr><td style="text-align: right"><code>4</code></td><td style="text-align: left"><span>$K^-$</span></td><td style="text-align: center"><span>$0^-$</span></td></tr><tr><td style="text-align: right">root</td><td style="text-align: left">effective <span>$pp$</span> partial wave</td><td style="text-align: center"><span>$0^+$</span></td></tr></table><pre><code class="language-julia hljs">quantum = SystemSpinParities(
+    &quot;1/2+&quot;, # p1
+    &quot;1/2+&quot;, # p2
+    &quot;0-&quot;,   # K+
+    &quot;0-&quot;;   # K-
+    jp0=&quot;0+&quot;,
+)</code></pre><h2 id="2.-The-three-explicit-topologies"><a class="docs-heading-anchor" href="#2.-The-three-explicit-topologies">2. The three explicit topologies</a><a id="2.-The-three-explicit-topologies-1"></a><a class="docs-heading-anchor-permalink" href="#2.-The-three-explicit-topologies" title="Permalink"></a></h2><p><code>CascadeDecays</code> uses binary trees. The partner of the physical isobar is therefore represented by a constant nonresonant subsystem:</p><ul><li><p class="math-container">\[(p_1p_2)_{0^+}\]</p>is the <span>${}^1S_0$</span> partner of the <span>$\phi$</span>;</li><li><p class="math-container">\[(pK^+)_{1/2^-}\]</p>is an S-wave partner of the <span>$\Lambda(1520)$</span>.</li></ul><p>These partners close the binary tree but add no mass-dependent resonance.</p><pre><code class="language-julia hljs">topology_phi = DecayTopology(((1, 2), (3, 4)))
+topology_lambda_p1 = DecayTopology(((1, 4), (2, 3)))
+topology_lambda_p2 = DecayTopology(((2, 4), (1, 3)))
+
+topologies = (
+    topology_phi,
+    topology_lambda_p1,
+    topology_lambda_p2,
+)
+
+channel_table = DataFrame(
+    channel=[&quot;phi&quot;, &quot;Lambda(1520): p1 K-&quot;, &quot;Lambda(1520): p2 K-&quot;],
+    resonant_pair=[&quot;(K+, K-)&quot;, &quot;(p1, K-)&quot;, &quot;(p2, K-)&quot;],
+    topology=collect(bracket_notation.(topologies)),
+)</code></pre><pre><code class="language-julia hljs">show_table(channel_table)</code></pre><pre><code class="nohighlight hljs">3×3 DataFrame
+ Row │ channel              resonant_pair  topology
+     │ String               String         String
+─────┼───────────────────────────────────────────────────
+   1 │ phi                  (K+, K-)       ((1,2),(3,4))
+   2 │ Lambda(1520): p1 K-  (p1, K-)       ((1,4),(2,3))
+   3 │ Lambda(1520): p2 K-  (p2, K-)       ((2,4),(1,3))</code></pre><h2 id="3.-Lineshapes-and-angular-momenta"><a class="docs-heading-anchor" href="#3.-Lineshapes-and-angular-momenta">3. Lineshapes and angular momenta</a><a id="3.-Lineshapes-and-angular-momenta-1"></a><a class="docs-heading-anchor-permalink" href="#3.-Lineshapes-and-angular-momenta" title="Permalink"></a></h2><p>The <code>l</code> keyword in each Breit–Wigner controls its running-width threshold factor. It is <code>1</code> for the P-wave <span>$\phi\to K^+K^-$</span> decay and <code>2</code> for the D-wave <span>$\Lambda(1520)\to pK^-$</span> decay.</p><pre><code class="language-julia hljs">unit_lineshape = ConstantLineshape(1.0 + 0.0im)
+
+phi_lineshape = BreitWigner(;
+    m=resonances.phi.mass,
+    Γ=resonances.phi.width,
+    ma=particles.kaon,
+    mb=particles.kaon,
+    l=1,
+    d=1.5,
+)
+
+lambda1520_lineshape = BreitWigner(;
+    m=resonances.lambda1520.mass,
+    Γ=resonances.lambda1520.width,
+    ma=particles.proton,
+    mb=particles.kaon,
+    l=2,
+    d=1.5,
+)</code></pre><p>Each propagator is addressed by the same bracket notation as its topology. <code>minimal_ls_decay_chain</code> then chooses the lowest allowed LS coupling at every vertex.</p><pre><code class="language-julia hljs">propagators_phi = (
+    (1, 2) =&gt; Propagator(jp&quot;0+&quot;, unit_lineshape),
+    (3, 4) =&gt; Propagator(jp&quot;1-&quot;, phi_lineshape),
+)
+
+propagators_lambda_p1 = (
+    (1, 4) =&gt; Propagator(jp&quot;3/2-&quot;, lambda1520_lineshape),
+    (2, 3) =&gt; Propagator(jp&quot;1/2-&quot;, unit_lineshape),
+)
+
+propagators_lambda_p2 = (
+    (2, 4) =&gt; Propagator(jp&quot;3/2-&quot;, lambda1520_lineshape),
+    (1, 3) =&gt; Propagator(jp&quot;1/2-&quot;, unit_lineshape),
+)
+
+chain_phi = minimal_ls_decay_chain(topology_phi, quantum, propagators_phi)
+chain_lambda_p1 = minimal_ls_decay_chain(
+    topology_lambda_p1,
+    quantum,
+    propagators_lambda_p1,
+)
+chain_lambda_p2 = minimal_ls_decay_chain(
+    topology_lambda_p2,
+    quantum,
+    propagators_lambda_p2,
+)</code></pre><p>The selected local couplings are doubled integers <code>(2L, 2S)</code>. In particular, the two resonance decays are</p><p class="math-container">\[\phi\to K^+K^-: (2L,2S)=(2,0),\qquad
+\Lambda(1520)\to pK^-: (2L,2S)=(4,1).\]</p><pre><code class="language-julia hljs">@assert last(minimal_vertex_couplings(
+    topology_phi,
+    quantum,
+    propagators_phi,
+)).second == (2, 0)
+
+@assert minimal_vertex_couplings(
+    topology_lambda_p1,
+    quantum,
+    propagators_lambda_p1,
+)[2].second == (4, 1);</code></pre><h2 id="4.-Explicit-labeled-proton-sum"><a class="docs-heading-anchor" href="#4.-Explicit-labeled-proton-sum">4. Explicit labeled-proton sum</a><a id="4.-Explicit-labeled-proton-sum-1"></a><a class="docs-heading-anchor-permalink" href="#4.-Explicit-labeled-proton-sum" title="Permalink"></a></h2><p>The requested coherent amplitude is</p><p class="math-container">\[\mathcal A =
+c_\phi\,\mathcal A_\phi
++c_\Lambda\,\mathcal A_{\Lambda(p_1K^-)}
++c_\Lambda\,\mathcal A_{\Lambda(p_2K^-)}.\]</p><p>The repeated <code>settings.c_lambda1520</code> below is the explicit tying of the two <span>$pK^-$</span> assignments. No automatic permutation helper is involved.</p><pre><code class="language-julia hljs">model = CascadeDecay(
+    (chain_phi, chain_lambda_p1, chain_lambda_p2),
+    topology_phi;
+    couplings=(
+        settings.c_phi,
+        settings.c_lambda1520,
+        settings.c_lambda1520,
+    ),
+    names=(
+        &quot;phi-&gt;K+K-&quot;,
+        &quot;Lambda(1520)-&gt;p1K-&quot;,
+        &quot;Lambda(1520)-&gt;p2K-&quot;,
+    ),
+)
+
+model_phi = model[[1]]
+model_lambda = model[[2, 3]]</code></pre><pre><code class="language-julia hljs">show(model)</code></pre><pre><code class="nohighlight hljs">CascadeDecay with 3 chains on ((1,2),(3,4)):
+                name     coupling       topology
+           phi-&gt;K+K-  2.0 + 0.0im  ((1,2),(3,4))
+  Lambda(1520)-&gt;p1K-  5.0 + 0.0im  ((1,4),(2,3))
+  Lambda(1520)-&gt;p2K-  5.0 + 0.0im  ((2,4),(1,3))</code></pre><p>This is a same-sign labeled sum, exactly as written above. <code>CascadeDecays</code> does not insert a fermion-exchange sign automatically. If a later production convention requires an antisymmetrized proton state, encode its exchange phase explicitly in the two coefficients after fixing the spin and isospin conventions.</p><h2 id="5.-Flat-phase-space-with-RamboOnDiet"><a class="docs-heading-anchor" href="#5.-Flat-phase-space-with-RamboOnDiet">5. Flat phase space with <code>RamboOnDiet</code></a><a id="5.-Flat-phase-space-with-RamboOnDiet-1"></a><a class="docs-heading-anchor-permalink" href="#5.-Flat-phase-space-with-RamboOnDiet" title="Permalink"></a></h2><p>The kinematic task contains all three topologies. <code>wigner_finals=(1, 2)</code> aligns the two proton spin axes before amplitudes from different trees are added.</p><pre><code class="language-julia hljs">rng = MersenneTwister(settings.seed)
+generator = PhaseSpaceGenerator(
+    [
+        particles.proton,
+        particles.proton,
+        particles.kaon,
+        particles.kaon,
+    ],
+    settings.sqrt_s,
+)
+
+task = KinematicTask(
+    topologies;
+    reference_topology=topology_phi,
+    wigner_finals=(1, 2),
+)
+
+events = [rand(rng, generator) for _ in 1:settings.n_events]
+momenta = [Tuple(event.momenta) for event in events]
+points = [KinematicPoint(task, p) for p in momenta]
+
+@assert all(isapprox(mass(reduce(+, p)), settings.sqrt_s; atol=1e-10) for p in momenta)
+
+# The explicitly paired Lambda(1520) contribution is unchanged in
+# unpolarized intensity when the two proton labels are exchanged.
+p = first(momenta)
+p_with_protons_exchanged = (p[2], p[1], p[3], p[4])
+@assert isapprox(
+    unpolarized_intensity(model_lambda, KinematicPoint(task, p)),
+    unpolarized_intensity(model_lambda, KinematicPoint(task, p_with_protons_exchanged));
+    rtol=1e-10,
+);</code></pre><p>For a flat phase-space event with Jacobian <span>$J_{\rm PS}$</span>, the model weight is</p><p class="math-container">\[w = J_{\rm PS}\sum_{\mathrm{helicities}}|\mathcal A|^2.\]</p><p>The separate <span>$\phi$</span> and <span>$\Lambda(1520)$</span> weights below are diagnostics. The full model is evaluated coherently and can contain interference.</p><pre><code class="language-julia hljs">sample = DataFrame(
+    m_KK=[mass(p[3] + p[4]) for p in momenta],
+    m_p1Km=[mass(p[1] + p[4]) for p in momenta],
+    m_p2Km=[mass(p[2] + p[4]) for p in momenta],
+    weight_ps=[event.weight for event in events],
+)
+
+intensity_phi = unpolarized_intensity.(Ref(model_phi), points)
+intensity_lambda = unpolarized_intensity.(Ref(model_lambda), points)
+intensity_total = unpolarized_intensity.(Ref(model), points)
+
+sample.weight_phi = sample.weight_ps .* intensity_phi
+sample.weight_lambda = sample.weight_ps .* intensity_lambda
+sample.weight_total = sample.weight_ps .* intensity_total
+
+@assert all(isfinite, sample.weight_total)
+@assert all(&gt;=(0), sample.weight_total);</code></pre><h2 id="6.-Interference-matrix"><a class="docs-heading-anchor" href="#6.-Interference-matrix">6. Interference matrix</a><a id="6.-Interference-matrix-1"></a><a class="docs-heading-anchor-permalink" href="#6.-Interference-matrix" title="Permalink"></a></h2><p>Interference integrals are routine diagnostics even when they are not the main result of an analysis. For two coherent components <span>$A$</span> and <span>$B$</span>, no new amplitude algebra is needed:</p><p class="math-container">\[I_{AB} = \int d\Phi_4\,
+\left( |A+B|^2-|A|^2-|B|^2 \right).\]</p><p>The Monte Carlo estimator is the same subtraction applied to the three sums of phase-space-weighted intensities. Here the components are the isolated <span>$\phi$</span> chain and the coherent pair of labeled <span>$\Lambda(1520)$</span> chains. The <code>merge</code> operation reconstructs their coherent sum while retaining the component names.</p><pre><code class="language-julia hljs">components = (model_phi, model_lambda)
+component_names = [&quot;phi&quot;, &quot;Lambda(1520) pair&quot;]
+model_from_components = merge(components...)
+
+@assert model_from_components.names == model.names
+
+component_integrals = [
+    sum(sample.weight_phi),
+    sum(sample.weight_lambda),
+]
+total_integral = sum(sample.weight_total)
+interference_integral = total_integral - sum(component_integrals)
+
+# Store half the pair interference in each off-diagonal entry, so summing the
+# full matrix gives the coherent integral.
+integral_matrix = [
+    component_integrals[1] interference_integral / 2
+    interference_integral / 2 component_integrals[2]
+]
+overlap = OverlapContribution(
+    component_names,
+    Hermitian(complex.(integral_matrix), :U),
+)
+
+@assert isapprox(total_intensity(overlap), total_integral; rtol=1e-12)
+
+fraction_matrix = 100 .* real.(Matrix(overlap.matrix)) ./ total_intensity(overlap)
+interference_matrix = DataFrame(
+    component=component_names,
+    phi_percent=round.(fraction_matrix[:, 1]; digits=3),
+    lambda1520_pair_percent=round.(fraction_matrix[:, 2]; digits=3),
+)
+show_table(interference_matrix)</code></pre><pre><code class="nohighlight hljs">2×3 DataFrame
+ Row │ component          phi_percent  lambda1520_pair_percent
+     │ String             Float64      Float64
+─────┼─────────────────────────────────────────────────────────
+   1 │ phi                     31.753                    0.004
+   2 │ Lambda(1520) pair        0.004                   68.24</code></pre><p>The diagonal entries are fit fractions. Each off-diagonal entry is half of the pair interference fraction; consequently all four entries sum to <span>$100\%$</span>. <code>ThreeBodyDecays</code> provides the corresponding labeled summaries once the MC sums have been stored in an <code>OverlapContribution</code>.</p><pre><code class="language-julia hljs">fit_fraction_rows = fit_fractions(overlap; sort=false)
+interference_rows = interference_terms(overlap; sort=false)
+overlap_summary = DataFrame(
+    contribution=vcat(
+        [&quot;fit fraction: $(row.label)&quot; for row in fit_fraction_rows],
+        [
+            &quot;interference: $(row.label_i) x $(row.label_j)&quot; for
+            row in interference_rows
+        ],
+    ),
+    percent=round.(
+        vcat(
+            getproperty.(fit_fraction_rows, :fraction),
+            getproperty.(interference_rows, :fraction),
+        );
+        digits=6,
+    ),
+)
+show_table(overlap_summary)</code></pre><pre><code class="nohighlight hljs">3×2 DataFrame
+ Row │ contribution                           percent
+     │ String                                 Float64
+─────┼──────────────────────────────────────────────────
+   1 │ fit fraction: phi                      31.7526
+   2 │ fit fraction: Lambda(1520) pair        68.2398
+   3 │ interference: phi x Lambda(1520) pair   0.007675</code></pre><h2 id="7.-The-two-resonance-projections"><a class="docs-heading-anchor" href="#7.-The-two-resonance-projections">7. The two resonance projections</a><a id="7.-The-two-resonance-projections-1"></a><a class="docs-heading-anchor-permalink" href="#7.-The-two-resonance-projections" title="Permalink"></a></h2><p>Both <span>$pK^-$</span> label assignments are filled into the same histogram. Curves are area-normalized so their shapes remain readable when the illustrative complex couplings are changed.</p><pre><code class="language-julia hljs">const bins_kk = range(0.95, 1.2, 60)
+const bins_pk = range(1.40, 2.05, 100)
+
+function shapehist(values, weights; label, color, linestyle=:solid, bins=90)
+    return stephist(
+        values;
+        bins,
+        weights,
+        normalize=:pdf,
+        label,
+        color,
+        linestyle,
+        linewidth=2,
+    )
+end
+
+p_kk = shapehist(
+    sample.m_KK,
+    sample.weight_ps;
+    label=&quot;phase space&quot;,
+    color=:gray,
+    linestyle=:dash,
+    bins=bins_kk
+)
+stephist!(
+    p_kk,
+    sample.m_KK;
+    weights=sample.weight_phi,
+    normalize=:pdf,
+    bins=bins_kk,
+    label=&quot;phi component&quot;,
+    color=2,
+    linewidth=2,
+)
+stephist!(
+    p_kk,
+    sample.m_KK;
+    weights=sample.weight_total,
+    normalize=:pdf,
+    bins=bins_kk,
+    label=&quot;coherent total&quot;,
+    color=:black,
+    linewidth=2,
+)
+plot!(p_kk; xlabel=&quot;m(K+ K-) [GeV]&quot;, ylabel=&quot;normalized density&quot;)
+
+pK_values = vcat(sample.m_p1Km, sample.m_p2Km)
+pK_ps_weights = repeat(sample.weight_ps, 2)
+pK_lambda_weights = repeat(sample.weight_lambda, 2)
+pK_total_weights = repeat(sample.weight_total, 2)
+
+p_pk = shapehist(
+    pK_values,
+    pK_ps_weights;
+    bins=bins_pk,
+    label=&quot;phase space&quot;,
+    color=:gray,
+    linestyle=:dash,
+)
+stephist!(
+    p_pk,
+    pK_values;
+    weights=pK_lambda_weights,
+    normalize=:pdf,
+    bins=bins_pk,
+    label=&quot;Lambda(1520) pair&quot;,
+    color=3,
+    linewidth=2,
+)
+stephist!(
+    p_pk,
+    pK_values;
+    weights=pK_total_weights,
+    normalize=:pdf,
+    bins=bins_pk,
+    label=&quot;coherent total&quot;,
+    color=:black,
+    linewidth=2,
+)
+plot!(p_pk; xlabel=&quot;m(p K-) [GeV]&quot;, ylabel=&quot;normalized density&quot;)
+
+plot(
+    p_kk,
+    p_pk;
+    layout=(1, 2),
+    size=(950, 380),
+    bottom_margin=4Plots.PlotMeasures.mm,
+    left_margin=4Plots.PlotMeasures.mm,
+)</code></pre><p><img src="../pp2ppKK-model_files/figure-commonmark/projections-output-1.svg" alt="Phase-space and amplitude-weighted invariant-mass projections."/></p><h2 id="8.-Crossed-channel-\\phi-templates"><a class="docs-heading-anchor" href="#8.-Crossed-channel-\\phi-templates">8. Crossed-channel <span>$\phi$</span> templates</a><a id="8.-Crossed-channel-\\phi-templates-1"></a><a class="docs-heading-anchor-permalink" href="#8.-Crossed-channel-\\phi-templates" title="Permalink"></a></h2><p>An isolated resonance also produces structure in invariant masses that do not contain its decay pair. To expose this reflection, compare a hypothetical scalar state (<span>$J^P=0^+$</span>, S-wave <span>$K^+K^-$</span>) with the physical vector <span>$\phi$</span> at the same pole (<span>$J^P=1^-$</span>, P-wave <span>$K^+K^-$</span>). Keeping the mass and width fixed makes the difference in the normalized <span>$pK^-$</span> projection a spin effect rather than a lineshape effect.</p><pre><code class="language-julia hljs">scalar_phi_lineshape = BreitWigner(;
+    m=resonances.phi.mass,
+    Γ=resonances.phi.width,
+    ma=particles.kaon,
+    mb=particles.kaon,
+    l=0,
+    d=1.5,
+)
+
+scalar_phi_chain = minimal_ls_decay_chain(
+    topology_phi,
+    quantum,
+    (
+        (1, 2) =&gt; Propagator(jp&quot;0+&quot;, unit_lineshape),
+        (3, 4) =&gt; Propagator(jp&quot;0+&quot;, scalar_phi_lineshape),
+    ),
+)
+model_phi_scalar = CascadeDecay(
+    (scalar_phi_chain,),
+    topology_phi;
+    couplings=(settings.c_phi,),
+    names=(&quot;scalar phi-like-&gt;K+K-&quot;,),
+)
+
+intensity_phi_scalar = unpolarized_intensity.(Ref(model_phi_scalar), points)
+weight_phi_scalar = sample.weight_ps .* intensity_phi_scalar</code></pre><p>Both labeled <span>$pK^-$</span> combinations are filled. The templates are independently area-normalized: their comparison answers only how the spin of an isolated <span>$K^+K^-$</span> resonance is projected into the crossed <span>$pK^-$</span> channel.</p><pre><code class="language-julia hljs">bins_phi_template = range(1.40, 2.05, 32)
+
+p_phi_template = shapehist(
+    pK_values,
+    repeat(weight_phi_scalar, 2);
+    bins=bins_phi_template,
+    label=&quot;scalar 0+ (S-wave KK)&quot;,
+    color=4,
+)
+stephist!(
+    p_phi_template,
+    pK_values;
+    weights=repeat(sample.weight_phi, 2),
+    normalize=:pdf,
+    bins=bins_phi_template,
+    label=&quot;vector 1- (P-wave KK)&quot;,
+    color=2,
+    linewidth=2,
+)
+plot!(
+    p_phi_template;
+    xlabel=&quot;m(p K-) [GeV]&quot;,
+    ylabel=&quot;normalized density&quot;,
+    size=(620, 400),
+    bottom_margin=4Plots.PlotMeasures.mm,
+    left_margin=4Plots.PlotMeasures.mm,
+)</code></pre><p><img src="../pp2ppKK-model_files/figure-commonmark/phi-crossed-channel-templates-output-1.svg" alt="Crossed-channel pK- templates from a hypothetical scalar state and the physical vector phi with the same pole parameters."/></p><h2 id="9.-What-to-change-next"><a class="docs-heading-anchor" href="#9.-What-to-change-next">9. What to change next</a><a id="9.-What-to-change-next-1"></a><a class="docs-heading-anchor-permalink" href="#9.-What-to-change-next" title="Permalink"></a></h2><ul><li>Replace <code>settings.c_phi</code> and <code>settings.c_lambda1520</code> by fit parameters.</li><li>Add production partial waves as additional <code>DecayChain</code> objects.</li><li>Replace either constant partner lineshape when a physical <span>$pp$</span> or <span>$pK^+$</span> final-state interaction is needed.</li><li>Keep the two labeled <span>$\Lambda(1520)$</span> chains tied to the same parameter when retaining the same-sign sum used in this tutorial.</li><li>Recompute the interference matrix after every fit; its entries depend on the fitted complex couplings even when the stripped overlap integrals do not.</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../lb2lc3pi-model/">« Building a full model for a decay</a><a class="docs-footer-nextpage" href="../../four-pion-model/">Four-pion model-building catalogue »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 16 July 2026 20:49">Thursday 16 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
