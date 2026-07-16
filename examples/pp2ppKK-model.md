@@ -20,11 +20,12 @@ The two $\Lambda(1520)$ copies are written explicitly and use the same
 complex coupling. `RamboOnDiet` supplies flat four-body phase space; the
 model intensity supplies the event weight.
 
-The initial $pp$ state at fixed energy is not a particle with a unique
-$J^P$. To keep this first model small, we select one effective $0^+$
-production partial wave. A realistic production model can add other
-initial partial waves as extra coherent chains without changing the
-event-generation code.
+At this energy, the scattering is expected to proceed mostly through
+$t$-channel exchange. It therefore does not populate a single production
+partial wave, but a range of them. Nonetheless, to keep this first model
+small, we select one effective $0^+$ production partial wave. A
+realistic production model can add the other partial waves as extra
+coherent chains without changing the event-generation code.
 
 ## 1. User inputs
 
@@ -36,12 +37,26 @@ using CascadeDecays
 using DataFrames
 using FourVectors
 using HadronicLineshapes
+using LinearAlgebra: Hermitian
 using Plots
 using Random
 using RamboOnDiet
-using ThreeBodyDecays: @jp_str
+using ThreeBodyDecays:
+    @jp_str,
+    OverlapContribution,
+    fit_fractions,
+    interference_terms,
+    total_intensity
 
 theme(:boxed)
+
+function show_table(table)
+    io = IOBuffer()
+    context = IOContext(io, :displaysize => (100, 120))
+    show(context, table; allrows=true, allcols=true, truncate=0)
+    text = String(take!(io))
+    println(join(rstrip.(split(text, '\n')), '\n'))
+end
 
 const particles = (
     proton=0.9382720813,
@@ -55,9 +70,9 @@ const resonances = (
 
 const settings = (
     sqrt_s=3.5,
-    n_events=10_000,
+    n_events=50_000,
     seed=0x3500,
-    c_phi=1.0 + 0.0im,
+    c_phi=2.0 + 0.0im,
     c_lambda1520=5.0 + 0.0im,
 )
 
@@ -115,19 +130,16 @@ channel_table = DataFrame(
 ```
 
 ``` julia
-channel_table
+show_table(channel_table)
 ```
 
-<div><div style = "float: left;"><span>3×3 DataFrame</span></div><div style = "clear: both;"></div></div><div class = "data-frame" style = "overflow-x: scroll;">
-
-| Row | channel             | resonant_pair | topology      |
-|----:|:--------------------|:--------------|:--------------|
-|     | String              | String        | String        |
-|   1 | phi                 | (K+, K-)      | ((1,2),(3,4)) |
-|   2 | Lambda(1520): p1 K- | (p1, K-)      | ((1,4),(2,3)) |
-|   3 | Lambda(1520): p2 K- | (p2, K-)      | ((2,4),(1,3)) |
-
-</div>
+    3×3 DataFrame
+     Row │ channel              resonant_pair  topology
+         │ String               String         String
+    ─────┼───────────────────────────────────────────────────
+       1 │ phi                  (K+, K-)       ((1,2),(3,4))
+       2 │ Lambda(1520): p1 K-  (p1, K-)       ((1,4),(2,3))
+       3 │ Lambda(1520): p2 K-  (p2, K-)       ((2,4),(1,3))
 
 ## 3. Lineshapes and angular momenta
 
@@ -252,7 +264,7 @@ show(model)
 
     CascadeDecay with 3 chains on ((1,2),(3,4)):
                     name     coupling       topology
-               phi->K+K-  1.0 + 0.0im  ((1,2),(3,4))
+               phi->K+K-  2.0 + 0.0im  ((1,2),(3,4))
       Lambda(1520)->p1K-  5.0 + 0.0im  ((1,4),(2,3))
       Lambda(1520)->p2K-  5.0 + 0.0im  ((2,4),(1,3))
 
@@ -333,7 +345,102 @@ sample.weight_total = sample.weight_ps .* intensity_total
 @assert all(>=(0), sample.weight_total);
 ```
 
-## 6. The two resonance projections
+## 6. Interference matrix
+
+Interference integrals are routine diagnostics even when they are not
+the main result of an analysis. For two coherent components $A$ and $B$,
+no new amplitude algebra is needed:
+
+``` math
+I_{AB} = \int d\Phi_4\,
+\left( |A+B|^2-|A|^2-|B|^2 \right).
+```
+
+The Monte Carlo estimator is the same subtraction applied to the three
+sums of phase-space-weighted intensities. Here the components are the
+isolated $\phi$ chain and the coherent pair of labeled $\Lambda(1520)$
+chains. The `merge` operation reconstructs their coherent sum while
+retaining the component names.
+
+``` julia
+components = (model_phi, model_lambda)
+component_names = ["phi", "Lambda(1520) pair"]
+model_from_components = merge(components...)
+
+@assert model_from_components.names == model.names
+
+component_integrals = [
+    sum(sample.weight_phi),
+    sum(sample.weight_lambda),
+]
+total_integral = sum(sample.weight_total)
+interference_integral = total_integral - sum(component_integrals)
+
+# Store half the pair interference in each off-diagonal entry, so summing the
+# full matrix gives the coherent integral.
+integral_matrix = [
+    component_integrals[1] interference_integral / 2
+    interference_integral / 2 component_integrals[2]
+]
+overlap = OverlapContribution(
+    component_names,
+    Hermitian(complex.(integral_matrix), :U),
+)
+
+@assert isapprox(total_intensity(overlap), total_integral; rtol=1e-12)
+
+fraction_matrix = 100 .* real.(Matrix(overlap.matrix)) ./ total_intensity(overlap)
+interference_matrix = DataFrame(
+    component=component_names,
+    phi_percent=round.(fraction_matrix[:, 1]; digits=3),
+    lambda1520_pair_percent=round.(fraction_matrix[:, 2]; digits=3),
+)
+show_table(interference_matrix)
+```
+
+    2×3 DataFrame
+     Row │ component          phi_percent  lambda1520_pair_percent
+         │ String             Float64      Float64
+    ─────┼─────────────────────────────────────────────────────────
+       1 │ phi                     31.753                    0.004
+       2 │ Lambda(1520) pair        0.004                   68.24
+
+The diagonal entries are fit fractions. Each off-diagonal entry is half
+of the pair interference fraction; consequently all four entries sum to
+$100\%$. `ThreeBodyDecays` provides the corresponding labeled summaries
+once the MC sums have been stored in an `OverlapContribution`.
+
+``` julia
+fit_fraction_rows = fit_fractions(overlap; sort=false)
+interference_rows = interference_terms(overlap; sort=false)
+overlap_summary = DataFrame(
+    contribution=vcat(
+        ["fit fraction: $(row.label)" for row in fit_fraction_rows],
+        [
+            "interference: $(row.label_i) x $(row.label_j)" for
+            row in interference_rows
+        ],
+    ),
+    percent=round.(
+        vcat(
+            getproperty.(fit_fraction_rows, :fraction),
+            getproperty.(interference_rows, :fraction),
+        );
+        digits=6,
+    ),
+)
+show_table(overlap_summary)
+```
+
+    3×2 DataFrame
+     Row │ contribution                           percent
+         │ String                                 Float64
+    ─────┼──────────────────────────────────────────────────
+       1 │ fit fraction: phi                      31.7526
+       2 │ fit fraction: Lambda(1520) pair        68.2398
+       3 │ interference: phi x Lambda(1520) pair   0.007675
+
+## 7. The two resonance projections
 
 Both $pK^-$ label assignments are filled into the same histogram. Curves
 are area-normalized so their shapes remain readable when the
@@ -434,7 +541,84 @@ plot(
 ![Phase-space and amplitude-weighted invariant-mass
 projections.](pp2ppKK-model_files/figure-commonmark/projections-output-1.svg)
 
-## 7. What to change next
+## 8. Crossed-channel $\phi$ templates
+
+An isolated resonance also produces structure in invariant masses that
+do not contain its decay pair. To expose this reflection, compare a
+hypothetical scalar state ($J^P=0^+$, S-wave $K^+K^-$) with the physical
+vector $\phi$ at the same pole ($J^P=1^-$, P-wave $K^+K^-$). Keeping the
+mass and width fixed makes the difference in the normalized $pK^-$
+projection a spin effect rather than a lineshape effect.
+
+``` julia
+scalar_phi_lineshape = BreitWigner(;
+    m=resonances.phi.mass,
+    Γ=resonances.phi.width,
+    ma=particles.kaon,
+    mb=particles.kaon,
+    l=0,
+    d=1.5,
+)
+
+scalar_phi_chain = minimal_ls_decay_chain(
+    topology_phi,
+    quantum,
+    (
+        (1, 2) => Propagator(jp"0+", unit_lineshape),
+        (3, 4) => Propagator(jp"0+", scalar_phi_lineshape),
+    ),
+)
+model_phi_scalar = CascadeDecay(
+    (scalar_phi_chain,),
+    topology_phi;
+    couplings=(settings.c_phi,),
+    names=("scalar phi-like->K+K-",),
+)
+
+intensity_phi_scalar = unpolarized_intensity.(Ref(model_phi_scalar), points)
+weight_phi_scalar = sample.weight_ps .* intensity_phi_scalar
+```
+
+Both labeled $pK^-$ combinations are filled. The templates are
+independently area-normalized: their comparison answers only how the
+spin of an isolated $K^+K^-$ resonance is projected into the crossed
+$pK^-$ channel.
+
+``` julia
+bins_phi_template = range(1.40, 2.05, 32)
+
+p_phi_template = shapehist(
+    pK_values,
+    repeat(weight_phi_scalar, 2);
+    bins=bins_phi_template,
+    label="scalar 0+ (S-wave KK)",
+    color=4,
+)
+stephist!(
+    p_phi_template,
+    pK_values;
+    weights=repeat(sample.weight_phi, 2),
+    normalize=:pdf,
+    bins=bins_phi_template,
+    label="vector 1- (P-wave KK)",
+    color=2,
+    linewidth=2,
+)
+plot!(
+    p_phi_template;
+    xlabel="m(p K-) [GeV]",
+    ylabel="normalized density",
+    size=(620, 400),
+    bottom_margin=4Plots.PlotMeasures.mm,
+    left_margin=4Plots.PlotMeasures.mm,
+)
+```
+
+![Crossed-channel pK- templates from a hypothetical scalar state and the
+physical vector phi with the same pole
+parameters.](pp2ppKK-model_files/figure-commonmark/phi-crossed-channel-templates-output-1.svg)
+
+## 9. What to change next
 
 - Replace `settings.c_phi` and `settings.c_lambda1520` by fit
   parameters.
@@ -443,3 +627,6 @@ projections.](pp2ppKK-model_files/figure-commonmark/projections-output-1.svg)
   $pK^+$ final-state interaction is needed.
 - Keep the two labeled $\Lambda(1520)$ chains tied to the same parameter
   when retaining the same-sign sum used in this tutorial.
+- Recompute the interference matrix after every fit; its entries depend
+  on the fitted complex couplings even when the stripped overlap
+  integrals do not.
