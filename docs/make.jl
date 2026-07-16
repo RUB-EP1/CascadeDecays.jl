@@ -2,6 +2,7 @@ using CascadeDecays
 using Documenter
 
 const DOCS = @__DIR__
+const REPO_ROOT = dirname(DOCS)
 const DOCUMENTER_SOURCE = joinpath(DOCS, ".documenter-src")
 
 # Quarto notebooks rendered into Documenter pages under src/.
@@ -24,6 +25,19 @@ const QUARTO_PAGES = [
         page = "cascade-vs-dpd.md",
         edit_url = "../cascade-vs-dpd.qmd",
         title = "# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)",
+    ),
+]
+
+# Pre-rendered examples are copied into Documenter's temporary source tree.
+# They are deliberately not executed by the documentation build.
+const STATIC_EXAMPLES = [
+    (
+        qmd = joinpath(REPO_ROOT, "examples", "pp2ppKK-model.qmd"),
+        gfm = joinpath(REPO_ROOT, "examples", "pp2ppKK-model.md"),
+        asset_dir = "pp2ppKK-model_files",
+        page = joinpath("examples", "pp2ppKK-model.md"),
+        edit_url = "../../../examples/pp2ppKK-model.qmd",
+        title = "# [A pp to pp K+ K- amplitude model](@id pp2ppKK_model)",
     ),
 ]
 
@@ -56,6 +70,26 @@ function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractStri
     body = replace(body, r"<img\s+src=\"([^\"]+)\"\s+id=\"([^\"]+)\"\s*/>" => s"![](\1)")
     meta = "```@meta\nCurrentModule = CascadeDecays\nEditURL = \"$(edit_url)\"\n```\n\n"
     return meta * body
+end
+
+function copy_static_example!(spec)
+    isfile(spec.gfm) || error(
+        "missing rendered example $(spec.gfm); see examples/README.md for regeneration instructions",
+    )
+
+    destination = joinpath(DOCUMENTER_SOURCE, spec.page)
+    mkpath(dirname(destination))
+    write(
+        destination,
+        documenter_quarto_page(spec.gfm; edit_url = spec.edit_url, title = spec.title),
+    )
+
+    source_assets = joinpath(dirname(spec.gfm), spec.asset_dir)
+    isdir(source_assets) || error(
+        "missing rendered example assets $(source_assets); see examples/README.md for regeneration instructions",
+    )
+    cp(source_assets, joinpath(dirname(destination), spec.asset_dir); force = true)
+    return destination
 end
 
 function build_quarto_page!(spec)
@@ -93,6 +127,7 @@ function prepare_documenter_source!()
     for entry in readdir(joinpath(DOCS, "generated"))
         cp(joinpath(DOCS, "generated", entry), joinpath(DOCUMENTER_SOURCE, entry); force = true)
     end
+    foreach(copy_static_example!, STATIC_EXAMPLES)
     return
 end
 
@@ -118,6 +153,9 @@ makedocs(;
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
         "Building a full model for a decay" => "lb2lc3pi-model.md",
+        "Examples" => [
+            "pp to pp K+ K- amplitude model" => "examples/pp2ppKK-model.md",
+        ],
         "Four-pion model-building catalogue" => "four-pion-model.md",
         "Isospin and kaon charge-conjugation conventions" => "isospin-kaon-conventions.md",
         "Cross-checking with ThreeBodyDecays" => "cascade-vs-dpd.md",
