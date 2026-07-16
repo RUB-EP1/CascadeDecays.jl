@@ -299,7 +299,8 @@ transform!(
             bracket="`" * tree_label(tree) * "`",
         )
     end => AsTable,
-);
+)
+nothing
 ```
 
 ```{julia}
@@ -390,6 +391,7 @@ transform!(
     :r2b_ls => ByRow(ls_list_label) => Symbol("R2b -> pi pi"),
     :n_ls => ByRow(n -> n * nrow(pair_pair_topologies)) => :explicit_chains,
 )
+nothing
 ```
 
 ```{julia}
