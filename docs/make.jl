@@ -88,7 +88,7 @@ function copy_static_example!(spec)
     isdir(source_assets) || error(
         "missing rendered example assets $(source_assets); see examples/README.md for regeneration instructions",
     )
-    cp(source_assets, joinpath(dirname(destination), spec.asset_dir))
+    cp(source_assets, joinpath(dirname(destination), spec.asset_dir); force = true)
     return destination
 end
 
