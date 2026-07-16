@@ -63,7 +63,7 @@ configurations.
    (with its alignment phases) by comparing the aligned amplitudes
    $O^{\lambda_0}_{\{\lambda\}}(\sigma)$ at $\sigma$ and at the permuted
    $\sigma'$ — this validates the phase factors like
-   $(-1)^{\lambda_0+\lambda_2}$ in isolation.
+   $(-1)^{M_{\Xi_b}+\lambda_p}$ in isolation.
 4. **Tensor bridge test.** Pointwise ratio helicity/tensor, scanned over all
    helicities and several $x$.
 5. **Intensity test (weakest, last).** $\sum_{\text{hel}}|M|^2$ symmetric
@@ -97,8 +97,9 @@ culprit occurs in practice:
 1. $\lambda$-independent overall constant → harmless normalization.
 2. Sign flips with parent polarization $\lambda_0$ → overall-rotation /
    alignment convention (DPD standard orientation, Euler angle set).
-3. Sign flips with one daughter's helicity → particle-2 convention or
-   helicity-state phase choice ($R(\phi,\theta,-\phi)$ vs $R(\phi,\theta,0)$).
+3. Sign flips with one daughter's helicity → particle-2 convention or a
+   mismatch between the used $R(\phi,\theta,0)$ helicity convention and the
+   `minus_phi` convention $R(\phi,\theta,-\phi)$.
 4. Sign depends on chain → alignment (Wigner rotation) errors, wrong rotation
    order, or missing $(-1)^{...}$ in a cross-chain relation.
 5. Fermion-only sign issues → spinor conventions, $2\pi$-rotation phases,

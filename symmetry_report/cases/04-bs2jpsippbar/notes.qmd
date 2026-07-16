@@ -2,9 +2,9 @@
 title: "Case 4: $B_s^0\\to J/\\psi\\, p\\bar p$"
 ---
 
-**Status:** <span class="badge-checked">symmetrization cross-checked vs
-tensors previously</span> — to be re-derived and documented here; the
-"effective C" argument to be made precise.
+**Status:** <span class="badge-checked">prior tensor check</span> — the
+effective-C operator statement and chain-level derivation remain to be
+documented here.
 
 ## Setting
 

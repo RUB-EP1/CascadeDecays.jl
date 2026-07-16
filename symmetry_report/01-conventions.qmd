@@ -20,13 +20,18 @@ throughout:
   one-particle helicity state built by one fixed convention, e.g.
   $$
   |p,\lambda\rangle
-  = U\!\left[R(\phi_p,\theta_p,-\phi_p)\right]
+  = U\!\left[R(\phi_p,\theta_p,0)\right]
     U\!\left[L_z(|\vec p\,|)\right] |s,\lambda\rangle .
   $$
-  The alternative convention $R(\phi,\theta,0)$ differs by a phase
-  $e^{i\lambda\phi_p}$; either is acceptable as long as **one convention is
-  used for every particle**. Symmetry statements derived below are valid for
-  any single such choice (see the robustness remarks in each chapter).
+  This is the convention used in the report. The alternative
+  `minus_phi` convention, $R(\phi,\theta,-\phi)$, differs by a helicity phase
+  and is discussed in @Habermann:2024sxs.
+  The same helicity-state construction is implemented in
+  `RUB-EP1/SpinStates.jl` [@SpinStatesJL], which is useful for checking
+  concrete spinor phases: a state carries its four-vector, spin, and spin
+  coefficients, and `track_spin`, `wigner_rotation`, and `evolve` propagate
+  those coefficients through boosts and rotations while retaining the $4\pi$
+  spinor branch.
 - Configurations with $\vec p$ exactly along $-\hat z$ are a measure-zero set
   where the polar-angle convention is ambiguous; they are excluded from
   pointwise numerical checks.
@@ -120,7 +125,7 @@ table. When comparing two codes or two papers, walk the table top to bottom.
 |------|------------------|-----------------|
 | Wigner $D$ | $D^j_{m'm}(\alpha,\beta,\gamma)=e^{-im'\alpha}d^j_{m'm}(\beta)e^{-im\gamma}$ | all rotations |
 | Clebsch–Gordan | Condon–Shortley | LS couplings, isospin |
-| One-particle helicity state | $R(\phi,\theta,-\phi)$ vs $R(\phi,\theta,0)$ — **to fix** | fixed-frame amplitude phases |
+| One-particle helicity state | $R(\phi,\theta,0)$; the alternative `minus_phi` convention is $R(\phi,\theta,-\phi)$ [@Habermann:2024sxs] | fixed-frame amplitude phases |
 | Jacob–Wick particle-2 | second particle via $(-1)^{s_2-\lambda_2}$-type phase (implicit in the recoupling formulas above) | $H_{\lambda_1\lambda_2}$, parity relation |
 | DPD standard orientation | chain-1 alignment as in [@JPAC:2019ufm]; per-analysis choice noted in each case study | permutation phases |
 | Parity intrinsic phases | PDG $\eta_P$ per species | parity relation |

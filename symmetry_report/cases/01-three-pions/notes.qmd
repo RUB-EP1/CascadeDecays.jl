@@ -2,8 +2,8 @@
 title: "Case 1: $\\pi^+\\pi^-\\pi^-$ and $D^0D^0\\pi^+$"
 ---
 
-**Status:** <span class="badge-derived">mostly understood</span> — LS-basis
-exchange phase to be pinned down and checked numerically.
+**Status:** <span class="badge-derived">derivation outline</span> —
+chain-level coupling signs still need a numerical check.
 
 ## Setting
 
@@ -35,13 +35,13 @@ Two subtleties to resolve:
    spinless daughters (LS exchange rule, permutation chapter). Whether this
    sign lands in the coupling relation depends on how each chain's vertex
    ordering is defined in the framework — this must be traced explicitly.
-2. **LS basis of the parent vertex.** Even in the LS basis the particle swap
-   is claimed to produce a non-trivial phase, expected of the form
+2. **LS basis of the parent vertex.** In the LS basis the particle swap can
+   produce a phase of the form
    $(-1)^{L+S}$-type — more precisely $(-1)^{L+s_1+s_2-S}$ per vertex per
    the derivation in the permutation chapter, which reduces to $(-1)^L$ at
    each spinless vertex here. The precise combination appearing in the
-   chain-to-chain relation (parent vertex × isobar vertex × alignment) is
-   the thing to compute and check.
+   chain-to-chain relation (parent vertex × isobar vertex × alignment) remains
+   to be computed and checked.
 
 ## Worked plan
 
@@ -58,5 +58,4 @@ Two subtleties to resolve:
 
 ## Artifacts
 
-- (to appear) `check_3pi.jl` — numerical slot-swap and coupling-relation
-  tests.
+- Planned: `check_3pi.jl` — numerical slot-swap and coupling-relation tests.

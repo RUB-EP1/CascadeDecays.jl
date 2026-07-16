@@ -21,7 +21,7 @@ The target end state: every row either
 | L2 | Helicity-basis exchange phase $(-1)^{J-s_1-s_2}$ (@eq-hel-exchange) | permutations ch. | <span class="badge-derived">derived</span> (algebra from L1) — numeric check pending |
 | L3 | Master permutation rule on the fixed-frame amplitude (@thm-master), incl. convention-robustness | permutations ch. | <span class="badge-checked">cross-checked</span> — covariant toy model, test A of `cases/02-xib2pKK/toy_alignment_check.jl`; DPD-side check via case 1 still pending |
 | L3a | The aligned amplitude $A(\sigma)$ is **not** a permutation eigenfunction; $M(p_j,p_i\ \text{swap}) \ne A(\sigma\ \text{swap})$ — slot swap leaves the standard orientation, compensating rotation $R_z(\pi)$ about the spectator axis generates the phase | permutations ch., case 2 | <span class="badge-checked">cross-checked</span> — tests C, D of the toy script |
-| L4 | $\Xi_b^-\to pK^-K^-$ master formula: symmetrization phase $\varepsilon_{\lambda_0'\lambda_2}=(-1)^{\lambda_0'-\lambda_2}$ in the toy conventions (proton along $+\hat z$, $R(\phi,\theta,-\phi)$), **derived** by closure — the orientation shift $(\gamma,\phi_W)\to(\gamma+\pi,\phi_W+\pi)$ under the kaon swap forces the bracket phase; the opposite exponent gives Fermi statistics. Prior derivation's $(-1)^{\lambda_0+\lambda_2}$ maps by the convention-bound sign $(-1)^{2\lambda_2}$ | case 2; technical appendix | <span class="badge-checked">derived + cross-checked</span> (tensor prior work; toy tests B, E, F) — mapping to the prior convention set still to be pinned |
+| L4 | $\Xi_b^-\to pK^-K^-$ master formula: the published alignment convention uses $\varepsilon_{M_{\Xi_b}\lambda_p}=(-1)^{M_{\Xi_b}+\lambda_p}$ [@LHCb:2021XiBpKK]. The toy script first derives the related $+\hat z$ spectator convention, $\varepsilon_{\lambda_0\lambda_2}=(-1)^{\lambda_0-\lambda_2}$ (tests B, E, F), then verifies that rotating the aligned configuration so the proton points along $-\hat z$ flips the proton contribution and reproduces the published $+$ exponent (test G). | case 2; technical appendix | <span class="badge-checked">derived + cross-checked</span> — convention map now explicit; DPD implementation check still pending |
 | L5 | C acts trivially on parent polarization in the fixed frame; all spin complications are alignment phases (resolves $\chi_{c2}$ worry) | C chapter, case 5 | <span class="badge-derived">derived</span> from C internality — numeric check pending |
 | L6 | Fixed-frame parity action / one-particle parity phase convention | C chapter | <span class="badge-open">open</span> — to fix via case 3 |
 | L7 | Effective C relation for gluon-produced $p\bar p$ in $B_s^0\to J/\psi p\bar p$ | case 4 | <span class="badge-checked">cross-checked</span> (tensor, prior work) — precise operator-level statement pending |
@@ -34,7 +34,7 @@ The target end state: every row either
 
 | ID | Item | Status |
 |----|------|--------|
-| R1 | One-particle helicity convention ($R(\phi,\theta,-\phi)$ vs $R(\phi,\theta,0)$) | <span class="badge-open">open</span> |
+| R1 | One-particle helicity convention | <span class="badge-derived">fixed</span> — use $R(\phi,\theta,0)$; `minus_phi` means $R(\phi,\theta,-\phi)$ [@Habermann:2024sxs] |
 | R2 | Antiparticle spinor phase ($v = C\bar u^T$ variant) | <span class="badge-open">open</span> |
 | R3 | $\epsilon^{0123}$ sign | <span class="badge-open">open</span> |
 | R4 | DPD standard orientation per case study | <span class="badge-open">open</span> — record per case |

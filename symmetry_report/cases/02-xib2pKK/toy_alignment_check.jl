@@ -11,7 +11,7 @@
 # relates aligned amplitudes at swapped invariants.
 #
 # Conventions (registry):
-#   metric (+,-,-,-), Dirac basis, helicity spinors via R(φ,θ,-φ),
+#   metric (+,-,-,-), Dirac basis, helicity spinors via R(φ,θ,0),
 #   standard orientation: all momenta in xz-plane, proton (2) along +z, kaon-1 with px>0.
 #   Parent at rest, λ0 quantized along the space-fixed z-axis.
 
@@ -33,7 +33,7 @@ const g5 = blk(0I2, I2, I2, 0I2)
 
 slash(p) = p[1] * g0 - p[2] * g1 - p[3] * g2 - p[4] * g3   # p = (E,px,py,pz)
 
-# ---------- helicity spinors, R(φ,θ,-φ) convention ----------
+# ---------- helicity spinors, R(φ,θ,0) convention ----------
 Rz(a) = ComplexF64[exp(-im * a / 2) 0; 0 exp(im * a / 2)]
 Ry(b) = ComplexF64[cos(b / 2) -sin(b / 2); sin(b / 2) cos(b / 2)]
 
@@ -41,7 +41,7 @@ function uspinor(p, m, λ)  # λ = ±1/2
     P = sqrt(p[2]^2 + p[3]^2 + p[4]^2)
     θ = P < 1e-12 ? 0.0 : acos(clamp(p[4] / P, -1, 1))
     φ = atan(p[3], p[2])
-    χ = (Rz(φ) * Ry(θ) * Rz(-φ)) * (λ > 0 ? ComplexF64[1, 0] : ComplexF64[0, 1])
+    χ = (Rz(φ) * Ry(θ)) * (λ > 0 ? ComplexF64[1, 0] : ComplexF64[0, 1])
     E = p[1]
     vcat(sqrt(E + m) .* χ, (2λ) * sqrt(max(E - m, 0.0)) .* χ)
 end
@@ -75,6 +75,7 @@ end
 rotmat(α, β, γ) = [cos(α) -sin(α) 0; sin(α) cos(α) 0; 0 0 1] *
                   [cos(β) 0 sin(β); 0 1 0; -sin(β) 0 cos(β)] *
                   [cos(γ) -sin(γ) 0; sin(γ) cos(γ) 0; 0 0 1]
+rotx(a) = [1.0 0.0 0.0; 0.0 cos(a) -sin(a); 0.0 sin(a) cos(a)]
 rot(R, p) = vcat(p[1], R * p[2:4])
 
 # ---------- the model ----------
@@ -139,12 +140,12 @@ println("\n=== Test E: rotation covariance — where the λ2 phase lives ===")
 # i.e. the λ2 part of the test-B/C phase is exactly this little-group phase.
 SU2(α, β, γ) = Rz(α) * Ry(β) * Rz(γ)    # = D^{1/2}_{m'm}(α,β,γ), rows/cols ordered (+1/2, -1/2)
 
-function wigner_phase(Ur, R3, p)   # φ_W for a helicity state at momentum p, R(φ,θ,-φ) convention
+function wigner_phase(Ur, R3, p)   # φ_W for a helicity state at momentum p, R(φ,θ,0) convention
     v = p[2:4]; P = norm(v)
     θ, φ = acos(clamp(v[3] / P, -1, 1)), atan(v[2], v[1])
     q = R3 * v
     θq, φq = acos(clamp(q[3] / P, -1, 1)), atan(q[2], q[1])
-    Uh(t, f) = Rz(f) * Ry(t) * Rz(-f)
+    Uh(t, f) = Rz(f) * Ry(t)
     W = adjoint(Uh(θq, φq)) * Ur * Uh(θ, φ)
     @assert abs(W[1, 2]) + abs(W[2, 1]) < 1e-10 "little-group element not diagonal"
     2 * angle(W[2, 2])               # W = diag(e^{-iφ_W/2}, e^{+iφ_W/2})
@@ -214,4 +215,19 @@ let (α0, β0, γ0) = (1.9, 0.6, 0.8)   # generic event, orientation to be re-ex
             λ0, λ2, abs(m - r1), abs(m - r2))
     end
     println("  closure: reco(x̃) uses (σ3,σ1), γ+π, φ_W+π — and lands on the same M.")
+end
+
+println("\n=== Test G: convention map — proton along -z gives the published + exponent ===")
+# The LHCb/DPD formula uses (-1)^(M_Xib + λp). Relative to the toy standard
+# configuration above, rotating the aligned configuration by Rx(π) puts the
+# proton along -z and flips the λp contribution to the cross-chain phase.
+let Rminus = rotx(Float64(π))
+    xs = map(p -> rot(Rminus, p), config(σ1v, σ3v))
+    ys = map(p -> rot(Rminus, p), config(σ3v, σ1v))
+    for (λ0, λ2) in hels
+        r = T2(xs[1], xs[2], xs[3], λ0, λ2) / T1(ys[1], ys[2], ys[3], λ0, λ2)
+        @printf("  λ0=%+.1f λ2=%+.1f   ratio = %+.6f %+.6f im\n",
+            λ0, λ2, real(r), imag(r))
+    end
+    println("  compare: (-1)^(λ0+λ2) pattern = (-1, +1, +1, -1)")
 end

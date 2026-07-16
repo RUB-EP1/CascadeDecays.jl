@@ -7,9 +7,12 @@ theorem (@thm-master) and its aligned-representation image, starting from
 component-wise relations on one-particle states and ending with the closure
 identity. The system is $\Xi_b^-(0)\to K^-(1)\,p(2)\,K^-(3)$ — spin
 structure $\tfrac12\to 0+\tfrac12+0$ — which keeps every phase visible while
-containing all the mechanisms. Every derived relation is verified to machine
-precision by `cases/02-xib2pKK/toy_alignment_check.jl`; the map between
-relations and tests is tabulated in @sec-app-testmap.
+containing all the mechanisms. The derivation below first uses the toy
+standard configuration with the proton along $+\hat z$; the final subsection
+maps it to the published proton-along-$-\hat z$ convention of
+@LHCb:2021XiBpKK. Every derived relation is verified to machine precision by
+`cases/02-xib2pKK/toy_alignment_check.jl`; the map between relations and
+tests is tabulated in @sec-app-testmap.
 
 Conventions used throughout (registry rows of the
 [conventions chapter](01-conventions.qmd)):
@@ -22,7 +25,7 @@ $$
 |p,\lambda\rangle
 = U\!\big[R_h(\hat p)\big]\,U\!\big[L_z(|\vec p\,|)\big]\,|s,\lambda\rangle,
 \qquad
-R_h(\hat p) = R_z(\phi)R_y(\theta)R_z(-\phi).
+R_h(\hat p) = R_z(\phi)R_y(\theta).
 $$
 
 ## Microscopic inputs {#sec-app-inputs}
@@ -38,15 +41,15 @@ $$
 |f(x;\lambda_2)\rangle
 = a^\dagger_K(p_1)\,a^\dagger_p(p_2,\lambda_2)\,a^\dagger_K(p_3)\,|0\rangle,
 $$
-is therefore literally the *same state* when the two kaon arguments are
-interchanged. The theorem is nothing but this commutation relation read
-through $M_{\lambda_0\lambda_2}(x)=\langle f(x;\lambda_2)|\,T\,|0,\lambda_0\rangle$:
+is the same physical state when the two kaon arguments are interchanged. The
+theorem follows by reading this commutation relation through
+$M_{\lambda_0\lambda_2}(x)=\langle f(x;\lambda_2)|\,T\,|0,\lambda_0\rangle$:
 $$
 M_{\lambda_0\lambda_2}(p_3,p_2,p_1) = +\,M_{\lambda_0\lambda_2}(p_1,p_2,p_3).
 $$ {#eq-app-theorem}
-No frames, no phases: at the microscopic level the theorem is trivial. The
-content of the rest of the appendix is how @eq-app-theorem *re-emerges* in
-the aligned representation, where it looks anything but trivial.
+No frame alignment is involved at this level. The rest of the appendix shows
+how @eq-app-theorem re-emerges in the aligned representation, where the same
+operation is represented by an invariant swap plus compensating rotations.
 
 **(M2) Little-group phase.** For a pure rotation $R$ acting on a helicity
 state,
@@ -209,18 +212,31 @@ one; neither factor is meaningful in isolation.
 Two corollaries:
 
 - **The closure derives the phase.** Given the transformation laws
-  @eq-app-orientshift and @eq-app-phiwshift, *demanding* @eq-app-theorem
-  forces the bracket phase $(-1)^{\lambda_0'-\lambda_2}$. Inserting
-  $(-1)^{\lambda_0'+\lambda_2}$ instead yields
-  $M(\tilde x) = -M(x)$ — Fermi statistics for kaons — so within a fixed
-  convention set the exponent is falsifiable, not a matter of taste. An
-  exponent quoted without its orientation and phase conventions
-  (@sec-app-inputs) is an incomplete statement.
+  @eq-app-orientshift and @eq-app-phiwshift in the $+\hat z$ spectator
+  convention, *demanding* @eq-app-theorem forces the bracket phase
+  $(-1)^{\lambda_0'-\lambda_2}$. Inserting
+  $(-1)^{\lambda_0'+\lambda_2}$ without changing the aligned-frame convention
+  yields $M(\tilde x) = -M(x)$ — the fermionic sign for the kaons. Thus the
+  exponent is falsifiable only after the orientation and helicity conventions
+  are specified.
 - **Branch insensitivity.** For half-integer spins the SU(2) representative
   of $R(x)$ is double-valued; both $\phi_W$ (mod $4\pi$) and $D^{J_0*}$ flip
   sign together under a change of representative, so
   @eq-app-decomposition and the closure are branch-independent as long as
   the two are extracted from the *same* representative.
+
+## Map to the published convention
+
+The derivation above is for the $+\hat z$ spectator convention used by the toy
+check. In the proton-along-$-\hat z$ convention used in @LHCb:2021XiBpKK, the
+aligned standard configuration is obtained by a fixed $R_x(\pi)$ rotation.
+Test G verifies directly that the cross-chain ratio then becomes
+$$
+\varepsilon_{\lambda_0\lambda_2}=(-1)^{\lambda_0+\lambda_2},
+$$
+the pattern shown in Eq. (6) of that analysis. Operationally, reversing the
+aligned proton direction changes the sign of the proton little-group
+contribution in the closure; Bose symmetry is unchanged.
 
 ## Generalization
 
@@ -228,9 +244,11 @@ The derivation used the specific spin content only in the last step. For a
 parent of spin $J_0$ and a spectator of spin $s_2$ with two identical
 spin-$s$ particles in slots 1, 3, the same chain gives:
 statistics sign $\eta=(-1)^{2s}$ from (M1); shifts
-$(\gamma,\phi_W)\to(\gamma+\pi,\phi_W+\pi)$ from level 2 (any masses);
-bracket phase $\varepsilon_{\lambda_0'\lambda_2} = \eta\,
-e^{i\pi(\lambda_0'-\lambda_2)}$ forced by closure. Identical particles
+$(\gamma,\phi_W)\to(\gamma+\pi,\phi_W+\pi)$ from level 2 in the $+\hat z$
+spectator convention; bracket phase $\varepsilon_{\lambda_0'\lambda_2} =
+\eta\,e^{i\pi(\lambda_0'-\lambda_2)}$ forced by closure. Reversing the
+spectator quantization axis changes the sign of the spectator-helicity term,
+as in the $\Xi_b^-\to pK^-K^-$ map above. Identical particles
 *with* spin additionally carry their own little-group phases under the
 compensating rotation. For standard orientations **not** symmetric under the
 swap (e.g. chain-1 alignment), $r_\pi$ is no longer about the quantization
@@ -252,3 +270,4 @@ independent of any chain machinery).
 | Swap geometry | @eq-app-swapgeom | D | $<10^{-15}$ |
 | Rotation covariance, sign of $\lambda_2$ phase | @eq-app-covariance | E | $<10^{-14}$ / wrong sign $O(10)$ |
 | Orientation & $\phi_W$ shifts, closure | @eq-app-orientshift, @eq-app-phiwshift, @eq-app-closure | F | $<10^{-14}$ |
+| Map to published $p\parallel-\hat z$ convention | fixed $R_x(\pi)$ rotation of the aligned standard configuration | G | exact sign pattern $(-1)^{\lambda_0+\lambda_2}$ |

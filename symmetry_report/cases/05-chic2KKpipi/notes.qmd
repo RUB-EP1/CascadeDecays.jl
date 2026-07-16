@@ -26,10 +26,10 @@ Topologies:
 
 ## The central conceptual question (resolved in principle)
 
-Positive C parity suggests symmetrizing over the simultaneous swap
-$K^+\leftrightarrow K^-$, $\pi^+\leftrightarrow\pi^-$. The worry was: under
-this swap the system "does not go into itself", so what to do with the
-$\chi_{c2}$ spin — is $A(p_1,p_2,p_3,p_4)+A(p_2,p_1,p_4,p_3)$ even correct?
+Positive C parity relates the amplitude to the simultaneous species
+conjugation $K^+\leftrightarrow K^-$, $\pi^+\leftrightarrow\pi^-$. The
+question is how this fixed-frame relation appears after translating to a
+chain-aligned four-body representation, especially for the spin-2 parent.
 
 The resolution proposed in the [C chapter](../../03-charge-conjugation.qmd):
 C is internal, so at the level of the **fixed-frame** amplitude the parent
@@ -71,7 +71,7 @@ new element compared to the three-body cases. **Claim to be verified**
 
 ## Dependencies
 
-- Case 1 (spinless swaps), Case 3 (C on fermionless… rather, C machinery and
-  parity phases), and the kaon current-convention note are prerequisites.
+- Case 1 (spinless swaps), Case 3 (C machinery and parity phases), and the
+  kaon current-convention note are prerequisites.
 - Four-body alignment conventions in `CascadeDecays.jl` must be documented in
   the registry before step 3.

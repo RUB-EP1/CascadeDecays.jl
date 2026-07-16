@@ -3,51 +3,52 @@ title: "Case 2: $\\Xi_b^-\\to pK^-K^-$"
 ---
 
 **Status:** <span class="badge-checked">master formula derived + cross-checked</span>
-— the closure derivation fixes the alignment phase in the toy conventions;
-the mapping to the older $(-1)^{\lambda_0+\lambda_2}$ convention is still to
-be pinned.
+— the closure derivation explains the alignment phase; the toy check now maps
+the $+\hat z$ spectator convention to the published $-\hat z$ convention.
 
 ## Setting
 
-Numbering: $\Xi_b^-(0)\to K^-(1)\,p(2)\,K^-(3)$. Identical pair = the two
-$K^-$ (spinless **bosons** — the fermion in the problem is the spectator
-proton and the parent, which is what makes the phases interesting). Weak
-decay: no C or P constraints; the *only* symmetry is Bose symmetry of the
-kaons. Resonant content: $\Lambda^*\to pK^-$ in the pairs $(12)$ and $(23)$;
-the $(31)=K^-K^-$ pair is exotic and empty.
+Numbering: $\Xi_b^-(0)\to K^-(1)\,p(2)\,K^-(3)$. The identical pair is the
+two spinless kaons; the parent and spectator proton carry the non-trivial
+spin phases. The weak decay imposes no C or P constraint, so the only
+symmetry used here is Bose symmetry of the kaons. Resonant content:
+$\Lambda^*\to pK^-$ in the pairs $(12)$ and $(23)$; the $(31)=K^-K^-$ pair is
+exotic and empty.
 
 ## The master formula (established result)
 
 Using the pair-$(31)$ orientation (spectator-proton reference, symmetric
-under the kaon swap) as the reference configuration, the symmetrized
-amplitude in the toy/report conventions is
+under the kaon swap) as the reference configuration, LHCb writes the
+symmetrized amplitude with the factor [@LHCb:2021XiBpKK]
 $$
 A_{\lambda_0,\lambda_2}
 = A^{c}_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3)
-+ (-1)^{\lambda_0-\lambda_2}\,
++ (-1)^{\lambda_0+\lambda_2}\,
 A^{c}_{\lambda_0,\lambda_2}(\sigma_3,\sigma_1),
 $$
 where $A^c$ is the chain amplitude ($\Lambda^*$ chains) evaluated in the
 reference ordering, and the kaon exchange acts as
-$\sigma_1\leftrightarrow\sigma_3$. The previously quoted
-$(-1)^{\lambda_0+\lambda_2}$ form is a convention variant: it differs by the
-fermionic sign $(-1)^{2\lambda_2}$ and must be accompanied by the matching
-choice of spectator orientation, $D$-phase direction, or aligned-helicity
-definition.
+$\sigma_1\leftrightarrow\sigma_3$. In the notation of the paper this is
+$(-1)^{M_{\Xi_b}+\lambda_p}$. The current toy script first uses a standard
+configuration with the proton along $+\hat z$, where the same closure gives
+$(-1)^{\lambda_0-\lambda_2}$, and then verifies that rotating the aligned
+configuration to put the proton along $-\hat z$ reproduces the published
+$+$ exponent.
 
-## The apparent paradox, and its resolution (numerically settled)
+## Invariant-level relation versus fixed-frame symmetry
 
 An immediate consequence of the master formula: as a function of its
 *invariant* arguments the symmetrized amplitude is **not** symmetric,
 $$
 A_{\lambda_0,\lambda_2}(\sigma_3,\sigma_1)
-= (-1)^{\lambda_0-\lambda_2} A_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3),
+= (-1)^{\lambda_0+\lambda_2} A_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3),
 $$
 which superficially contradicts the fixed-frame rule
-$M(p_3,p_2,p_1)=+M(p_1,p_2,p_3)$ of @thm-master. The fallacy is the
-substitution $M(p_3,p_2,p_1)\to A(\sigma_3,\sigma_1)$: for a polarized
-parent, $M$ depends on the orientation as well as the invariants, and the
-slot-swapped configuration is *not* in standard orientation.
+$M(p_3,p_2,p_1)=+M(p_1,p_2,p_3)$ of @thm-master. The two statements concern
+different representations. For a polarized parent, $M$ depends on the
+orientation as well as the invariants, and the slot-swapped configuration is
+not in standard orientation; therefore
+$M(p_3,p_2,p_1)\ne A(\sigma_3,\sigma_1)$ in general.
 
 The toy check `toy_alignment_check.jl` (manifestly Bose-symmetric covariant
 model, $\bar u(p_2,\lambda_2)\Gamma\,[f(\sigma_1,\sigma_3)\,(\gamma\!\cdot\!p_1) +
@@ -62,19 +63,20 @@ spinors, no chain machinery) confirms all pieces to machine precision:
 | D | $(p_3^*,p_2^*,p_1^*)\big|_{(\sigma_1,\sigma_3)} = R_z(\pi)\,(p_1^*,p_2^*,p_3^*)\big|_{(\sigma_3,\sigma_1)}$ | exact ($<10^{-15}$) |
 | E | $M_{\lambda_0\lambda_2}(R\,x) = e^{-i\phi_W(R,\hat p_2)\lambda_2} \sum_{\nu_0} D^{J_0*}_{\lambda_0\nu_0}(R)\, M_{\nu_0\lambda_2}(x)$, generic $R$ | exact ($<10^{-14}$); opposite $\lambda_2$-phase sign fails at $O(10)$ |
 | F | closure: $R(\tilde x)=R(x)R_z(\pi)$, $\phi_W(\tilde x)=\phi_W(x)+\pi$ extracted from momenta alone; reconstruction at $\tilde x$ (swapped invariants, shifted orientation) reproduces $M(x)$ | exact ($<10^{-14}$) |
+| G | convention map: rotate the standard aligned configuration by $R_x(\pi)$ so the proton points along $-\hat z$ | cross-chain ratio becomes $(-1)^{\lambda_0+\lambda_2}$ |
 
 Conventions of the script: momenta in the $xz$-plane, proton along $+\hat z$
 (spectator-2 orientation — the compensating rotation is then about the proton
 axis, which is why $\varepsilon$ is diagonal in helicities at all),
-$R(\phi,\theta,-\phi)$ helicity spinors, parent $\lambda_0$ along the
-space-fixed $\hat z$.
+$R(\phi,\theta,0)$ helicity spinors, parent $\lambda_0$ along the
+space-fixed $\hat z$. Test G applies the additional $R_x(\pi)$ needed to
+match the proton-along-$-\hat z$ convention used in the published formula.
 
-### Who rotates $\lambda_2$?
+### Origin of the $\lambda_2$ phase
 
-The $\lambda_0$ phase of $\varepsilon$ visibly comes from the overall
-$D$-matrix. The $\lambda_2$ phase looks mysterious — the proton helicity is
-not attached to the space-fixed axes — but no frame gymnastics is needed:
-**helicity does not mix under pure rotations.** For any rotation $R$, a
+The $\lambda_0$ phase of $\varepsilon$ comes from the overall
+$D$-matrix. The $\lambda_2$ phase comes from the little-group phase of the
+proton helicity state. For any rotation $R$, a
 helicity state only acquires a little-group phase,
 $$
 U(R)\,|p,\lambda_2\rangle = e^{-i\phi_W(R,\hat p)\,\lambda_2}\,
@@ -87,13 +89,16 @@ M_{\lambda_0\lambda_2}(R\,x)
 = e^{-i\phi_W(R,\hat p_2)\lambda_2}
 \sum_{\nu_0} D^{J_0*}_{\lambda_0\nu_0}(R)\; M_{\nu_0\lambda_2}(x).
 $$ {#eq-xib-rotation-covariance}
-Setting $R=R_z(\pi)$ with $\hat p_2=\hat z$ gives $\phi_W=\pi$: the
+Setting $R=R_z(\pi)$ with $\hat p_2=\hat z$ gives $\phi_W=\pi$: in the
+$+\hat z$ toy convention the
 $(-1)^{-\lambda_2}$ part of $\varepsilon$ *is* this little-group phase, and
 the $(-1)^{\lambda_0}$ part is the (diagonal) $D$-matrix — both produced by
-the same compensating rotation.
+the same compensating rotation. Reversing the aligned proton direction changes
+this proton contribution from $-\lambda_2$ to $+\lambda_2$.
 
 Consequently the orientation-decomposed form of the symmetrized amplitude
 reads, for a general event $x = R(\alpha,\beta,\gamma)\,x^*(\sigma_1,\sigma_3)$,
+in the $+\hat z$ toy convention,
 $$
 M_{\lambda_0\lambda_2}(x)
 = e^{-i\phi_W\lambda_2}
@@ -104,7 +109,7 @@ O^c_{\lambda_0'\lambda_2}(\sigma_1,\sigma_3)
 O^c_{\lambda_0'\lambda_2}(\sigma_3,\sigma_1)
 \right],
 $$
-with two bookkeeping points that are easy to get wrong:
+with two convention points:
 
 - the symmetrization phase inside the bracket carries the **aligned (summed)
   index $\lambda_0'$**, not the external $\lambda_0$ — the cross-chain
@@ -118,72 +123,43 @@ with two bookkeeping points that are easy to get wrong:
   boosts connecting chain-specific proton frames, so per-chain helicity
   definitions would add genuine $d^{1/2}(\zeta)$ crossing rotations instead.
 
-### Closure under $p_1\leftrightarrow p_3$: the derivation completed
+### Closure under $p_1\leftrightarrow p_3$
 
-Apply the slot swap $\tilde x=(p_3,p_2,p_1)$ to the orientation-decomposed
-amplitude, transforming *every* ingredient (all verified from the momenta
-alone, test F):
-
-1. **Invariants:** $\sigma_1(\tilde x)=\sigma_3(x)$,
-   $\sigma_3(\tilde x)=\sigma_1(x)$; the bracket at swapped arguments costs
-   its internal phase $(-1)^{\lambda_0'-\lambda_2}$.
-2. **Orientation:** relabeling commutes with global rotations, and
-   $P_{13}\,x^*(\sigma_1,\sigma_3) = R_z(\pi)\,x^*(\sigma_3,\sigma_1)$
-   (test D), hence
-   $$
-   R(\tilde x) = R(x)\cdot R_z(\pi),
-   \qquad (\alpha,\beta,\gamma)\to(\alpha,\beta,\gamma+\pi).
-   $$
-   Geometrically: $\hat z'=\hat p_2$ is untouched while
-   $\hat y'\propto \hat p_2\times\hat p_1 \to \hat p_2\times\hat p_3
-   = -\hat y'$ (using $p_3=-p_1-p_2$) — the body frame flips about the
-   proton axis. This contributes
-   $D^{J_0*}_{\lambda_0\lambda_0'}(\alpha,\beta,\gamma+\pi)
-   = D^{J_0*}_{\lambda_0\lambda_0'}(\alpha,\beta,\gamma)\,e^{+i\pi\lambda_0'}$.
-3. **Proton phase:** $R_z(\pi)$ fixes $\hat z$, so the little-group element
-   composes, $W(R\,R_z(\pi))=W(R)\,R_z(\pi)$, giving
-   $\phi_W(\tilde x)=\phi_W(x)+\pi$ and a factor $e^{-i\pi\lambda_2}$.
-
-Collecting,
+The derivation is given in the
+[technical appendix](../../appendix-microscopic.qmd) for the $+\hat z$ toy
+configuration. The essential closure is that the slot swap changes the aligned
+ingredients as
 $$
-M_{\lambda_0\lambda_2}(\tilde x)
-= \underbrace{e^{+i\pi\lambda_0'}e^{-i\pi\lambda_2}}_{(-1)^{\lambda_0'-\lambda_2}
-\text{ (orientation shift)}}\;
-\underbrace{(-1)^{\lambda_0'-\lambda_2}}_{\text{(bracket)}}
-\; M_{\lambda_0\lambda_2}(x)
-= + M_{\lambda_0\lambda_2}(x):
+(\sigma_1,\sigma_3)\to(\sigma_3,\sigma_1),\qquad
+R(\tilde x)=R(x)R_z(\pi),\qquad
+\phi_W(\tilde x)=\phi_W(x)+\pi .
 $$
-the same phase appears **twice and squares to one** — Bose symmetry is exact
-for every $(\lambda_0,\lambda_2)$ and every orientation, with neither factor
-meaningful in isolation.
+In that convention the bracket contributes $(-1)^{\lambda_0'-\lambda_2}$,
+while the shifted $D$-matrix and proton little-group phase contribute the same
+factor:
+$$
+e^{+i\pi\lambda_0'}e^{-i\pi\lambda_2}
+=(-1)^{\lambda_0'-\lambda_2}.
+$$
+The two factors multiply to $+1$, so the fixed-frame Bose rule
+$M(p_3,p_2,p_1)=M(p_1,p_2,p_3)$ is recovered for every helicity and
+orientation. The $-\hat z$ convention changes the sign of the proton
+little-group contribution and therefore the bracket phase required by the
+same closure is $(-1)^{\lambda_0'+\lambda_2}$.
 
-Read backwards, this closure **derives** the symmetrization phase from first
-principles: given the orientation transformation laws (2)–(3), demanding
-$M(\tilde x)=+M(x)$ *forces* the bracket phase
-$\varepsilon=(-1)^{\lambda_0'-\lambda_2}$ in these conventions. The check is
-discriminating: inserting $(-1)^{\lambda_0'+\lambda_2}$ instead yields
-$M(\tilde x)=-M(x)$ — Fermi statistics for kaons — so an exponent quoted
-without its accompanying orientation/phase conventions is not merely
-ambiguous, it is falsifiable within a convention set. The full microscopic
-chain is written in the [technical appendix](../../appendix-microscopic.qmd).
-
-(Branch remark: for half-integer spins the SU(2) representative of $R(x)$ is
-double-valued; the decomposition is insensitive as long as $\phi_W$ and the
-$D$-matrix are extracted from the *same* representative — their sign flips
-cancel between the prefactor and $D^*$.)
+For half-integer spins the SU(2) representative of $R(x)$ is double-valued.
+The decomposition remains branch-independent provided $\phi_W$ and the
+$D$-matrix are extracted from the same representative.
 
 ::: {.callout-warning}
 ## Exponent convention
 
-The toy conventions give $\varepsilon=(-1)^{\lambda_0-\lambda_2}$,
-pattern $(+,-,-,+)$; the prior derivation quotes
-$(-1)^{\lambda_0+\lambda_2}$, pattern $(-,+,+,-)$. The two differ by the
-overall sign $(-1)^{2\lambda_2}=-1$ and trade into each other when the proton
-is oriented along $-\hat z$ instead of $+\hat z$ (or under the opposite
-$D$-function phase direction). Within one fit the difference is absorbable
-into couplings; for code comparison it is not. **Open task:** identify which
-orientation/phase choice reproduces the $(+\!)$-exponent of the prior
-derivation, and record both in the registry.
+The published formula uses $\varepsilon=(-1)^{M_{\Xi_b}+\lambda_p}$
+[@LHCb:2021XiBpKK]. The toy $+\hat z$ convention gives
+$(-1)^{\lambda_0-\lambda_2}$, pattern $(+,-,-,+)$, while the
+proton-along-$-\hat z$ convention gives $(-1)^{\lambda_0+\lambda_2}$,
+pattern $(-,+,+,-)$. These are not competing physics statements; they are
+different aligned-frame conventions related by the tested $R_x(\pi)$ map.
 :::
 
 A corollary worth remembering: which helicity components of
@@ -194,10 +170,9 @@ statements are meaningful.
 ## To do
 
 1. ~~Verify the alignment-phase mechanism numerically~~ — done,
-   `toy_alignment_check.jl` (tests A–F above).
-2. Pin the orientation/phase choice that yields the
-   $(-1)^{\lambda_0+\lambda_2}$ form of the prior derivation (analytic
-   $d^{1/2}$ bookkeeping for $R_z(\pi)$ vs. the script's conventions).
+   `toy_alignment_check.jl` (tests A–G above).
+2. Record the published proton-along-$-\hat z$ aligned-frame convention in
+   the registry, with the $R_x(\pi)$ map from the toy $+\hat z$ convention.
 3. Derive the same relation in chain-1 / chain-3 DPD alignment to see how the
    phase changes with the reference choice (expect non-diagonal mixing for
    alignments not symmetric under the kaon swap).
@@ -210,7 +185,7 @@ statements are meaningful.
 ## Artifacts
 
 - `toy_alignment_check.jl` — standalone Julia script (no dependencies beyond
-  LinearAlgebra): covariant toy model, tests A–F. Run: `julia
+  LinearAlgebra): covariant toy model, tests A–G. Run: `julia
   toy_alignment_check.jl`.
 - (to be collected) previous derivation notes and the tensor comparison
   scripts.

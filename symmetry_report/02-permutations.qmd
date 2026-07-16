@@ -35,12 +35,13 @@ $a=(p_i,\lambda_i)$, $b=(p_j,\lambda_j)$; the amplitude inherits the symmetry
 of the state. No Wigner rotation appears because nothing is re-aligned: the
 same global frame is used before and after the swap.
 
-**Robustness.** The rule holds for *any* single choice of one-particle phase
-convention (e.g. $R(\phi,\theta,-\phi)$ or $R(\phi,\theta,0)$): the
-convention-dependent phases are attached to the $(p,\lambda)$ pair and move
-with it. What is *not* allowed is mixing conventions between particles, or
-comparing amplitudes whose helicities are quantized in different frames — that
-is where phantom phases enter.
+**Robustness.** The rule holds for the single one-particle phase convention
+used throughout the model. Here this is $R(\phi,\theta,0)$; translating to the
+`minus_phi` convention $R(\phi,\theta,-\phi)$ [@Habermann:2024sxs] requires
+the corresponding helicity rephasing. What is *not* allowed is mixing
+conventions between particles, or comparing amplitudes whose helicities are
+quantized in different frames — that is where additional alignment phases
+enter.
 
 ::: {.callout-important}
 ## What the theorem does **not** say
@@ -53,17 +54,17 @@ axes. Consequently the aligned amplitude $A_{\lambda_0;\{\lambda\}}(\sigma)$
 permutation eigenfunction**, and the theorem does *not* imply
 $A(\sigma_j,\sigma_i) = \eta\,A(\sigma_i,\sigma_j)$.
 
-The invalid step to watch for is the innocent-looking substitution
+The invalid step is the substitution
 $$
 M(\dots,p_j,\dots,p_i,\dots) \;\overset{!}{=}\; A(\sigma_j,\sigma_i)
 \qquad\text{(wrong),}
 $$
 because the slot-swapped configuration is *not* in standard orientation: the
 swap reflects the decay plane. Restoring the standard orientation costs a
-rotation, and its Wigner phases are exactly the $(-1)^{\lambda_0\pm\lambda_2}$
-factors seen in practice. The worked example below makes this quantitative;
-the $\Xi_b$ toy check (`cases/02-xib2pKK/toy_alignment_check.jl`) verifies
-every step numerically.
+rotation, whose Wigner phases produce factors such as
+$(-1)^{M_{\Xi_b}+\lambda_p}$ in aligned amplitudes. The
+$\Xi_b$ toy check (`cases/02-xib2pKK/toy_alignment_check.jl`) verifies this
+statement numerically.
 :::
 
 ## Constructing a symmetric amplitude from chains
@@ -183,7 +184,7 @@ seen in practice*.
 The general procedure:
 
 1. Write the exchange as an operation on the fixed-frame amplitude
-   (@thm-master) — trivial.
+   (@thm-master).
 2. Express the fixed-frame amplitude through the aligned amplitude
    $O^{\lambda_0}_{\{\lambda\}}(\sigma)$ and the overall rotation
    $R(\alpha,\beta,\gamma)$.
@@ -203,10 +204,12 @@ A_{\lambda_0,\lambda_2}(\sigma_1,\sigma_3)
 + \varepsilon_{\lambda_0\lambda_2}\,
 O^{c}_{\lambda_0,\lambda_2}(\sigma_3,\sigma_1),
 \qquad
-\varepsilon_{\lambda_0\lambda_2} = \pm(-1)^{\lambda_0\pm\lambda_2},
+\varepsilon_{\lambda_0\lambda_2} =
+(-1)^{M_{\Xi_b}+\lambda_p}
+\quad\text{in the published convention}~[@LHCb:2021XiBpKK],
 $$
-where $O^c$ is the chain amplitude in the reference ordering and the exact
-exponent is tied to the choice of standard orientation (see below). It
+with $\lambda_0=M_{\Xi_b}$ and $\lambda_2=\lambda_p$ in the notation used
+here. The function $O^c$ is the chain amplitude in the reference ordering. It
 follows immediately that the aligned amplitude is *not* symmetric under the
 swap of its invariant arguments:
 $$
@@ -230,26 +233,22 @@ precision with a manifestly Bose-symmetric covariant toy model
    $$
    The compensating rotation is about the **proton axis** — this is why the
    spectator-2 orientation gives a diagonal phase at all.
-3. Phase (tests B, C): $R_z(\pi)$ acts on the two spinning particles, parent
+3. Phase (tests B, C, G): $R_z(\pi)$ acts on the two spinning particles, parent
    ($\lambda_0$, quantized along $\hat z$) and proton ($\lambda_2$, momentum
    along $\hat z$), giving in the conventions of the toy script
-   ($R(\phi,\theta,-\phi)$ helicity spinors, proton along $+\hat z$)
+   ($R(\phi,\theta,0)$ helicity spinors, proton along $+\hat z$)
    $$
    \varepsilon_{\lambda_0\lambda_2} = (-1)^{\lambda_0-\lambda_2},
    $$
    i.e. the pattern $(+,-,-,+)$ over
-   $(\lambda_0,\lambda_2)=(\pm\tfrac12,\pm\tfrac12)$. In conventions where
-   the proton is aligned along $-\hat z$ (or with the opposite $D$-function
-   phase direction) the exponent trades $\lambda_0-\lambda_2$ for
-   $\lambda_0+\lambda_2$, an overall $(-1)^{2\lambda_2}=-1$ relative sign —
-   absorbable into the couplings within one fit, fatal when comparing codes.
+   $(\lambda_0,\lambda_2)=(\pm\tfrac12,\pm\tfrac12)$. Rotating the aligned
+   configuration by $R_x(\pi)$, so that the proton is along $-\hat z$ as in
+   the published convention, flips the proton contribution and gives
+   $(-1)^{\lambda_0+\lambda_2}$ (test G).
 
-A physical corollary: with $\varepsilon=(-1)^{\lambda_0-\lambda_2}$ the
-helicity-diagonal aligned amplitudes are symmetric in
-$(\sigma_1,\sigma_3)$ while the off-diagonal ones are antisymmetric and
-vanish on the $\sigma_1=\sigma_3$ line — which components vanish is itself
-convention-dependent (it follows the quantization directions), another reason
-intensity-level intuition is unreliable here. Details in the
+A physical corollary: which helicity components are symmetric or
+antisymmetric on the line $\sigma_1=\sigma_3$ depends on the aligned-frame
+convention. Details are in the
 [case study](cases/02-xib2pKK/notes.qmd); the component-level derivation is
 collected in the [technical appendix](appendix-microscopic.qmd).
 

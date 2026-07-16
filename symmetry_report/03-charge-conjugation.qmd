@@ -14,7 +14,7 @@ with the *same* $(p,\lambda)$ and a species-dependent phase $\eta_C^{(a)}$.
 For self-conjugate species $\eta_C^{(a)}$ is the measurable C-parity; for
 non-self-conjugate species (kaons, protons, $K_1$'s, pentaquarks) it is a
 convention that must be fixed *once*, consistently across the whole model —
-the safe route is via interpolating currents, as worked out in
+we fix them via interpolating currents, as worked out in
 `docs/isospin-kaon-conventions.qmd` (vector kaons: $\eta=-1$; $1^{++}$-type
 axials: $+1$; $1^{+-}$-type: $-1$; the physical $K_1(1270)/K_1(1400)$ get
 their signs only after the $K_{1A}/K_{1B}$ mixing rotation).
@@ -142,12 +142,12 @@ the same alignment machinery once more; the case studies fix it explicitly.
 
 ## Pitfalls
 
-- **Guessing $\eta_C$ for non-self-conjugate mesons from memory.** Derive it
+- **Assigning $\eta_C$ for non-self-conjugate mesons without conventions.** Derive it
   from the interpolating current; the $1^{+-}$-type axials carry $\eta=-1$
   and physical $K_1$'s mix both types.
 - **Confusing C phases with isospin Clebsch signs.** They have different
   origins and both appear in $K\bar K$ systems; see
   `docs/isospin-kaon-conventions.qmd`.
-- **Applying C constraints to chain amplitudes without re-alignment.** C is
-  trivial on kinematics, but the conjugate chain is typically parameterized
-  in different reference kinematics.
+- **Applying C constraints to chain amplitudes without re-alignment.** C does
+  not change momenta, but the conjugate chain is typically parameterized in
+  different reference kinematics.

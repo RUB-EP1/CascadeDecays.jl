@@ -2,8 +2,8 @@
 title: "Case 3: $J/\\psi\\to \\eta\\, p\\bar p$"
 ---
 
-**Status:** <span class="badge-open">to do</span> — designated clean
-playground.
+**Status:** <span class="badge-open">planned</span> — benchmark for exact C
+and P constraints.
 
 ## Why this case matters
 

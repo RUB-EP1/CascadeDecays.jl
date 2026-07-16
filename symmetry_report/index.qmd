@@ -4,15 +4,14 @@ title: "Overview"
 
 ## Motivation
 
-Implementing discrete-symmetry constraints — identical particles, charge
-conjugation, and CP — in helicity-formalism amplitudes for cascade decays is
-notoriously error-prone. The helicity amplitude carries explicit spin indices,
-so it is *not* an eigenstate of particle permutation; swapping two particles
-changes the kinematic point *and* mixes helicity components with non-trivial
-phases. Every practical analysis (three-pion systems, $\Xi_b^-\to pK^-K^-$,
-$B_s^0\to J/\psi\, p\bar p$, $J/\psi\to \eta\, p\bar p$,
-$\chi_{c0,2}\to K\bar K\pi\pi$) has required solving essentially the same
-problem from scratch, each time in slightly different conventions.
+Discrete-symmetry constraints — identical particles, charge conjugation, and
+CP — are simple at the level of physical states but less transparent in
+helicity-formalism amplitudes for cascade decays. A fixed-helicity amplitude
+carries explicit spin labels, so a particle exchange changes the kinematic
+point and, after re-expression in aligned variables, can induce Wigner phases
+or helicity mixing. The same issue appears in three-pion systems,
+$\Xi_b^-\to pK^-K^-$, $B_s^0\to J/\psi\, p\bar p$,
+$J/\psi\to \eta\, p\bar p$, and $\chi_{c0,2}\to K\bar K\pi\pi$.
 
 This report collects the rules once and for all: clear recipes for imposing
 permutation symmetry and charge conjugation in the helicity formalism,
@@ -21,16 +20,15 @@ registry of the conventions where sign mistakes hide.
 
 ## Strategy
 
-Reasoning directly with helicity *state vectors* $|p; j,\lambda\rangle$ and
-their transformation properties is deliberately postponed. It is hard to track
-all phase conventions at the state level, and easy to arrive at contradictions.
-Instead the working object is the **practical amplitude**: a concrete complex
+The working object is the **fixed-frame amplitude**: a concrete complex
 function of four-vectors carrying helicity labels,
 $$
 M_{\lambda_0;\,\lambda_1\dots\lambda_n}(p_1,\dots,p_n),
 $$
 evaluated by explicit code (chain amplitudes with Wigner rotations, or tensor
-contractions with explicit spinors/polarization vectors).
+contractions with explicit spinors/polarization vectors). State-vector
+relations are used only after the one-particle phase convention and alignment
+map have been fixed.
 
 The anchoring principle of the report (stated precisely in
 [the permutation chapter](02-permutations.qmd)) is:
@@ -41,15 +39,16 @@ The anchoring principle of the report (stated precisely in
 > When all helicities are defined in one common frame, particle exchange is a
 > pure slot swap of $(p_i,\lambda_i)$ pairs (with the statistics sign), and
 > charge conjugation touches neither momenta nor spin labels. All non-trivial
-> phases — such as $(-1)^{\lambda_0\pm\lambda_2}$ in $\Xi_b^-\to pK^-K^-$ —
+> phases — such as $(-1)^{M_{\Xi_b}+\lambda_p}$ in the
+> $\Xi_b^-\to pK^-K^-$ convention of @LHCb:2021XiBpKK —
 > arise *only* when the amplitude is re-expressed in chain-specific aligned
 > frames (Dalitz-plot-decomposition style). They are Wigner-rotation
 > bookkeeping, not new physics input.
 
-This turns each cumbersome case into a two-step procedure: (1) write the
-symmetry constraint in the fixed frame, where it is trivial; (2) translate to
-the aligned/chain representation used by the fitter, computing the induced
-phases once, explicitly, and verifying them numerically.
+This turns each case into a two-step procedure: (1) state the symmetry in the
+fixed frame, where the action on momenta and helicities is unambiguous; (2)
+translate to the aligned/chain representation used by the fitter, compute the
+induced phases explicitly, and verify them numerically.
 
 ## Case studies
 
@@ -57,10 +56,10 @@ Ordered by increasing complexity of the symmetry structure:
 
 | # | System | Symmetry content | Status |
 |---|--------|------------------|--------|
-| 1 | [$\pi^+\pi^-\pi^-$, $D^0D^0\pi^+$](cases/01-three-pions/notes.qmd) | identical spinless particles | mostly understood; LS-basis exchange phase to pin down |
-| 2 | [$\Xi_b^-\to pK^-K^-$](cases/02-xib2pKK/notes.qmd) | identical bosons + fermion spectator, weak decay | master formula derived by closure and cross-checked; prior exponent convention still to map |
-| 3 | [$J/\psi\to \eta\, p\bar p$](cases/03-jpsi2etappbar/notes.qmd) | strong decay: C, P both good — clean playground | to do |
-| 4 | [$B_s^0\to J/\psi\, p\bar p$](cases/04-bs2jpsippbar/notes.qmd) | weak decay; effective C from gluonic $p\bar p$ production | cross-checked vs tensors; to revisit |
+| 1 | [$\pi^+\pi^-\pi^-$, $D^0D^0\pi^+$](cases/01-three-pions/notes.qmd) | identical spinless particles | derivation outline; numerical coupling check pending |
+| 2 | [$\Xi_b^-\to pK^-K^-$](cases/02-xib2pKK/notes.qmd) | identical bosons + fermion spectator, weak decay | published exponent reproduced by the $p\parallel-\hat z$ convention; toy $+\hat z$ variant mapped |
+| 3 | [$J/\psi\to \eta\, p\bar p$](cases/03-jpsi2etappbar/notes.qmd) | strong decay with exact C and P | planned |
+| 4 | [$B_s^0\to J/\psi\, p\bar p$](cases/04-bs2jpsippbar/notes.qmd) | weak decay; effective C from gluonic $p\bar p$ production | prior tensor check; operator statement pending |
 | 5 | [$\chi_{c0,2}\to K\bar K\pi\pi$](cases/05-chic2KKpipi/notes.qmd) | 4-body, C=+, $K_{1A}/K_{1B}$ mixing | open |
 
 Each case study lives in its own subfolder under `cases/`, where additional
