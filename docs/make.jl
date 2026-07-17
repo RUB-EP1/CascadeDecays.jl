@@ -26,6 +26,12 @@ const QUARTO_PAGES = [
         edit_url = "../cascade-vs-dpd.qmd",
         title = "# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)",
     ),
+    (
+        qmd = "decayamplitude-compatibility.qmd",
+        page = "decayamplitude-compatibility.md",
+        edit_url = "../decayamplitude-compatibility.qmd",
+        title = "# [decayamplitude compatibility audit](@id decayamplitude_compatibility)",
+    ),
 ]
 
 # Pre-rendered examples are copied into Documenter's temporary source tree.
@@ -159,6 +165,7 @@ makedocs(;
             "Isospin and kaon charge-conjugation conventions" => "isospin-kaon-conventions.md",
         ],
         "Cross-checking with ThreeBodyDecays" => "cascade-vs-dpd.md",
+        "decayamplitude compatibility audit" => "decayamplitude-compatibility.md",
         "API reference" => "api-reference.md",
     ],
 )

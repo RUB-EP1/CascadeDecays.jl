@@ -6,6 +6,7 @@ project:
     - integration_4body_b2ddKpi.qmd
     - lb2lc3pi-model.qmd
     - cascade-vs-dpd.qmd
+    - decayamplitude-compatibility.qmd
 
 format:
   gfm: default

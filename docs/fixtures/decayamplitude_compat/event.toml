@@ -1,0 +1,27 @@
+schema_version = 1
+generator = "RamboOnDiet.PhaseSpaceGenerator"
+seed = 14598366
+parent_mass = 2.0
+daughter_masses = [0.4, 0.3, 0.2]
+four_vector_order = ["px", "py", "pz", "E"]
+
+[[momenta]]
+particle = 1
+px = 0.17125781866146114
+py = -0.6213726744071155
+pz = -0.14561782598005704
+E = 0.7724233244767349
+
+[[momenta]]
+particle = 2
+px = -0.5445847536046677
+py = 0.3510852697579513
+pz = 0.04703347592827917
+E = 0.7155735939493337
+
+[[momenta]]
+particle = 3
+px = 0.37332693494320657
+py = 0.27028740464916423
+pz = 0.09858435005177787
+E = 0.5120030815739313

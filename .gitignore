@@ -7,9 +7,11 @@ docs/integration_4body_b2ddKpi.md
 docs/lb2lc3pi-model.md
 docs/four-pion-model.md
 docs/cascade-vs-dpd.md
+docs/decayamplitude-compatibility.md
 docs/src/tutorial.md
 docs/src/lb2lc3pi-model.md
 docs/src/cascade-vs-dpd.md
+docs/src/decayamplitude-compatibility.md
 docs/integration_4body_b2ddKpi.html
 docs/integration_4body_b2ddKpi_files/
 docs/lb2lc3pi-model_files/
@@ -17,3 +19,4 @@ docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl
 docs/.DS_Store
+/tmp/

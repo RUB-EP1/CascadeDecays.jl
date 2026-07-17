@@ -1,0 +1,242 @@
+schema_version = 1
+cascade_decays_commit = "a372505560c4a8ebc52b5c44b0e15ac907e33476"
+decayamplitude_commit = "39e0f1fb03778abb29ccab4bf09c497a2b1c34e3"
+decayamplitude_version = "0.1.9"
+decayangle_version = "1.1.2"
+topology = "((1,2),3)"
+line_masses2 = [0.15999999999999992, 0.08999999999999986, 0.039999999999999994, 1.9919876737042745, 4.0]
+root_phi = -2.5149425199858495
+root_cos_theta = -0.2091643181654772
+isobar_phi = 1.4144112448600463
+isobar_cos_theta = 0.011170731326575443
+spin_normalization = 1.4142135623730951
+
+[[alignments]]
+particle = 2
+alpha = 1.3190893138810578
+cos_beta = 0.988039258014642
+gamma = -3.1415926535897905
+
+[[alignments]]
+particle = 3
+alpha = 1.9171995778241814e-15
+cos_beta = 0.9705684100829275
+gamma = -1.7271814087297488
+
+[[terms]]
+two_lambda_internal = -1
+root_coupling_re = 0.5773502691896257
+root_coupling_im = 0.0
+root_amplitude_re = -0.39921804568564007
+root_amplitude_im = 0.0
+isobar_coupling_re = -0.7071067811865478
+isobar_coupling_im = 0.0
+isobar_amplitude_re = -0.37796128646398064
+isobar_amplitude_im = 0.32303650428836844
+product_re = 0.15088896612698072
+product_im = -0.12896200192712334
+
+[[terms]]
+two_lambda_internal = 1
+root_coupling_re = 0.40824829046386296
+root_coupling_im = 0.0
+root_amplitude_re = -0.08539097531709558
+root_amplitude_im = 0.0
+isobar_coupling_re = -0.7071067811865478
+isobar_coupling_im = 0.0
+isobar_amplitude_re = -0.38220723810155527
+isobar_amplitude_im = -0.32666544043474355
+product_re = 0.03263704883474518
+product_im = 0.027894280561111342
+
+[[amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = -0.29398127683449127
+im = 0.17297349195105813
+
+[[amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.23774978803673974
+im = -0.1398878577920166
+
+[[amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = -0.1975261173500146
+im = -0.2148627452085648
+
+[[amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = 0.15974416138795536
+im = 0.1737647127748475
+
+[[amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = 0.17014338846625449
+im = 0.22343887103230045
+
+[[amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.2595449794071603
+im = -0.1429313422739592
+
+[[amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = 0.2595449794071603
+im = 0.1429313422739592
+
+[[amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = -0.17014338846625449
+im = 0.22343887103230045
+
+[[amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = 0.15974416138795536
+im = -0.1737647127748475
+
+[[amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.1975261173500146
+im = -0.2148627452085648
+
+[[amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = -0.23774978803673974
+im = -0.1398878577920166
+
+[[amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = -0.29398127683449127
+im = -0.17297349195105813
+
+[[aligned_amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = -0.24688778696394612
+im = 0.2336158002149795
+
+[[aligned_amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.1754836502985966
+im = -0.1965918487306965
+
+[[aligned_amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = -0.25544176777016653
+im = -0.16556637928848456
+
+[[aligned_amplitudes]]
+two_h0 = -2
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = 0.20814566647397517
+im = 0.11123490557230076
+
+[[aligned_amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = 0.16206477867701963
+im = 0.25734737587291967
+
+[[aligned_amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.23858297981392212
+im = -0.13134749351802297
+
+[[aligned_amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = 0.2385829798139221
+im = 0.13134749351802297
+
+[[aligned_amplitudes]]
+two_h0 = 0
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = -0.16206477867701963
+im = 0.2573473758729196
+
+[[aligned_amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = -1
+two_h3 = -1
+re = 0.20814566647397517
+im = -0.11123490557230074
+
+[[aligned_amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = -1
+two_h3 = 1
+re = 0.25544176777016653
+im = -0.16556637928848453
+
+[[aligned_amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = 1
+two_h3 = -1
+re = -0.1754836502985966
+im = -0.1965918487306965
+
+[[aligned_amplitudes]]
+two_h0 = 2
+two_h1 = 0
+two_h2 = 1
+two_h3 = 1
+re = -0.24688778696394612
+im = -0.2336158002149795
