@@ -11,6 +11,10 @@ represented by final-state four-vectors, into topology-local
 convention, the generated angle-measurement programs, and optional helicity-axis
 alignment paths.
 
+For a checklist aimed at comparisons with external frameworks, including the
+particle-2 frame and warnings about cross products formed in different frames, see
+[Convention matching across amplitude frameworks](@ref convention_matching).
+
 ## Setup
 
 This page uses a three-body example with physical masses only to get realistic

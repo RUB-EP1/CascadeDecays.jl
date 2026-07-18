@@ -177,6 +177,9 @@ This is the same local rotation × `H` logic without the chain product or propag
 
 ## Further reading
 
+- [Convention matching across amplitude frameworks](@ref convention_matching) —
+  form-factor normalisation, particle-2 phases, frame conventions, and a staged
+  cross-framework validation procedure.
 - [Topology and numbering](@ref notation) — bracket child order fixes `child1` /
   `child2` and therefore which line receives the particle-2 phase.
 - [Cross-checking with ThreeBodyDecays](@ref cascade_vs_dpd) — numerical comparison

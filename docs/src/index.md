@@ -22,6 +22,7 @@ The pages below walk through the package in increasing scope — from internal i
 |-------|------|----------------|
 | Topology and numbering | [Topology and numbering](@ref notation) | Bracket addresses, line and vertex indices, incidence matrix, propagator routing |
 | Amplitude evaluation | [Amplitude computation](@ref amplitude_computation) | Propagators, vertex couplings `H = h ×` particle-2 phase, aligned chain assembly |
+| Convention matching | [Convention matching across amplitude frameworks](@ref convention_matching) | Form-factor normalisation, particle-2 phases, angle conventions, and a staged cross-framework validation procedure |
 | Four-vector kinematics | [Routing four-vectors](@ref kinematic_tasks) | [`KinematicTask`](@ref), [`KinematicPoint`](@ref), frame conventions, Wigner alignment paths |
 | Single-chain integration | [Using a decay chain](@ref tutorial) | End-to-end [`DecayChain`](@ref) walkthrough with a fixed B⁺ → D⁰D⁻π⁺K⁺ event |
 | Multi-channel models | [Building a full model for a decay](@ref lb2lc3pi_model) | [`CascadeDecay`](@ref) container, named channels, toy spectra |
