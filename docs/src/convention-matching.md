@@ -6,14 +6,14 @@ EditURL = "../src/convention-matching.md"
 ```
 
 An amplitude comparison starts by identifying how the two implementations relate
-their factorisation, particle order, helicity states, and kinematic frames. Literal
-agreement of all intermediate quantities is sufficient, but not necessary: two
-formalisms can use different variables and still be equivalent through an explicit
-mapping of amplitudes and couplings. Agreement of an unpolarised intensity at one
-phase-space point is not sufficient because signs may cancel in the helicity sum and
-a kinematic mismatch may accidentally look like a constant normalisation. A detailed
-discussion of spin-state matching in general cascades is given by Habermann and
-Mikhasenko in [*Wigner rotations for cascade
+their factorisation, particle order, helicity states, kinematic frames, and
+**reference topology**. Literal agreement of all intermediate quantities is
+sufficient, but not necessary: two formalisms can use different variables and still
+be equivalent through an explicit mapping of amplitudes and couplings. Agreement of
+an unpolarised intensity at one phase-space point is not sufficient because signs
+may cancel in the helicity sum and a kinematic mismatch may accidentally look like a
+constant normalisation. A detailed discussion of spin-state matching in general
+cascades is given by Habermann and Mikhasenko in [*Wigner rotations for cascade
 reactions*](https://inspirehep.net/literature/2827198).
 
 This page records the conventions used by `CascadeDecays.jl` and a practical
@@ -306,18 +306,97 @@ planes make such equivalences less transparent. Validate every local angle or de
 the full amplitude mapping topology by topology rather than extrapolating a
 three-body identity.
 
-When amplitudes with different topologies are added coherently, their external
-spin states must also be transported into one reference topology. Use
-[`KinematicTask`](@ref) and request the relevant `wigner_finals`; agreement of
-chain-local angles alone does not validate these relative Wigner rotations.
+## Reference topology: the common external-spin basis
+
+The reference topology is not merely the first resonance channel, a plotting
+choice, or the chain whose coefficient fixes the overall phase. It is the **ordered
+bracket tree whose helicity-frame paths define the common quantisation axes for the
+external spin states**. For example, `((1,2),3)` and `((3,1),2)` give different
+paths from the mother frame to particles 1, 2, and 3. Successive non-collinear boosts
+make the resulting axes differ by event-dependent Wigner rotations.
+
+A chain amplitude is initially a tensor in that chain's natural external-helicity
+basis. Consequently, components with the same numerical helicity labels from two
+different topologies are not yet components of the same spin states and must not be
+added directly. If ``A^{(t)}_{\mu_1\ldots\mu_n}`` is the local amplitude for topology
+``t`` and ``r`` is the reference topology, `CascadeDecays.jl` forms, schematically,
+
+```math
+\widetilde A^{(t;r)}_{\lambda_1\ldots\lambda_n}
+=
+\sum_{\mu_1\ldots\mu_n}
+A^{(t)}_{\mu_1\ldots\mu_n}
+\prod_i
+D^{j_i*}_{\mu_i\lambda_i}
+\!\left(R^{(i)}_{r\to t}\right),
+```
+
+where ``R^{(i)}_{r\to t}`` compares the helicity-frame path to external particle
+``i`` through the reference tree with the path through topology ``t``. The coherent
+model is then ``\sum_t c_t\widetilde A^{(t;r)}``. For ``t=r`` every relative rotation
+is the identity. Spin-zero external particles also need no rotation.
+
+This is why changing the reference topology can change every fixed-helicity complex
+amplitude, often in a strongly kinematic way. It is a change of spin basis, not a
+change of the underlying decay dynamics. A fully spin-summed unpolarised intensity
+is invariant under a consistently applied common basis change, but that fact is a
+poor convention test: it hides component-level errors, and polarised observables
+also require the external density matrix to be expressed in the same basis.
+
+Many amplitude frameworks do not expose a `reference_topology` setting. Instead,
+they align every other topology to the **first topology in the model or channel
+list**. The reference is then implicit, but it is still part of the model convention:
+reordering the list changes the reported helicity-amplitude components. It may also
+change interference if a comparison omits or inconsistently applies the required
+rotations.
+
+!!! warning "Choose the source reference when matching"
+    To match an existing implementation, use exactly its reference topology in the
+    target calculation. If the source aligns to its first topology, reproduce that
+    first topology—including final-particle numbering and the left/right child order
+    at every vertex. Do not independently choose the target's first chain or the
+    topology that makes the event generation most convenient. A reference tree need
+    not itself carry a non-zero model contribution; it only has to define the desired
+    external-spin axes.
+
+    If the source reference is undocumented, inspect the order before any channel
+    sorting or filtering and the code that constructs its alignment rotations. As a
+    diagnostic, try the plausible source topologies as references and compare the
+    **complex amplitude for every external helicity at several generic events**. Do
+    not infer the reference from agreement of a spin-summed intensity alone.
+
+In `CascadeDecays.jl`, use the same reference in the model and kinematic task, and
+request alignment for every final-state particle with non-zero spin:
+
+```julia
+source_reference = DecayTopology(((1, 2), 3))  # copy the source choice explicitly
+spinning_final_indices = (1, 3)                # example: j₁,j₃ > 0
+
+model = CascadeDecay(chains, source_reference; couplings)
+task = KinematicTask(
+    Tuple(chain.topology for chain in chains);
+    reference_topology = source_reference,
+    wigner_finals = spinning_final_indices,
+)
+point = KinematicPoint(task, four_vectors)
+A = amplitude(model, point)
+```
+
+Calling [`amplitude`](@ref) with a chain and only its local kinematics returns a
+chain-local aligned amplitude; it does not perform cross-topology transport. With a
+[`KinematicPoint`](@ref), [`alignment_angles_at`](@ref) exposes the relative
+rotations used for each topology. Agreement of line invariants and chain-local
+angles therefore does not validate the reference topology: the alignment rotations
+and the final transported helicity amplitudes must be checked separately.
 
 ## A reproducible matching procedure
 
 Match from kinematics outward. At each stage, compare several generic phase-space
 points, including non-zero azimuths and points away from resonance poles.
 
-1. **Freeze topology and labels.** Record the ordered bracket tree, final-particle
-   order, spin labels, external-helicity axis order, and reference topology.
+1. **Freeze topology and labels.** Record every ordered bracket tree, final-particle
+   order, spin labels, external-helicity axis order, and the reference topology. If
+   the source aligns to the first topology, preserve its pre-sorting channel order.
 2. **Compare scalar kinematics.** Check every line invariant and every vertex's
    ordered ``(m_0^2,m_1^2,m_2^2)``.
 3. **Compare local frames.** Check ``\cos\theta`` and ``\phi`` one vertex at a time.
@@ -336,8 +415,9 @@ points, including non-zero azimuths and points away from resonance poles.
 7. **Compare one complete chain.** Test the complex amplitude for every external
    helicity. Include the package factor ``\sqrt{2J_R+1}`` for every internal line;
    some frameworks attach this factor to propagators or couplings instead.
-8. **Compare topology alignment.** With more than one topology, test the external
-   Wigner rotations relative to the fixed reference topology.
+8. **Compare topology alignment.** With more than one topology, test every spinning
+   external particle's Wigner rotation relative to the fixed source reference, then
+   compare the transported complex amplitude for every external helicity.
 9. **Only then compare the coherent model.** Translate chain coefficients, choose a
    common reference coefficient and phase, and finally compare intensities.
 
