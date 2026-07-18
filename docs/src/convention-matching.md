@@ -139,7 +139,7 @@ q(m_0;m_1,m_2)=
 A form factor may represent centrifugal-barrier behaviour, a finite interaction
 range, or another chosen vertex dependence. It does not have to be a
 Blatt--Weisskopf function. When that choice is made, the
-`HadronicLineshapes.BlattWeisskopf{ℓ}(d)` functor used by this package means
+`HadronicLineshapes.BlattWeisskopf{L}(d)` functor used by this package means
 
 ```math
 F_\ell(q;d)=\sqrt{\frac{z^{2\ell}}{\chi_\ell(z^2)}},
