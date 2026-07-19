@@ -1,0 +1,108 @@
+---
+title: "Cross-check methodology"
+---
+
+## Why tensor amplitudes are the reference
+
+Covariant (tensor) amplitudes are built from four-momenta contracted with
+explicit spinors $u(p,\lambda)$, $v(p,\lambda)$ and polarization vectors
+$\varepsilon^\mu(p,\lambda)$. Their key property for this project:
+
+> The *functional form* of a tensor amplitude makes permutation and
+> conjugation symmetries manifest. Swapping two identical particles is
+> literally swapping two momentum arguments; helicity is implicit in the
+> external wavefunctions and never needs separate bookkeeping.
+
+Experience from $\Xi_b^-\to pK^-K^-$ and $B_s^0\to J/\psi\,p\bar p$ confirms
+that symmetrization mistakes in the helicity construction are caught reliably
+by a tensor comparison. The price is that tensor amplitudes obscure the
+partial-wave content; hence the strategy: **build in helicity, verify in
+tensors.**
+
+## The bridge, made precise
+
+A tensor amplitude evaluated with external wavefunctions built in the *same
+fixed frame and same phase conventions* as the fixed-frame helicity amplitude
+must agree pointwise up to one overall constant per coupling:
+$$
+M^{\text{tensor}}_{\lambda_0;\{\lambda\}}(p_1,\dots,p_n)
+= c \cdot
+M^{\text{helicity}}_{\lambda_0;\{\lambda\}}(p_1,\dots,p_n)
+\qquad \text{with } c \text{ independent of } \lambda\text{'s and } p\text{'s}.
+$$
+The independence of $c$ from the helicity labels is the actual test: a
+convention mismatch shows up as a $\lambda$-dependent (often just
+sign-flipping) ratio.
+
+Requirements for the bridge to be meaningful:
+
+- spinor and polarization-vector conventions fixed (registry rows in the
+  [conventions chapter](01-conventions.qmd)): normalization,
+  $v = C\bar u^T$-type antiparticle relation, $\gamma_5$ and
+  $\epsilon^{0123}$ signs;
+- external wavefunctions constructed with the *same* one-particle helicity
+  convention (boost/rotation sequence) as the helicity code;
+- identical propagator/lineshape factors on both sides, or lineshapes set to 1
+  for the check.
+
+## Numerical test battery
+
+For each symmetry claim, the following escalating checks. Random phase-space
+points $x=(p_1,\dots,p_n)$ are drawn away from collinear/measure-zero
+configurations.
+
+1. **Slot-swap test (permutation).** Evaluate
+   $M_{\lambda_0;\dots\lambda_i\dots\lambda_j\dots}(x)$ and
+   $M_{\lambda_0;\dots\lambda_j\dots\lambda_i\dots}(x^{i\leftrightarrow j})$
+   for all helicity combinations; ratios must equal $\eta_{ij}$ exactly
+   (to machine precision if lineshapes are permutation-covariant).
+2. **Conjugation test (C).** Evaluate the model for the conjugated species
+   list at the same $x$ and helicities; ratio must equal the predicted
+   constant phase (@eq-c-master).
+3. **Aligned-representation test.** Verify the derived chain-level relation
+   (with its alignment phases) by comparing the aligned amplitudes
+   $O^{\lambda_0}_{\{\lambda\}}(\sigma)$ at $\sigma$ and at the permuted
+   $\sigma'$ — this validates the phase factors like
+   $(-1)^{M_{\Xi_b}+\lambda_p}$ in isolation.
+4. **Tensor bridge test.** Pointwise ratio helicity/tensor, scanned over all
+   helicities and several $x$.
+5. **Intensity test (weakest, last).** $\sum_{\text{hel}}|M|^2$ symmetric
+   under the invariant-variable permutation. Necessary, not sufficient —
+   useful as a smoke test inside fitting code.
+
+Each executed check is recorded in the [ledger](99-ledger.qmd) with a link to
+the script (kept in the corresponding `cases/*/` folder).
+
+## Implementation notes
+
+- Numerical checks are implemented in Julia against
+  `ThreeBodyDecays.jl` / `CascadeDecays.jl` (aligned/DPD amplitudes) and small
+  standalone scripts with explicit four-vectors, boosts, and Wigner matrices
+  (fixed-frame amplitudes). Keeping the fixed-frame evaluator *independent* of
+  the package internals is essential: two implementations of the same
+  convention do not test the convention.
+- For fermions, run every test for both signs of parent polarization and both
+  daughter helicities; half-integer phase mistakes ($(-1)^{2\lambda}$-type)
+  are invisible in partially summed quantities.
+- Lineshapes: use distinct, asymmetric complex test functions (e.g.
+  $f(\sigma)=1+ i\sigma/m^2$) rather than symmetric Breit–Wigners centered in
+  the Dalitz region, so that accidental symmetries of the dynamics cannot mask
+  bookkeeping errors.
+
+## Convention-mismatch triage
+
+When two implementations disagree, walk this list — ordered by how often each
+culprit occurs in practice:
+
+1. $\lambda$-independent overall constant → harmless normalization.
+2. Sign flips with parent polarization $\lambda_0$ → overall-rotation /
+   alignment convention (DPD standard orientation, Euler angle set).
+3. Sign flips with one daughter's helicity → particle-2 convention or a
+   mismatch between the used $R(\phi,\theta,0)$ helicity convention and the
+   `minus_phi` convention $R(\phi,\theta,-\phi)$.
+4. Sign depends on chain → alignment (Wigner rotation) errors, wrong rotation
+   order, or missing $(-1)^{...}$ in a cross-chain relation.
+5. Fermion-only sign issues → spinor conventions, $2\pi$-rotation phases,
+   antiparticle ($v$-spinor) phase.
+6. Disagreement growing with angles (not just signs) → wrong frame for a
+   Wigner rotation; not a convention issue.

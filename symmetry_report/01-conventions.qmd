@@ -1,0 +1,143 @@
+---
+title: "Conventions and notation"
+---
+
+## The fixed-frame amplitude {#sec-fixed-frame-def}
+
+The central object of this report is the decay matrix element written as a
+concrete function of four-vectors,
+$$
+M_{\lambda_0;\,\lambda_1\dots\lambda_n}(p_1,\dots,p_n),
+$$
+for $0\to 1\,2\,\dots n$, with the following definitions held fixed
+throughout:
+
+- One global coordinate system $(\hat x,\hat y,\hat z)$ in the rest frame of
+  the parent. The parent spin projection $\lambda_0$ is quantized along
+  $\hat z$.
+- The helicity $\lambda_i$ of final-state particle $i$ is its spin projection
+  onto its own momentum direction $\hat p_i$ *in this common frame*, with the
+  one-particle helicity state built by one fixed convention, e.g.
+  $$
+  |p,\lambda\rangle
+  = U\!\left[R(\phi_p,\theta_p,0)\right]
+    U\!\left[L_z(|\vec p\,|)\right] |s,\lambda\rangle .
+  $$
+  This is the convention used in the report. The alternative
+  `minus_phi` convention, $R(\phi,\theta,-\phi)$, differs by a helicity phase
+  and is discussed in @Habermann:2024sxs.
+  The same helicity-state construction is implemented in
+  `RUB-EP1/SpinStates.jl` [@SpinStatesJL], which is useful for checking
+  concrete spinor phases: a state carries its four-vector, spin, and spin
+  coefficients, and `track_spin`, `wigner_rotation`, and `evolve` propagate
+  those coefficients through boosts and rotations while retaining the $4\pi$
+  spinor branch.
+- Configurations with $\vec p$ exactly along $-\hat z$ are a measure-zero set
+  where the polar-angle convention is ambiguous; they are excluded from
+  pointwise numerical checks.
+
+This object is *not* what fitters typically evaluate — but it is where the
+discrete symmetries act simply. Everything else is derived from it.
+
+## Chain (aligned) amplitudes
+
+Cascade models are built from decay chains. For a three-body decay
+$0\to(ij)k$ through an isobar $R$,
+$$
+A^{(k)}_{\lambda_0;\,\{\lambda\}}(\sigma_{ij}, \Omega\text{'s})
+= \sum_{\tau}
+H^{0\to R k}_{\tau,\lambda_k}\,
+D^{J_0\,*}_{\lambda_0,\,\tau-\lambda_k}(\Omega_k)\;
+\mathrm{BW}_R(\sigma_{ij})\,
+H^{R\to ij}_{\lambda_i,\lambda_j}\,
+D^{J_R\,*}_{\tau,\,\lambda_i-\lambda_j}(\Omega_{ij}),
+$$
+schematically. Two features cause all the trouble:
+
+1. **Frame proliferation.** The helicities $\lambda_i,\lambda_j$ inside the
+   chain are defined in the isobar rest frame reached by a *chain-specific*
+   sequence of boosts. Different chains define different frames for the same
+   particle; relating them requires Wigner rotations (the "alignment" problem).
+2. **Aligned kinematics.** In the Dalitz-plot decomposition (DPD)
+   [@JPAC:2019ufm] the overall rotation is factored out and the remaining
+   dynamic function $O^{\lambda_0}_{\{\lambda\}}(\sigma_1,\sigma_2,\sigma_3)$
+   is evaluated in a *standard orientation* tied to one chosen chain. A
+   particle permutation moves the configuration out of the standard
+   orientation; bringing it back generates the permutation phases.
+
+The report treats the fixed-frame amplitude and the aligned amplitude as two
+representations of the same object, connected by explicit rotations:
+$$
+M_{\lambda_0;\{\lambda\}}(p_1,\dots,p_n)
+= \sum_{\{\nu\}} \left[\text{alignment rotations}\right]^{\{\nu\}}_{\{\lambda\}}
+\; O^{\lambda_0}_{\{\nu\}}(\sigma_1,\dots).
+$$
+
+## Two-body vertices
+
+For a decay $R\to 1\,2$ ($J\to s_1, s_2$) the helicity couplings
+$H^{R\to12}_{\lambda_1\lambda_2}$ relate to LS couplings by the standard
+Jacob–Wick recoupling [@JacobWick1959; @Chung:1971ri]
+$$
+H^{R\to 12}_{\lambda_1\lambda_2}
+= \sum_{LS} g_{LS}\,
+\sqrt{\frac{2L+1}{2J+1}}\,
+\langle L\,0\,;S\,\lambda | J\,\lambda\rangle\,
+\langle s_1\,\lambda_1\,;s_2\,{-\lambda_2} | S\,\lambda\rangle,
+\qquad \lambda=\lambda_1-\lambda_2 .
+$$
+
+Parity conservation at the vertex implies the Jacob–Wick relation
+$$
+H_{-\lambda_1,-\lambda_2}
+= \eta_R\,\eta_1\,\eta_2\,(-1)^{J-s_1-s_2}\,
+H_{\lambda_1\lambda_2}.
+$$
+
+Both formulas embed the Jacob–Wick "particle-2" convention. Any statement in
+this report that depends on them inherits that convention; the cross-check
+chapter explains how to detect a mismatch numerically.
+
+## Clebsch–Gordan symmetries used throughout
+
+With Condon–Shortley phases:
+$$
+\langle j_1 m_1\, j_2 m_2 | J M\rangle
+= (-1)^{j_1+j_2-J}
+\langle j_2 m_2\, j_1 m_1 | J M\rangle,
+$$
+$$
+\langle j_1\,{-m_1}\; j_2\,{-m_2} | J\,{-M}\rangle
+= (-1)^{j_1+j_2-J}
+\langle j_1 m_1\, j_2 m_2 | J M\rangle,
+$$
+and for Wigner-$d$ at $\theta=\pi$ (needed for permutation rotations):
+$$
+d^{j}_{m'm}(\pi) = (-1)^{j-m}\,\delta_{m',-m}.
+$$
+
+## Convention registry
+
+Every sign ambiguity encountered in this project should map to a row of this
+table. When comparing two codes or two papers, walk the table top to bottom.
+
+| Item | Choice used here | Where it enters |
+|------|------------------|-----------------|
+| Wigner $D$ | $D^j_{m'm}(\alpha,\beta,\gamma)=e^{-im'\alpha}d^j_{m'm}(\beta)e^{-im\gamma}$ | all rotations |
+| Clebsch–Gordan | Condon–Shortley | LS couplings, isospin |
+| One-particle helicity state | $R(\phi,\theta,0)$; the alternative `minus_phi` convention is $R(\phi,\theta,-\phi)$ [@Habermann:2024sxs] | fixed-frame amplitude phases |
+| Jacob–Wick particle-2 | second particle via $(-1)^{s_2-\lambda_2}$-type phase (implicit in the recoupling formulas above) | $H_{\lambda_1\lambda_2}$, parity relation |
+| DPD standard orientation | chain-1 alignment as in [@JPAC:2019ufm]; per-analysis choice noted in each case study | permutation phases |
+| Parity intrinsic phases | PDG $\eta_P$ per species | parity relation |
+| C phases of mesons | from interpolating currents, see `docs/isospin-kaon-conventions.qmd` | C constraints |
+| Antiparticle spinors | $v(p,\lambda) = C\bar u^T(p,\lambda)$-type relation — **to fix** | tensor cross-checks with fermions |
+| $\epsilon^{0123}$ sign | **to fix** | tensor amplitudes with $\epsilon_{\mu\nu\rho\sigma}$ |
+| $\gamma_5$ sign | $\gamma_5 = i\gamma^0\gamma^1\gamma^2\gamma^3$ | tensor amplitudes |
+
+::: {.callout-warning}
+## To fix
+
+The rows marked **to fix** must be pinned down (once) before quantitative
+cross-checks between the helicity and tensor implementations are meaningful.
+They are recorded in the [ledger](99-ledger.qmd).
+:::

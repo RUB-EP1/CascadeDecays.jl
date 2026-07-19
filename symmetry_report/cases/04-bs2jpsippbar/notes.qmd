@@ -1,0 +1,60 @@
+---
+title: "Case 4: $B_s^0\\to J/\\psi\\, p\\bar p$"
+---
+
+**Status:** <span class="badge-checked">prior tensor check</span> — the
+effective-C operator statement and chain-level derivation remain to be
+documented here.
+
+## Setting
+
+Weak decay: $\bar b\to \bar c c\bar s$ via internal W emission produces the
+charmonium; the $p\bar p$ pair is created from the vacuum by gluons. Chains:
+
+- $P_{c\bar c}\to J/\psi\, p$ (pentaquark) with spectator $\bar p$,
+- $\bar P_{c\bar c}\to J/\psi\, \bar p$ with spectator $p$,
+- $X\to p\bar p$ with spectator $J/\psi$.
+
+Because the decay is weak, C invariance does **not** force the
+$P_{c\bar c}\,\bar p$ and $\bar P_{c\bar c}\,p$ couplings to be related.
+Nonetheless a relation *appears to hold*, traced to the production mechanism:
+the $p\bar p$ pair originates from C-even, P-even gluonic operators, and the
+weak part of the amplitude does not distinguish the two chains.
+
+## What must be established
+
+1. **The precise statement of the effective symmetry.** At which level does
+   it hold — operator level (factorization of the weak vertex × gluonic
+   $p\bar p$ creation), or only for specific Dirac structures? What breaks
+   it (e.g. non-factorizable contributions), i.e. is it a model assumption
+   to be quoted, rather than a theorem?
+2. **The resulting coupling relation** between $P_{c\bar c}$ and
+   $\bar P_{c\bar c}$ chains, with all phases: current-level C phases for
+   the baryon pair and the alignment phases from mapping the conjugate-chain
+   kinematics to the reference configuration.
+3. **Consistency with case 3:** the relation should be the restriction of
+   the exact-C result for $J/\psi\to\eta p\bar p$ (with the $\eta$ replaced
+   by the weak "source"), which is why case 3 is done first.
+
+## Previous experience
+
+Symmetrizing $p\leftrightarrow\bar p$ here was tricky; the construction was
+validated by comparison with tensor amplitudes. Those notes and scripts
+should be collected into this folder and re-expressed in the fixed-frame
+language:
+
+- fixed-frame statement of the $p\leftrightarrow\bar p$ relation (this is a
+  *C-type* species swap, not an identical-particle swap — no statistics
+  sign, but fermion-pair C phases);
+- chain-level relation with alignment phases;
+- tensor bridge rerun with registry conventions.
+
+## To do
+
+1. Import and re-derive the old result; record the exact coupling relation.
+2. Write the "effective C" argument with explicit operator structures
+   ($p\bar p$ from $G_{\mu\nu}$ bilinears) and its limitations.
+3. Numerical battery (conjugation test restricted to the subsystem).
+4. CP: relation to $\bar B_s^0\to J/\psi\, p\bar p$ — same final state!
+   Untangling direct and mixing-induced structure is beyond pure
+   symmetrization but the amplitude relations feed into it.

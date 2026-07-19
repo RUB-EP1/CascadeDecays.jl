@@ -1,0 +1,4 @@
+/.quarto/
+/_report/
+.DS_Store
+**/*.quarto_ipynb
