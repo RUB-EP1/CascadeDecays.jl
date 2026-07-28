@@ -154,6 +154,7 @@ makedocs(;
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
         "Building a full model for a decay" => "lb2lc3pi-model.md",
+        "Vortex manifolds in the Λb → Λc 3π model" => "lb2lc3pi-vortices.md",
         "Examples" => [
             "pp to pp K+ K- amplitude model" => "examples/pp2ppKK-model.md",
             "Four-pion model-building catalogue" => "four-pion-model.md",
