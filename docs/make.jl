@@ -150,6 +150,7 @@ makedocs(;
         "Home" => "index.md",
         "Topology and numbering" => "notation.md",
         "Amplitude computation" => "amplitude-computation.md",
+        "Why do we need the particle-2 phase?" => "particle-two-phase.md",
         "Convention matching" => "convention-matching.md",
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
