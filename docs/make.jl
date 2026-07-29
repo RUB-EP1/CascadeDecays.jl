@@ -26,6 +26,13 @@ const QUARTO_PAGES = [
         edit_url = "../cascade-vs-dpd.qmd",
         title = "# [Cross-checking with ThreeBodyDecays](@id cascade_vs_dpd)",
     ),
+    (
+        qmd = "particle-two-phase.qmd",
+        page = "particle-two-phase.md",
+        edit_url = "../particle-two-phase.qmd",
+        title = "# [Why do we need the particle-2 phase?](@id particle_two_phase)",
+        copy_assets = true,
+    ),
 ]
 
 # Pre-rendered examples are copied into Documenter's temporary source tree.
@@ -53,13 +60,28 @@ function render_quarto_gfm!(qmd::AbstractString)
     return path
 end
 
+function normalize_svg_clip_ids!(root::AbstractString)
+    isdir(root) || return
+    for (dir, _, files) in walkdir(root), file in files
+        endswith(file, ".svg") || continue
+        path = joinpath(dir, file)
+        body = read(path, String)
+        ids = unique(m.match for m in eachmatch(r"clip[0-9]+", body))
+        isempty(ids) && continue
+        replacements = [id => "clip$(i - 1)" for (i, id) in pairs(ids)]
+        write(path, replace(body, replacements...))
+    end
+    return
+end
+
 function copy_quarto_assets!(gfm_path::AbstractString, page_path::AbstractString)
     asset_dir = splitext(basename(gfm_path))[1] * "_files"
     source = joinpath(dirname(gfm_path), asset_dir)
     destination = joinpath(dirname(page_path), asset_dir)
     isdir(source) || return
     isdir(destination) && rm(destination; recursive = true)
-    return cp(source, destination)
+    cp(source, destination)
+    return normalize_svg_clip_ids!(destination)
 end
 
 function documenter_quarto_page(gfm_path::AbstractString; edit_url::AbstractString, title = nothing)
@@ -150,6 +172,7 @@ makedocs(;
         "Home" => "index.md",
         "Topology and numbering" => "notation.md",
         "Amplitude computation" => "amplitude-computation.md",
+        "Why do we need the particle-2 phase?" => "particle-two-phase.md",
         "Convention matching" => "convention-matching.md",
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",

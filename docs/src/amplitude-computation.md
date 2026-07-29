@@ -132,7 +132,12 @@ and should **not** be folded into user-defined `h` payloads.
 
 The kinematic side of the same convention uses `ToHelicityFrameParticle2` (from
 `InstructionalDecayTrees`) on Wigner-alignment paths when the transported line is
-`child2` at a vertex (see [Routing four-vectors](@ref kinematic_tasks)).
+`child2` at a vertex (see [Routing four-vectors](@ref kinematic_tasks)). The same
+instruction is used when the vertex-angle program descends through an internal
+child-2 line. The phase and particle-2 frame path together make the amplitudes for
+`((1,2),3)` and `(3,(1,2))` identical. The tutorial
+[Why do we need the particle-2 phase?](@ref particle_two_phase) demonstrates the
+resulting angular-distribution test directly from generated four-vectors.
 
 ### Full vertex factor
 
