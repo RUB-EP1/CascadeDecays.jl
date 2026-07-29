@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Why do we need the particle-2 phase? · CascadeDecays.jl</title><meta name="title" content="Why do we need the particle-2 phase? · CascadeDecays.jl"/><meta property="og:title" content="Why do we need the particle-2 phase? · CascadeDecays.jl"/><meta property="twitter:title" content="Why do we need the particle-2 phase? · CascadeDecays.jl"/><meta name="description" content="Documentation for CascadeDecays.jl."/><meta property="og:description" content="Documentation for CascadeDecays.jl."/><meta property="twitter:description" content="Documentation for CascadeDecays.jl."/><meta property="og:url" content="https://rub-ep1.github.io/CascadeDecays.jl/particle-two-phase/"/><meta property="twitter:url" content="https://rub-ep1.github.io/CascadeDecays.jl/particle-two-phase/"/><link rel="canonical" href="https://rub-ep1.github.io/CascadeDecays.jl/particle-two-phase/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">CascadeDecays.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../notation/">Topology and numbering</a></li><li><a class="tocitem" href="../amplitude-computation/">Amplitude computation</a></li><li class="is-active"><a class="tocitem" href>Why do we need the particle-2 phase?</a><ul class="internal"><li><a class="tocitem" href="#The-smallest-useful-cascade"><span>The smallest useful cascade</span></a></li><li><a class="tocitem" href="#Why-a-missing-sign-is-not-harmless"><span>Why a missing sign is not harmless</span></a></li><li><a class="tocitem" href="#A-four-vector-experiment"><span>A four-vector experiment</span></a></li><li><a class="tocitem" href="#Takeaway"><span>Takeaway</span></a></li></ul></li><li><a class="tocitem" href="../convention-matching/">Convention matching</a></li><li><a class="tocitem" href="../kinematic-task/">Routing four-vectors</a></li><li><a class="tocitem" href="../tutorial/">Using a decay chain</a></li><li><a class="tocitem" href="../lb2lc3pi-model/">Building a full model for a decay</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../examples/pp2ppKK-model/">pp to pp K+ K- amplitude model</a></li><li><a class="tocitem" href="../four-pion-model/">Four-pion model-building catalogue</a></li><li><a class="tocitem" href="../isospin-kaon-conventions/">Isospin and kaon charge-conjugation conventions</a></li></ul></li><li><a class="tocitem" href="../cascade-vs-dpd/">Cross-checking with ThreeBodyDecays</a></li><li><a class="tocitem" href="../api-reference/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Why do we need the particle-2 phase?</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Why do we need the particle-2 phase?</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/particle-two-phase.qmd#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="particle_two_phase"><a class="docs-heading-anchor" href="#particle_two_phase">Why do we need the particle-2 phase?</a><a id="particle_two_phase-1"></a><a class="docs-heading-anchor-permalink" href="#particle_two_phase" title="Permalink"></a></h1><p>The Jacob–Wick particle-2 phase</p><p class="math-container">\[(-1)^{j_2-\lambda_2}\]</p><p>can look like a convention that should disappear from every observable. This tutorial gives a case where omitting it makes two child orderings of the same physical decay predict different angular distributions.</p><h2 id="The-smallest-useful-cascade"><a class="docs-heading-anchor" href="#The-smallest-useful-cascade">The smallest useful cascade</a><a id="The-smallest-useful-cascade-1"></a><a class="docs-heading-anchor-permalink" href="#The-smallest-useful-cascade" title="Permalink"></a></h2><p>Consider a polarized spin-one parent decaying through a spin-one subsystem:</p><p class="math-container">\[J=1 \longrightarrow (12)_{j=1}+3_{j=0},
+\qquad
+(12)_{j=1}\longrightarrow 1_{j=0}+2_{j=0}.\]</p><p>At the outer vertex, use a pure <span>$L=0,\ S=1$</span> coupling. The decay of the spin-one subsystem to two scalars is the polarization analyser.</p><p>We may write the same outer vertex in two orders:</p><p class="math-container">\[((1,2),3)
+\qquad\text{or}\qquad
+(3,(1,2)).\]</p><p>The spin-one subsystem is child 1 in the first topology and child 2 in the second. The corresponding helicity couplings are therefore <span>$H_{\lambda,0}$</span> and <span>$H_{0,\lambda}$</span>.</p><h2 id="Why-a-missing-sign-is-not-harmless"><a class="docs-heading-anchor" href="#Why-a-missing-sign-is-not-harmless">Why a missing sign is not harmless</a><a id="Why-a-missing-sign-is-not-harmless-1"></a><a class="docs-heading-anchor-permalink" href="#Why-a-missing-sign-is-not-harmless" title="Permalink"></a></h2><p>For <span>$j=J=S=1$</span>, order the helicity amplitudes as</p><p class="math-container">\[\mathbf h_\lambda =
+\begin{pmatrix}h_{-1}&amp;h_0&amp;h_{+1}\end{pmatrix}^{\mathsf T}.\]</p><p>Moving the vector from child 1 to child 2 introduces</p><p class="math-container">\[t_\lambda=(-1)^{1-\lambda}h_\lambda,
+\qquad
+\mathbf t_\lambda =
+\operatorname{diag}(1,-1,1)\,\mathbf h_\lambda.\]</p><p>Thus omitting the particle-2 phase is equivalent to changing the sign of the zero-helicity component. In the <span>$LS$</span> basis this is not an overall phase:</p><p class="math-container">\[\begin{pmatrix}
+t_{01}\\ t_{11}\\ t_{21}
+\end{pmatrix}
+=
+\begin{pmatrix}
+\frac13 &amp; 0 &amp; \frac{10\sqrt2}{3}\\
+0 &amp; 1 &amp; 0\\
+\frac{2\sqrt2}{15} &amp; 0 &amp; -\frac13
+\end{pmatrix}
+\begin{pmatrix}
+h_{01}\\ h_{11}\\ h_{21}
+\end{pmatrix}.\]</p><p>A pure <span>$S$</span> wave in one ordering would consequently be interpreted as</p><p class="math-container">\[t_{01}=\frac13h_{01},
+\qquad
+t_{21}=\frac{2\sqrt2}{15}h_{01}\]</p><p>in the other. The spurious <span>$D$</span> wave does not carry the required <span>$q^2$</span> threshold suppression.</p><h2 id="A-four-vector-experiment"><a class="docs-heading-anchor" href="#A-four-vector-experiment">A four-vector experiment</a><a id="A-four-vector-experiment-1"></a><a class="docs-heading-anchor-permalink" href="#A-four-vector-experiment" title="Permalink"></a></h2><p>The angular transformation under a child exchange should not be guessed. It depends on the precise definitions of the helicity frames. Instead, we generate one set of four-vectors and let <a href="../api-reference/#CascadeDecays.DecayChainKinematics"><code>DecayChainKinematics</code></a> extract the two sets of vertex angles independently.</p><p>At each scan point the calculation follows exactly the same sequence:</p><ol><li>generate a physical three-body event with <code>aligned_four_vectors</code>;</li><li>apply small global <span>$R_y$</span> and <span>$R_z$</span> rotations to avoid polar and  azimuthal coordinate singularities;</li><li>pass the same four-vectors to <code>DecayChainKinematics</code> for both  topologies;</li><li>evaluate the same pure-<span>$LS$</span> model;</li><li>for the control curve, change only the particle-2 factor in the  amplitude.</li></ol><p>The vertex-angle path descends through <code>ToHelicityFrameParticle2</code> when the propagating subsystem is child 2. Consequently, both the outer and analyser angles are results of the four-vector calculation.</p><h3 id="Build-the-two-orderings"><a class="docs-heading-anchor" href="#Build-the-two-orderings">Build the two orderings</a><a id="Build-the-two-orderings-1"></a><a class="docs-heading-anchor-permalink" href="#Build-the-two-orderings" title="Permalink"></a></h3><p>The outer vertices are pure <span>$(L,S)=(0,1)$</span> and the analyser vertex is <span>$(L,S)=(1,0)$</span>. Spins and angular momenta are passed as twice their physical values.</p><pre><code class="language-julia hljs">using CascadeDecays
+using FourVectors
+using HadronicLineshapes
+using Statistics
+using ThreeBodyDecays:
+    NoRecoupling,
+    RecouplingLS,
+    ThreeBodyMasses,
+    aligned_four_vectors,
+    x2σs
+
+vector_first = DecayTopology(((1, 2), 3))
+vector_second = DecayTopology((3, (1, 2)))
+system = SystemSpins(0, 0, 0; two_h0 = 2)
+propagator = Propagator(2, ConstantLineshape(1.0))
+
+chain_vector_first = DecayChain(
+    vector_first,
+    system;
+    propagators = ((1, 2) =&gt; propagator,),
+    vertices = (
+        ((1, 2), 3) =&gt; Vertex(RecouplingLS((0, 2))),
+        (1, 2) =&gt; Vertex(RecouplingLS((2, 0))),
+    ),
+)
+
+chain_vector_second = DecayChain(
+    vector_second,
+    system;
+    propagators = ((1, 2) =&gt; propagator,),
+    vertices = (
+        (3, (1, 2)) =&gt; Vertex(RecouplingLS((0, 2))),
+        (1, 2) =&gt; Vertex(RecouplingLS((2, 0))),
+    ),
+)</code></pre><p>To construct the deliberately wrong control, resolve the outer <span>$S$</span> wave into its three helicity components and cancel the package’s particle-2 phase. This does not change the four-vectors, extracted angles, rotations, propagator, or analyser vertex.</p><pre><code class="language-julia hljs">no_phase_components = ntuple(3) do i
+    two_λ = 2(i - 2)
+    DecayChain(
+        vector_second,
+        system;
+        propagators = ((1, 2) =&gt; propagator,),
+        vertices = (
+            (3, (1, 2)) =&gt; Vertex(NoRecoupling(0, two_λ)),
+            (1, 2) =&gt; Vertex(RecouplingLS((2, 0))),
+        ),
+    )
+end
+
+particle_two_phase(two_λ) = (-1)^div(2 - two_λ, 2)
+no_phase_coefficients =
+    ntuple(i -&gt; inv(sqrt(3) * particle_two_phase(2(i - 2))), 3)</code></pre><h3 id="Scan-the-analyser-angle"><a class="docs-heading-anchor" href="#Scan-the-analyser-angle">Scan the analyser angle</a><a id="Scan-the-analyser-angle-1"></a><a class="docs-heading-anchor-permalink" href="#Scan-the-analyser-angle" title="Permalink"></a></h3><p>For <code>x2σs([xσ, xθ], ms; k=3)</code>, the second coordinate maps to <span>$\cos\theta=2x_\theta-1$</span> in the <span>$(12)$</span> rest frame. We hold <span>$\sigma_{12}$</span> fixed and scan this coordinate. <code>aligned_four_vectors(...; k=3)</code> places spectator 3 on the negative <span>$z$</span> axis; the subsequent small rotations move the event away from singular axes without changing any invariant.</p><p>The returned intensity uses the fixed parent spin projection <span>$m=0$</span>. Since all final particles are scalars, this is the middle element of the amplitude array.</p><pre><code class="language-julia hljs">ms = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+
+fourvector(p) =
+    FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Float64(p[4]))
+
+function event_at(z; decay_plane_azimuth = 0.0)
+    σs = x2σs([0.45, (z + 1) / 2], ms; k = 3)
+    aligned =
+        Tuple(fourvector(p) for p in aligned_four_vectors(σs, ms; k = 3))
+    return Tuple(
+        p |&gt; Rz(decay_plane_azimuth) |&gt; Ry(0.1) |&gt; Rz(0.1)
+            for p in aligned
+    )
+end
+
+function study_point(z; decay_plane_azimuth = 0.0)
+    objects = event_at(z; decay_plane_azimuth)
+    x_first =
+        DecayChainKinematics(vector_first, objects; initial_frame = CurrentFrame())
+    x_second =
+        DecayChainKinematics(vector_second, objects; initial_frame = CurrentFrame())
+
+    A_first = vec(amplitude(chain_vector_first, x_first))
+    A_second = vec(amplitude(chain_vector_second, x_second))
+    A_second_no_phase = sum(
+        no_phase_coefficients[i] .*
+            vec(amplitude(no_phase_components[i], x_second))
+            for i in 1:3
+    )
+
+    return (
+        analyzer_cosθ = vertex_angles(x_first, 2).cosθ,
+        angles_first = x_first.vertex_angles,
+        angles_second = x_second.vertex_angles,
+        I_first = abs2(A_first[2]),
+        I_second = abs2(A_second[2]),
+        I_first_no_phase = abs2(A_first[2]),
+        I_second_no_phase = abs2(A_second_no_phase[2]),
+        I_first_unpolarized = sum(abs2, A_first),
+        I_second_no_phase_unpolarized = sum(abs2, A_second_no_phase),
+        amplitude_difference = maximum(abs, A_first - A_second),
+    )
+end
+
+zs = range(-0.95, 0.95; length = 121)
+points = study_point.(zs)
+
+scan_summary = (
+    analyzer_range = extrema(p.analyzer_cosθ for p in points),
+    max_correct_amplitude_difference =
+        maximum(p.amplitude_difference for p in points),
+    max_phase_omitted_intensity_difference =
+        maximum(abs(p.I_first_no_phase - p.I_second_no_phase) for p in points),
+    max_phase_omitted_unpolarized_difference = maximum(
+        abs(p.I_first_unpolarized - p.I_second_no_phase_unpolarized)
+            for p in points
+    ),
+)
+
+@assert scan_summary.max_correct_amplitude_difference &lt; 1e-12
+@assert scan_summary.max_phase_omitted_intensity_difference &gt; 0.1
+@assert scan_summary.max_phase_omitted_unpolarized_difference &lt; 1e-12
+scan_summary</code></pre><pre><code class="nohighlight hljs">(analyzer_range = (-0.9499999999999998, 0.9500000000000031), max_correct_amplitude_difference = 7.771561172376096e-16, max_phase_omitted_intensity_difference = 0.19864603816675624, max_phase_omitted_unpolarized_difference = 1.2212453270876722e-15)</code></pre><p>The correct complex amplitudes agree over the whole scan to floating-point precision, while omitting the phase produces an order-dependent polarized intensity.</p><p>For example, the extracted angles at <span>$\cos\theta=-0.38$</span> are:</p><pre><code class="language-julia hljs">p = study_point(-0.38)
+(
+    vector_first = p.angles_first,
+    vector_second = p.angles_second,
+)</code></pre><pre><code class="nohighlight hljs">(vector_first = [(cosθ = 0.9950041652780258, ϕ = 0.09999999999999995), (cosθ = -0.380000000000001, ϕ = 5.964133145680345e-17)], vector_second = [(cosθ = -0.9950041652780258, ϕ = -3.041592653589793), (cosθ = -0.3800000000000007, ϕ = -3.141592653589793)])</code></pre><p>No angular transformation was inserted into the amplitude. The different azimuths, including the particle-2 <span>$\pi$</span> rotation, come from the two instruction paths.</p><h3 id="The-four-curves"><a class="docs-heading-anchor" href="#The-four-curves">The four curves</a><a id="The-four-curves-1"></a><a class="docs-heading-anchor-permalink" href="#The-four-curves" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Plots
+theme(:boxed)
+
+cosθs = [p.analyzer_cosθ for p in points]
+normalization = maximum(p.I_first for p in points)
+
+I_first = [p.I_first / normalization for p in points]
+I_second = [p.I_second / normalization for p in points]
+I_first_no_phase = [p.I_first_no_phase / normalization for p in points]
+I_second_no_phase = [p.I_second_no_phase / normalization for p in points]
+
+p_with = plot(
+    cosθs,
+    I_first;
+    label = &quot;(12)3&quot;,
+    title = &quot;with particle-2 phase&quot;,
+    ylabel = &quot;normalized intensity, m=0&quot;,
+    linewidth = 4,
+    color = 1,
+    legend = :topright,
+)
+plot!(
+    p_with,
+    cosθs,
+    I_second;
+    label = &quot;3(12)&quot;,
+    linewidth = 3,
+    linestyle = :dash,
+    color = 2,
+)
+
+p_without = plot(
+    cosθs,
+    I_first_no_phase;
+    label = &quot;(12)3&quot;,
+    title = &quot;particle-2 phase omitted&quot;,
+    xlabel = &quot;extracted analyser cosθ&quot;,
+    ylabel = &quot;normalized intensity, m=0&quot;,
+    linewidth = 4,
+    color = 1,
+    legend = :topright,
+)
+plot!(
+    p_without,
+    cosθs,
+    I_second_no_phase;
+    label = &quot;3(12)&quot;,
+    linewidth = 3,
+    linestyle = :dash,
+    color = 2,
+)
+
+plot(p_with, p_without; layout = (2, 1), size = (720, 650))</code></pre><p><img src="../particle-two-phase_files/figure-commonmark/particle-two-phase-curves-output-1.svg" alt="The two child orderings agree with the particle-2 phase and disagree when it is omitted."/></p><p>The solid and dashed curves in the upper panel overlap. In the lower panel, only <span>$3(12)$</span> changes because only that ordering places the vector in the particle-2 slot.</p><blockquote><p><strong>Warning — Do not average over the analyser azimuth.</strong></p><p>The sign is visible through interference between helicity components. Uniform averaging over the analyser azimuth removes that interference in this example. We can verify this by rotating the aligned decay plane around the subsystem momentum before applying the small global rotations:</p></blockquote><pre><code class="language-julia hljs">χs = range(0, 2π; length = 33)[1:(end - 1)]
+averaged_difference = maximum(range(-0.9, 0.9; length = 21)) do z
+    azimuth_points =
+        [study_point(z; decay_plane_azimuth = χ) for χ in χs]
+    I1 = mean(p.I_first_no_phase for p in azimuth_points)
+    I2 = mean(p.I_second_no_phase for p in azimuth_points)
+    abs(I1 - I2)
+end
+@assert averaged_difference &lt; 1e-12
+averaged_difference</code></pre><pre><code class="nohighlight hljs">5.551115123125783e-16</code></pre><blockquote><p>The result is again at floating-point precision. Experimentally one should retain the analyser azimuth, select a nontrivial azimuthal region, or use an azimuthal moment such as a <span>$\cos\phi$</span> weight.</p></blockquote><blockquote><p><strong>Note — Why an unpolarized test also misses the problem.</strong></p><p>Summing over all three parent spin projections gives the same total intensity with or without the sign. The Wigner-matrix completeness relation removes the interference that distinguishes <span>$h_0$</span> from <span>$-h_0$</span>. A fixed spin projection, a nontrivial production density matrix, or interference with another amplitude is required.</p></blockquote><h2 id="Takeaway"><a class="docs-heading-anchor" href="#Takeaway">Takeaway</a><a id="Takeaway-1"></a><a class="docs-heading-anchor-permalink" href="#Takeaway" title="Permalink"></a></h2><p>The particle-2 phase is conventional, but it is not optional. It ensures that a change of child ordering changes only the representation of the amplitude—not its <span>$LS$</span> interpretation, threshold behavior, or angular distribution.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../amplitude-computation/">« Amplitude computation</a><a class="docs-footer-nextpage" href="../convention-matching/">Convention matching »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 29 July 2026 20:11">Wednesday 29 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
