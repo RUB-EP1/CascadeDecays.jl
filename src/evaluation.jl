@@ -21,28 +21,14 @@ function helicity_angle_program(
         throw(ArgumentError("vertex_ind $vertex_ind is outside 1:$(nvertices(topology))"))
 
     target_parent = incoming_line_ind(topology, vertex_ind)
-    program = _initial_frame_program(topology, initial_frame)
-
-    current_vertex_ind = _root_vertex_ind(topology)
-
-    while true
-        parent = incoming_line_ind(topology, current_vertex_ind)
-        children = child_line_inds(topology, current_vertex_ind)
-        is_binary_vertex(topology, current_vertex_ind) ||
-            throw(ArgumentError("helicity angle programs currently require binary topology vertices"))
-        if parent == target_parent
-            return (
-                program...,
-                MeasureCosThetaPhi(Symbol(:v, vertex_ind), _indices_for_line_ind(topology, children[1])),
-            )
-        end
-        next_child = _child_containing_line_ind(topology, current_vertex_ind, target_parent)
-        program = (program..., ToHelicityFrame(_indices_for_line_ind(topology, next_child)))
-        current_vertex_ind = consumed_by(topology, next_child)
-        current_vertex_ind === nothing &&
-            throw(ArgumentError("vertex_ind $vertex_ind is not reachable from the root"))
-    end
-    return
+    children = child_line_inds(topology, vertex_ind)
+    is_binary_vertex(topology, vertex_ind) ||
+        throw(ArgumentError("helicity angle programs currently require binary topology vertices"))
+    path = _helicity_frame_path_to_line(topology, target_parent; initial_frame)
+    return (
+        path...,
+        MeasureCosThetaPhi(Symbol(:v, vertex_ind), _indices_for_line_ind(topology, children[1])),
+    )
 end
 
 """

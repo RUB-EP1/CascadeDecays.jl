@@ -51,6 +51,24 @@ function _helicity_step_instruction(
         ToHelicityFrame(indices)
 end
 
+function _helicity_frame_path_to_line(
+        topology::DecayTopology,
+        line_ind::Integer;
+        initial_frame::AbstractInitialFrame = HelicityRootFrame(),
+    )
+    _require_line_ind(topology, line_ind)
+    steps = _path_steps_to_line(topology, line_ind)
+    descent = map(steps) do step
+        _helicity_step_instruction(
+            topology,
+            step.vertex_ind,
+            step.child_line,
+            step.child_position,
+        )
+    end
+    return (_initial_frame_program(topology, initial_frame)..., descent...)
+end
+
 """
     helicity_frame_path(topology, particle_index; initial_frame=HelicityRootFrame())
 
@@ -67,15 +85,7 @@ function helicity_frame_path(
     particle_index in Base.OneTo(nfinal(topology)) ||
         throw(ArgumentError("particle_index $particle_index is outside 1:$(nfinal(topology))"))
     line_ind = final_line_inds(topology)[particle_index]
-    _require_line_ind(topology, line_ind)
-    program = _initial_frame_program(topology, initial_frame)
-    for step in _path_steps_to_line(topology, line_ind)
-        program = (
-            program...,
-            _helicity_step_instruction(topology, step.vertex_ind, step.child_line, step.child_position),
-        )
-    end
-    return program
+    return _helicity_frame_path_to_line(topology, line_ind; initial_frame)
 end
 
 """

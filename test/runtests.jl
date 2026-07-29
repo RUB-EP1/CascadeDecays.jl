@@ -2,6 +2,10 @@ using CascadeDecays
 import CascadeDecays: possible_ls_more, UndefinedParity
 using FourVectors
 using HadronicLineshapes
+using InstructionalDecayTrees:
+    MeasureCosThetaPhi,
+    ToHelicityFrame,
+    ToHelicityFrameParticle2
 using StaticArrays
 using Test
 using ThreeBodyDecays:
@@ -624,6 +628,78 @@ end
     @test isfinite(real(A))
     @test isfinite(imag(A))
     @test_throws MethodError amplitude(chain, x, (0, 0, 0, 0, 0))
+end
+
+@testset "Child-aware helicity paths" begin
+    child1_topology = DecayTopology(((1, 2), 3))
+    child2_topology = DecayTopology((3, (1, 2)))
+
+    child1_program =
+        CascadeDecays.helicity_angle_programs(child1_topology; initial_frame = CurrentFrame())[2]
+    child2_program =
+        CascadeDecays.helicity_angle_programs(child2_topology; initial_frame = CurrentFrame())[2]
+
+    @test child1_program == (
+        ToHelicityFrame((1, 2)),
+        MeasureCosThetaPhi(:v2, 1),
+    )
+    @test child2_program == (
+        ToHelicityFrameParticle2((1, 2)),
+        MeasureCosThetaPhi(:v2, 1),
+    )
+
+    nested_topology = DecayTopology(((3, (1, 2)), 4))
+    nested_program =
+        CascadeDecays.helicity_angle_programs(nested_topology; initial_frame = CurrentFrame())[3]
+    @test nested_program == (
+        ToHelicityFrame((3, 1, 2)),
+        ToHelicityFrameParticle2((1, 2)),
+        MeasureCosThetaPhi(:v3, 1),
+    )
+end
+
+@testset "Particle-2 topology amplitude equivalence" begin
+    masses = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+    invariants = x2σs([0.45, 0.35], masses; k = 3)
+    base_objs =
+        Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(invariants, masses; k = 3))
+    events = (
+        base_objs,
+        Tuple(p |> Ry(0.4) |> Rz(-0.7) for p in base_objs),
+    )
+
+    child1_topology = DecayTopology(((1, 2), 3))
+    child2_topology = DecayTopology((3, (1, 2)))
+    system = SystemSpins(0, 0, 0; two_h0 = 2)
+    propagator = Propagator(2, ConstantLineshape(1.0 + 0.0im))
+    child1_chain = DecayChain(
+        child1_topology,
+        system;
+        propagators = ((1, 2) => propagator,),
+        vertices = (
+            (((1, 2), 3) => Vertex(RecouplingLS((0, 2)))),
+            ((1, 2) => Vertex(RecouplingLS((2, 0)))),
+        ),
+    )
+    child2_chain = DecayChain(
+        child2_topology,
+        system;
+        propagators = ((1, 2) => propagator,),
+        vertices = (
+            ((3, (1, 2)) => Vertex(RecouplingLS((0, 2)))),
+            ((1, 2) => Vertex(RecouplingLS((2, 0)))),
+        ),
+    )
+    task = KinematicTask(
+        (child1_topology, child2_topology);
+        reference_topology = child1_topology,
+        initial_frame = CurrentFrame(),
+    )
+
+    for objs in events
+        point = KinematicPoint(task, objs)
+        @test amplitude(child1_chain, point) ≈ amplitude(child2_chain, point)
+    end
 end
 
 @testset "Particle-2 helicity phase" begin
