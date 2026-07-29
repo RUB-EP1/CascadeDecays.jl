@@ -461,28 +461,3 @@ end
 
 _indices_for_line_ind(topology::DecayTopology, line_ind::Integer) =
     _final_descendants_tuple(topology, line_ind)
-
-function _subtree_line_inds(topology::DecayTopology, line_ind::Integer)
-    line_inds = Int[Int(line_ind)]
-    vertex_ind = consumed_by(topology, line_ind)
-    vertex_ind === nothing && return line_inds
-    for child in child_line_inds(topology, vertex_ind)
-        append!(line_inds, _subtree_line_inds(topology, child))
-    end
-    return line_inds
-end
-
-function _child_containing_line_ind(topology::DecayTopology, vertex_ind::Integer, line_ind::Integer)
-    for child in child_line_inds(topology, vertex_ind)
-        if line_ind in _subtree_line_inds(topology, child)
-            return child
-        end
-    end
-    throw(ArgumentError("line_ind $line_ind is not below vertex $vertex_ind"))
-end
-
-function _root_vertex_ind(topology::DecayTopology)
-    vertex_ind = consumed_by(topology, root_line_ind(topology))
-    vertex_ind === nothing && throw(ArgumentError("topology root line is not consumed by any vertex"))
-    return vertex_ind
-end
