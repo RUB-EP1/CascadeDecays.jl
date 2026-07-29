@@ -648,11 +648,11 @@ end
         MeasureCosThetaPhi(:v2, 1),
     )
 
-    nested_topology = DecayTopology((4, (3, (1, 2))))
+    nested_topology = DecayTopology(((3, (1, 2)), 4))
     nested_program =
         CascadeDecays.helicity_angle_programs(nested_topology; initial_frame = CurrentFrame())[3]
     @test nested_program == (
-        ToHelicityFrameParticle2((3, 1, 2)),
+        ToHelicityFrame((3, 1, 2)),
         ToHelicityFrameParticle2((1, 2)),
         MeasureCosThetaPhi(:v3, 1),
     )
