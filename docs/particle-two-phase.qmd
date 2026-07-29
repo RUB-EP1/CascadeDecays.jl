@@ -1,27 +1,28 @@
-```@meta
-CurrentModule = CascadeDecays
-EditURL = "../particle-two-phase.qmd"
-```
+---
+title: "Why do we need the particle-2 phase?"
+engine: julia
+format:
+  gfm: default
+execute:
+  echo: true
+  output: false
+---
 
-# [Why do we need the particle-2 phase?](@id particle_two_phase)
+The Jacob--Wick particle-2 phase
 
-
-The Jacob–Wick particle-2 phase
-
-``` math
+```math
 (-1)^{j_2-\lambda_2}
 ```
 
-can look like a convention that should disappear from every observable.
-This tutorial gives a case where omitting it makes two child orderings
-of the same physical decay predict different angular distributions.
+can look like a convention that should disappear from every observable. This
+tutorial gives a case where omitting it makes two child orderings of the same
+physical decay predict different angular distributions.
 
 ## The smallest useful cascade
 
-Consider a polarized spin-one parent decaying through a spin-one
-subsystem:
+Consider a polarized spin-one parent decaying through a spin-one subsystem:
 
-``` math
+```math
 J=1 \longrightarrow (12)_{j=1}+3_{j=0},
 \qquad
 (12)_{j=1}\longrightarrow 1_{j=0}+2_{j=0}.
@@ -32,39 +33,38 @@ spin-one subsystem to two scalars is the polarization analyser.
 
 We may write the same outer vertex in two orders:
 
-``` math
+```math
 ((1,2),3)
 \qquad\text{or}\qquad
 (3,(1,2)).
 ```
 
-The spin-one subsystem is child 1 in the first topology and child 2 in
-the second. The corresponding helicity couplings are therefore
+The spin-one subsystem is child 1 in the first topology and child 2 in the
+second. The corresponding helicity couplings are therefore
 $H_{\lambda,0}$ and $H_{0,\lambda}$.
 
 ## Why a missing sign is not harmless
 
 For $j=J=S=1$, order the helicity amplitudes as
 
-``` math
+```math
 \mathbf h_\lambda =
 \begin{pmatrix}h_{-1}&h_0&h_{+1}\end{pmatrix}^{\mathsf T}.
 ```
 
 Moving the vector from child 1 to child 2 introduces
 
-``` math
+```math
 t_\lambda=(-1)^{1-\lambda}h_\lambda,
 \qquad
 \mathbf t_\lambda =
 \operatorname{diag}(1,-1,1)\,\mathbf h_\lambda.
 ```
 
-Thus omitting the particle-2 phase is equivalent to changing the sign of
-the zero-helicity component. In the $LS$ basis this is not an overall
-phase:
+Thus omitting the particle-2 phase is equivalent to changing the sign of the
+zero-helicity component. In the $LS$ basis this is not an overall phase:
 
-``` math
+```math
 \begin{pmatrix}
 t_{01}\\ t_{11}\\ t_{21}
 \end{pmatrix}
@@ -81,7 +81,7 @@ h_{01}\\ h_{11}\\ h_{21}
 
 A pure $S$ wave in one ordering would consequently be interpreted as
 
-``` math
+```math
 t_{01}=\frac13h_{01},
 \qquad
 t_{21}=\frac{2\sqrt2}{15}h_{01}
@@ -92,34 +92,32 @@ threshold suppression.
 
 ## A four-vector experiment
 
-The angular transformation under a child exchange should not be guessed.
-It depends on the precise definitions of the helicity frames. Instead,
-we generate one set of four-vectors and let
-[`DecayChainKinematics`](@ref) extract the two sets of vertex angles
-independently.
+The angular transformation under a child exchange should not be guessed. It
+depends on the precise definitions of the helicity frames. Instead, we generate
+one set of four-vectors and let [`DecayChainKinematics`](@ref) extract the two
+sets of vertex angles independently.
 
 At each scan point the calculation follows exactly the same sequence:
 
-1.  generate a physical three-body event with `aligned_four_vectors`;
-2.  apply small global $R_y$ and $R_z$ rotations to avoid polar and
-    azimuthal coordinate singularities;
-3.  pass the same four-vectors to `DecayChainKinematics` for both
-    topologies;
-4.  evaluate the same pure-$LS$ model;
-5.  for the control curve, change only the particle-2 factor in the
-    amplitude.
+1. generate a physical three-body event with `aligned_four_vectors`;
+2. apply small global $R_y$ and $R_z$ rotations to avoid polar and azimuthal
+   coordinate singularities;
+3. pass the same four-vectors to `DecayChainKinematics` for both topologies;
+4. evaluate the same pure-$LS$ model;
+5. for the control curve, change only the particle-2 factor in the amplitude.
 
-The vertex-angle path descends through `ToHelicityFrameParticle2` when
-the propagating subsystem is child 2. Consequently, both the outer and
-analyser angles are results of the four-vector calculation.
+The vertex-angle path descends through `ToHelicityFrameParticle2` when the
+propagating subsystem is child 2. Consequently, both the outer and analyser
+angles are results of the four-vector calculation.
 
 ### Build the two orderings
 
 The outer vertices are pure $(L,S)=(0,1)$ and the analyser vertex is
-$(L,S)=(1,0)$. Spins and angular momenta are passed as twice their
-physical values.
+$(L,S)=(1,0)$. Spins and angular momenta are passed as twice their physical
+values.
 
-``` julia
+```{julia}
+#| label: particle-two-phase-setup
 using CascadeDecays
 using FourVectors
 using HadronicLineshapes
@@ -157,12 +155,13 @@ chain_vector_second = DecayChain(
 )
 ```
 
-To construct the deliberately wrong control, resolve the outer $S$ wave
-into its three helicity components and cancel the package’s particle-2
-phase. This does not change the four-vectors, extracted angles,
-rotations, propagator, or analyser vertex.
+To construct the deliberately wrong control, resolve the outer $S$ wave into
+its three helicity components and cancel the package's particle-2 phase. This
+does not change the four-vectors, extracted angles, rotations, propagator, or
+analyser vertex.
 
-``` julia
+```{julia}
+#| label: particle-two-phase-control
 no_phase_components = ntuple(3) do i
     two_λ = 2(i - 2)
     DecayChain(
@@ -184,16 +183,17 @@ no_phase_coefficients =
 ### Scan the analyser angle
 
 For `x2σs([xσ, xθ], ms; k=3)`, the second coordinate maps to
-$\cos\theta=2x_\theta-1$ in the $(12)$ rest frame. We hold $\sigma_{12}$
-fixed and scan this coordinate. `aligned_four_vectors(...; k=3)` places
-spectator 3 on the negative $z$ axis; the subsequent small rotations
+$\cos\theta=2x_\theta-1$ in the $(12)$ rest frame. We hold
+$\sigma_{12}$ fixed and scan this coordinate. `aligned_four_vectors(...; k=3)`
+places spectator 3 on the negative $z$ axis; the subsequent small rotations
 move the event away from singular axes without changing any invariant.
 
-The returned intensity uses the fixed parent spin projection $m=0$.
-Since all final particles are scalars, this is the middle element of the
-amplitude array.
+The returned intensity uses the fixed parent spin projection $m=0$. Since all
+final particles are scalars, this is the middle element of the amplitude array.
 
-``` julia
+```{julia}
+#| label: particle-two-phase-scan
+#| output: true
 ms = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
 
 fourvector(p) =
@@ -259,15 +259,15 @@ scan_summary = (
 scan_summary
 ```
 
-    (analyzer_range = (-0.9499999999999998, 0.9500000000000031), max_correct_amplitude_difference = 7.771561172376096e-16, max_phase_omitted_intensity_difference = 0.19864603816675624, max_phase_omitted_unpolarized_difference = 1.2212453270876722e-15)
-
-The correct complex amplitudes agree over the whole scan to
-floating-point precision, while omitting the phase produces an
-order-dependent polarized intensity.
+The correct complex amplitudes agree over the whole scan to floating-point
+precision, while omitting the phase produces an order-dependent polarized
+intensity.
 
 For example, the extracted angles at $\cos\theta=-0.38$ are:
 
-``` julia
+```{julia}
+#| label: particle-two-phase-angles
+#| output: true
 p = study_point(-0.38)
 (
     vector_first = p.angles_first,
@@ -275,15 +275,16 @@ p = study_point(-0.38)
 )
 ```
 
-    (vector_first = @NamedTuple{cosθ::Float64, ϕ::Float64}[(cosθ = 0.9950041652780258, ϕ = 0.09999999999999995), (cosθ = -0.380000000000001, ϕ = 5.964133145680345e-17)], vector_second = @NamedTuple{cosθ::Float64, ϕ::Float64}[(cosθ = -0.9950041652780258, ϕ = -3.041592653589793), (cosθ = -0.3800000000000007, ϕ = -3.141592653589793)])
-
 No angular transformation was inserted into the amplitude. The different
 azimuths, including the particle-2 $\pi$ rotation, come from the two
 instruction paths.
 
 ### The four curves
 
-``` julia
+```{julia}
+#| label: particle-two-phase-curves
+#| output: true
+#| fig-cap: "The two child orderings agree with the particle-2 phase and disagree when it is omitted."
 using Plots
 
 cosθs = [p.analyzer_cosθ for p in points]
@@ -338,23 +339,20 @@ plot!(
 plot(p_with, p_without; layout = (2, 1), size = (720, 650))
 ```
 
-![The two child orderings agree with the particle-2 phase and disagree
-when it is
-omitted.](particle-two-phase_files/figure-commonmark/particle-two-phase-curves-output-1.svg)
-
-The solid and dashed curves in the upper panel overlap. In the lower
-panel, only $3(12)$ changes because only that ordering places the vector
-in the particle-2 slot.
+The solid and dashed curves in the upper panel overlap. In the lower panel,
+only $3(12)$ changes because only that ordering places the vector in the
+particle-2 slot.
 
 > **Warning — Do not average over the analyser azimuth.**
 >
 > The sign is visible through interference between helicity components.
-> Uniform averaging over the analyser azimuth removes that interference
-> in this example. We can verify this by rotating the aligned decay
-> plane around the subsystem momentum before applying the small global
-> rotations:
+> Uniform averaging over the analyser azimuth removes that interference in
+> this example. We can verify this by rotating the aligned decay plane around
+> the subsystem momentum before applying the small global rotations:
 
-``` julia
+```{julia}
+#| label: particle-two-phase-azimuth-average
+#| output: true
 χs = range(0, 2π; length = 33)[1:(end - 1)]
 averaged_difference = maximum(range(-0.9, 0.9; length = 21)) do z
     azimuth_points =
@@ -367,23 +365,20 @@ end
 averaged_difference
 ```
 
-    5.551115123125783e-16
-
-> The result is again at floating-point precision. Experimentally one
-> should retain the analyser azimuth, select a nontrivial azimuthal
-> region, or use an azimuthal moment such as a $\cos\phi$ weight.
+> The result is again at floating-point precision. Experimentally one should
+> retain the analyser azimuth, select a nontrivial azimuthal region, or use an
+> azimuthal moment such as a $\cos\phi$ weight.
 
 > **Note — Why an unpolarized test also misses the problem.**
 >
 > Summing over all three parent spin projections gives the same total
-> intensity with or without the sign. The Wigner-matrix completeness
-> relation removes the interference that distinguishes $h_0$ from
-> $-h_0$. A fixed spin projection, a nontrivial production density
-> matrix, or interference with another amplitude is required.
+> intensity with or without the sign. The Wigner-matrix completeness relation
+> removes the interference that distinguishes $h_0$ from $-h_0$. A fixed
+> spin projection, a nontrivial production density matrix, or interference
+> with another amplitude is required.
 
 ## Takeaway
 
-The particle-2 phase is conventional, but it is not optional. It ensures
-that a change of child ordering changes only the representation of the
-amplitude—not its $LS$ interpretation, threshold behavior, or angular
-distribution.
+The particle-2 phase is conventional, but it is not optional. It ensures that a
+change of child ordering changes only the representation of the amplitude—not
+its $LS$ interpretation, threshold behavior, or angular distribution.

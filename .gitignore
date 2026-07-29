@@ -7,12 +7,14 @@ docs/integration_4body_b2ddKpi.md
 docs/lb2lc3pi-model.md
 docs/four-pion-model.md
 docs/cascade-vs-dpd.md
+docs/particle-two-phase.md
 docs/src/tutorial.md
 docs/src/lb2lc3pi-model.md
 docs/src/cascade-vs-dpd.md
 docs/integration_4body_b2ddKpi.html
 docs/integration_4body_b2ddKpi_files/
 docs/lb2lc3pi-model_files/
+docs/particle-two-phase_files/
 docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl
