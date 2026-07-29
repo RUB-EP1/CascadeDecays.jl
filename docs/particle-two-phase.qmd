@@ -286,6 +286,7 @@ instruction paths.
 #| output: true
 #| fig-cap: "The two child orderings agree with the particle-2 phase and disagree when it is omitted."
 using Plots
+theme(:boxed)
 
 cosθs = [p.analyzer_cosθ for p in points]
 normalization = maximum(p.I_first for p in points)

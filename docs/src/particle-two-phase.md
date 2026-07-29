@@ -285,6 +285,7 @@ instruction paths.
 
 ``` julia
 using Plots
+theme(:boxed)
 
 cosθs = [p.analyzer_cosθ for p in points]
 normalization = maximum(p.I_first for p in points)
