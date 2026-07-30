@@ -1,0 +1,77 @@
+---
+title: "Case 5: $\\chi_{c0,2}\\to K\\bar K\\pi\\pi$"
+---
+
+**Status:** <span class="badge-open">open</span> — the four-body frontier;
+depends on cases 1–3 and on the kaon C-convention note.
+
+## Setting
+
+Four-body strong decay of a C- and P-eigenstate:
+$\chi_{c0},\chi_{c2}$ with $I^G J^{PC} = 0^+0^{++},\,0^+2^{++}$. Final state
+$K^+(1)\,K^-(2)\,\pi^+(3)\,\pi^-(4)$ (and coupled neutral modes) is globally
+self-conjugate. Constraints to enforce: $I_{\text{tot}}=0$,
+$C_{\text{tot}}=+$.
+
+Topologies:
+
+- $(K\bar K)(\pi\pi)$ — quasi-two-body, both pairs self-conjugate;
+- cascade chains with excited kaons: $K_1\bar K$, $K^*\bar K^*$,
+  $K^*(\to K\pi)\,\bar K\pi$, etc., where the C bookkeeping requires the
+  current-level $\eta_C$ signs;
+- the $K_1(1270)/K_1(1400)$ complication: physical states mix
+  $K_{1A}$ ($\eta_C=+1$-type) and $K_{1B}$ ($\eta_C=-1$-type), so C
+  constraints must be imposed in the $(K_{1A},K_{1B})$ basis and rotated —
+  see `docs/isospin-kaon-conventions.qmd`.
+
+## The central conceptual question (resolved in principle)
+
+Positive C parity relates the amplitude to the simultaneous species
+conjugation $K^+\leftrightarrow K^-$, $\pi^+\leftrightarrow\pi^-$. The
+question is how this fixed-frame relation appears after translating to a
+chain-aligned four-body representation, especially for the spin-2 parent.
+
+The resolution proposed in the [C chapter](../../03-charge-conjugation.qmd):
+C is internal, so at the level of the **fixed-frame** amplitude the parent
+polarization is untouched and the constraint *is*
+$$
+M_{\lambda_0}(p_1,p_2,p_3,p_4)
+= \eta_C^{(\chi)}\,\kappa\;
+M_{\lambda_0}(p_2,p_1,p_4,p_3),
+\qquad \eta_C^{(\chi)}=+1,
+$$
+with $\kappa$ a constant collecting the meson C phases. All $\chi_{c2}$-spin
+complications live in the translation to chain-aligned amplitudes, where the
+momentum permutation drags Wigner rotations onto $\lambda_0$; for four-body
+kinematics the configuration is no longer planar, so the compensating
+rotation $r_\pi$ is a full rotation, not just a sign — this is the genuinely
+new element compared to the three-body cases. **Claim to be verified**
+(ledger L5).
+
+## To do
+
+1. Pin $\kappa$ for $K^+K^-\pi^+\pi^-$ from the current conventions
+   ($C|K^\pm\rangle$, $C|\pi^\pm\rangle$ phases; expected $\kappa=+1$ for
+   pseudoscalars, derive rather than assume).
+2. Scalar parent first: for $\chi_{c0}$, $\lambda_0=0$ and no alignment
+   subtlety on the parent — derive chain-level relations for the
+   $(K\bar K^{(*)})$-type chains, including the $\eta_X$ signs
+   ($K^*$: $-$, $K_{1A}$: $+$, $K_{1B}$: $-$, $K_2^*$: from its current).
+3. $\chi_{c2}$: compute the alignment rotation induced by the momentum
+   permutation in the chosen four-body reference orientation; verify
+   numerically (this is the first non-planar $r_\pi$).
+4. Individual decay chains: understand the sign between channels chain by
+   chain ($K_1\bar K$ vs $K\bar K_1$ etc.) in the $(K_{1A},K_{1B})$ basis,
+   then rotate to physical $K_1$'s.
+5. Isospin: couple to $I_{\text{tot}}=0$ with the doublet conventions of the
+   kaon note; keep isospin Clebsch signs separated from C signs.
+6. Cross-check: independent evaluation via explicit symmetrization
+   (route (a)) vs coupling relations (route (b)); tensor bridge for one or
+   two representative chains.
+
+## Dependencies
+
+- Case 1 (spinless swaps), Case 3 (C machinery and parity phases), and the
+  kaon current-convention note are prerequisites.
+- Four-body alignment conventions in `CascadeDecays.jl` must be documented in
+  the registry before step 3.
