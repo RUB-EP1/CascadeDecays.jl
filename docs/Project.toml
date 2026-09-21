@@ -13,7 +13,6 @@ ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
 CascadeDecays = {path = ".."}
-InstructionalDecayTrees = {url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl"}
 RamboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 
 [compat]
