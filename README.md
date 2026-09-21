@@ -16,12 +16,12 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-If you work with a different Julia version than the one used for this manifest, resolve the environment explicitly and install the non-registered dependencies first:
+If you work with a different Julia version than the one used for this manifest, resolve the environment explicitly:
 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.develop(url = "https://github.com/mmikhasenko/InstructionalDecayTrees.jl")
+Pkg.resolve()
 Pkg.instantiate()
 ```
 
