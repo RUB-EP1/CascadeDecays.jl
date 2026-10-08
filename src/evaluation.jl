@@ -168,9 +168,9 @@ function _vertex_factor(
     ]
     V = [
         begin
-                c = couplings[_helicity_index(two_λ1, two_j1), _helicity_index(two_λ2, two_j2)]
-                _conj_wignerD_or_zero(two_j0, two_λ0, two_λ1 - two_λ2, angles) * c
-            end
+            c = couplings[_helicity_index(two_λ1, two_j1), _helicity_index(two_λ2, two_j2)]
+            _conj_wignerD_or_zero(two_j0, two_λ0, two_λ1 - two_λ2, angles) * c
+        end
             for two_λ0 in _helicity_range(two_j0),
             two_λ1 in _helicity_range(two_j1),
             two_λ2 in _helicity_range(two_j2)
