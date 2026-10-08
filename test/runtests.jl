@@ -735,6 +735,39 @@ end
     @test amplitude(chain, point) == amplitude(chain, x)
 end
 
+@testset "Heterogeneous payloads stay concretely typed" begin
+    ms = ThreeBodyMasses(1.0, 1.0, 1.0; m0 = 3.5)
+    σs = x2σs([0.45, 0.35], ms; k = 3)
+    objs = Tuple(_fourvector_from_tuple(p) for p in aligned_four_vectors(σs, ms; k = 3))
+    quantum = SystemSpinParities("1/2+", "0-", "0-"; jp0 = "1/2+")
+    t12 = DecayTopology(((1, 2), 3))
+    t31 = DecayTopology(((3, 1), 2))
+    # different lineshape types and form factors with different L in one chain
+    function chain_on(topology, address, jp, lineshape)
+        propagators = (address => Propagator(jp, lineshape),)
+        (a1, ls1), (a2, ls2) = minimal_vertex_couplings(topology, quantum, propagators)
+        vertices = (
+            a1 => Vertex(RecouplingLS(ls1), BlattWeisskopf{0}(1.5)),
+            a2 => Vertex(RecouplingLS(ls2), BlattWeisskopf{1}(1.5)),
+        )
+        return DecayChain(topology, quantum.spins; propagators, vertices)
+    end
+    chain_a = chain_on(t12, (1, 2), jp"3/2-", ConstantLineshape(2.0 + 0.0im))
+    chain_b = chain_on(t31, (3, 1), jp"1/2+", ConstantLineshape(1.5))
+    @test chain_a.propagators isa Tuple{ConstantLineshape{ComplexF64}}
+    @test isconcretetype(typeof(chain_a.vertices))
+    @test typeof(chain_a.vertices[1].ff) != typeof(chain_a.vertices[2].ff)
+
+    cascade = CascadeDecay((chain_a, chain_b), t12; couplings = (1.0 + 0.0im, 0.5im))
+    point = KinematicPoint(KinematicTask((t12, t31); reference_topology = t12, wigner_finals = (1,)), objs)
+    @test @inferred(amplitude(chain_a, point)) isa Array{ComplexF64}
+    @test @inferred(unpolarized_intensity(cascade, point)) isa Float64
+
+    allocated_line_lookup(t) = @allocated CascadeDecays.vertex_line_inds(t, 2)
+    allocated_line_lookup(t12)
+    @test allocated_line_lookup(t12) == 0
+end
+
 @testset "LS decay-chain builders" begin
     topology = DecayTopology(((1, 2), 3))
     system = SystemSpins(0, 0, 0; two_h0 = 0)

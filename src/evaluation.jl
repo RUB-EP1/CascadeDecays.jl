@@ -63,6 +63,13 @@ function _vertex_coupling_value(
         vertex.ff(masses2...)
 end
 
+# Both branches return one complex type; a real `zero` here would widen the
+# vertex-factor comprehension to `Array{Number}`.
+function _conj_wignerD_or_zero(two_j0::Integer, two_λ0::Integer, two_Δλ::Integer, angles)
+    abs(two_Δλ) <= two_j0 || return zero(complex(typeof(angles.cosθ)))
+    return conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
+end
+
 function _rotated_vertex_amplitude_value(
         vertex::Vertex,
         masses2,
@@ -73,11 +80,7 @@ function _rotated_vertex_amplitude_value(
         angles,
     )
     coupling = _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
-    two_j0 = spins[1]
-    two_Δλ = two_λ1 - two_λ2
-    abs(two_Δλ) <= two_j0 || return zero(coupling)
-    rotation = conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0))
-    return rotation * coupling
+    return _conj_wignerD_or_zero(spins[1], two_λ0, two_λ1 - two_λ2, angles) * coupling
 end
 
 function routed_vertex_amplitude(
@@ -113,9 +116,11 @@ function routed_vertex_amplitude(
 end
 
 function routed_propagator_product(chain::DecayChain, x::DecayChainKinematics)
-    return prod(zip(chain.propagators, propagating_line_inds(chain))) do (propagator, line_ind)
+    # `map` over the payload tuple unrolls, so each propagator call is statically dispatched
+    values = map(chain.propagators, Tuple(propagating_line_inds(chain))) do propagator, line_ind
         propagator(line_invariant(x, line_ind))
     end
+    return prod(values)
 end
 
 # helicity-axis helpers (same indexing as ThreeBodyDecays: div(two_j + two_λ, 2) + 1)
@@ -142,9 +147,13 @@ Local vertex amplitude ``V_{λ_0 λ_1 λ_2}`` on the three lines of topology
 vertex `vertex_ind`, as a dense array (cf. `VRk` / `Vij` in
 `ThreeBodyDecays.aligned_amplitude`).
 """
+_vertex_factor(chain::DecayChain, x::DecayChainKinematics, vertex_ind::Integer) =
+    _vertex_factor(chain, x, chain.vertices[vertex_ind], vertex_ind)
+
 function _vertex_factor(
         chain::DecayChain,
         x::DecayChainKinematics,
+        vertex,
         vertex_ind::Integer,
     )
     l0, l1, l2 = vertex_line_inds(chain, vertex_ind)
@@ -152,7 +161,6 @@ function _vertex_factor(
     masses2 = vertex_masses2(chain, x, vertex_ind)
     spins = (two_j0, two_j1, two_j2)
     angles = vertex_angles(x, vertex_ind)
-    vertex = chain.vertices[vertex_ind]
     couplings = [
         _vertex_coupling_value(vertex, masses2, two_λ1, two_λ2, spins)
             for two_λ1 in _helicity_range(two_j1),
@@ -160,14 +168,9 @@ function _vertex_factor(
     ]
     V = [
         begin
-                c = couplings[_helicity_index(two_λ1, two_j1), _helicity_index(two_λ2, two_j2)]
-                two_Δλ = two_λ1 - two_λ2
-                if abs(two_Δλ) <= two_j0
-                    conj(wignerD_doublearg(two_j0, two_λ0, two_Δλ, angles.ϕ, angles.cosθ, 0)) * c
-            else
-                    zero(c)
-            end
-            end
+            c = couplings[_helicity_index(two_λ1, two_j1), _helicity_index(two_λ2, two_j2)]
+            _conj_wignerD_or_zero(two_j0, two_λ0, two_λ1 - two_λ2, angles) * c
+        end
             for two_λ0 in _helicity_range(two_j0),
             two_λ1 in _helicity_range(two_j1),
             two_λ2 in _helicity_range(two_j2)
@@ -229,17 +232,14 @@ function line_amplitude_tensor(
     )
     two_js = line_two_js(chain)
     line_sizes = ntuple(line_ind -> _helicity_axis_length(two_js[line_ind]), nlines(chain))
-    # manually proceed with the first vertex to get the element type
-    first_vertex_ind = 1
-    V, lines = _vertex_factor(chain, x, first_vertex_ind)
-    T = complex(typeof(first(V)))
-    F = ones(T, line_sizes...)
-    _multiply_vertex_into_lines!(F, V, lines)
-    # do the rest of the vertices
-    for vertex_ind in 2:nvertices(chain)
-        V, lines = _vertex_factor(chain, x, vertex_ind)
-        _multiply_vertex_into_lines!(F, V, lines)
+    # `map` over the vertex tuple unrolls, so each (possibly differently typed)
+    # vertex payload is evaluated with static dispatch
+    factors = map(chain.vertices, ntuple(identity, nvertices(chain))) do vertex, vertex_ind
+        _vertex_factor(chain, x, vertex, vertex_ind)
     end
+    T = complex(promote_type(map(((V, _),) -> eltype(V), factors)...))
+    F = ones(T, line_sizes...)
+    foreach(((V, lines),) -> _multiply_vertex_into_lines!(F, V, lines), factors)
     return F
 end
 

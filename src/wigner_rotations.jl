@@ -8,7 +8,8 @@ Identity rotation: `(α=0, cosβ=1, γ=0)`.
 """
 const WignerAngles = NamedTuple{(:α, :cosβ, :γ), NTuple{3, Float64}}
 const _trivial_wigner = (α = 0.0, cosβ = 1.0, γ = 0.0)
-const _identity_wigner_matrix = ones(Float64, 1, 1)
+# complex, like `_wigner_d_matrix_conj`, so the matrix tuple stays concretely typed
+const _identity_wigner_matrix = ones(ComplexF64, 1, 1)
 
 function _helicity_range(two_j::Integer)
     return (-two_j):2:two_j

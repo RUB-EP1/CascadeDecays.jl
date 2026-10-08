@@ -190,10 +190,20 @@ end
 Return the unique incoming graph line at topology vertex `vertex_ind`.
 """
 function incoming_line_ind(topology::DecayTopology, vertex_ind::Integer)
-    lines = incoming_line_inds(topology, vertex_ind)
-    length(lines) == 1 || throw(ArgumentError("vertex_ind $vertex_ind does not have exactly one incoming line"))
-    return only(lines)
+    _require_vertex(topology, vertex_ind)
+    # allocation-free scan: this sits on the amplitude hot path
+    found = 0
+    for line_ind in _line_range(topology)
+        relation(topology)[line_ind, vertex_ind] == -1 || continue
+        found == 0 || _throw_not_one_incoming(vertex_ind)
+        found = line_ind
+    end
+    found == 0 && _throw_not_one_incoming(vertex_ind)
+    return found
 end
+
+@noinline _throw_not_one_incoming(vertex_ind) =
+    throw(ArgumentError("vertex_ind $vertex_ind does not have exactly one incoming line"))
 
 function produced_by(topology::DecayTopology, line_ind::Integer)
     _require_line_ind(topology, line_ind)
