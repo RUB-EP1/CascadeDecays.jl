@@ -184,7 +184,9 @@ model parameters are:
 
 The left side of each pair is a bracket address, so no user-facing model input
 depends on internal line or vertex numbering. The constructor resolves these
-addresses once and stores typed `SVector`s internally.
+addresses once and stores the propagator and vertex payloads as a concretely
+typed `Tuple`, so a chain that mixes lineshape or form-factor types is still
+evaluated without dynamic dispatch.
 
 For curiosity, the topology is internally compiled into a flat connectivity
 matrix: rows are particle/state lines, columns are binary decay vertices, `-1`

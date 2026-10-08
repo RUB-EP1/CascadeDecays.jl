@@ -115,7 +115,7 @@ function minimal_vertex_couplings(
 end
 
 function _ls_vertices(vertex_couplings)
-    return SVector(map(c -> Vertex(RecouplingLS(c)), vertex_couplings))
+    return Tuple(map(c -> Vertex(RecouplingLS(c)), vertex_couplings))
 end
 
 function _build_ls_decay_chain(

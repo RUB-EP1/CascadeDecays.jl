@@ -26,3 +26,20 @@ Run:
 ```bash
 julia --project=benchmark benchmark/Lc2pKpi.jl
 ```
+
+# Heterogeneous-chain benchmark
+
+`heterogeneous_chains.jl` **is** a performance benchmark: it times
+`amplitude(chain, point)` and `unpolarized_intensity(model, point)` for a
+pp → p p K⁺ K⁻ cascade whose chains mix payload types (BreitWigner with
+l = 0…3, Flatté, constant lineshapes; `BlattWeisskopf{L}` vertex form factors
+with different `L`). It guards against payloads losing their concrete types.
+
+Run:
+
+```bash
+julia --project=benchmark benchmark/heterogeneous_chains.jl
+```
+
+The total includes the HadronicLineshapes lineshape calls, which are not
+type-stable on their own (`BreitWigner` takes ~1 μs per call).

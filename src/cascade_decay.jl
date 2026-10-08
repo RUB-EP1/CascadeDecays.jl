@@ -290,13 +290,16 @@ Coherent helicity amplitude `sum(cᵢ * Aᵢ)` for all chains in `cascade`.
 function amplitude(cascade::CascadeDecay{Nc}, point::KinematicPoint) where {Nc}
     point.task.reference_topology == cascade.reference_topology ||
         throw(ArgumentError("point task reference_topology must match cascade reference_topology"))
-    amp1 = amplitude(cascade.chains[1], point)
-    Nc == 1 && return cascade.couplings[1] .* amp1
-    res = cascade.couplings[1] .* amp1
-    for i in 2:Nc
-        res .+= cascade.couplings[i] .* amplitude(cascade.chains[i], point)
-    end
-    return res
+    res = cascade.couplings[1] .* amplitude(cascade.chains[1], point)
+    return _add_chain_amplitudes!(res, Base.tail(cascade.chains), Base.tail(cascade.couplings), point)
+end
+
+# Chains are a heterogeneous tuple: recurse over it so every chain call is
+# statically dispatched (runtime indexing or `foreach` would dispatch dynamically).
+_add_chain_amplitudes!(res, ::Tuple{}, ::Tuple{}, point) = res
+function _add_chain_amplitudes!(res, chains::Tuple, couplings::Tuple, point)
+    res .+= first(couplings) .* amplitude(first(chains), point)
+    return _add_chain_amplitudes!(res, Base.tail(chains), Base.tail(couplings), point)
 end
 
 """

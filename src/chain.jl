@@ -6,30 +6,34 @@ The public constructor accepts bracket-addressed `address => payload` pairs and
 stores the resolved flat graph information in typed static arrays. The `spins`
 input is consumed at construction time to build `line_two_js(chain)`; it is not
 stored on the chain.
+
+Propagator and vertex payloads are stored as `Tuple`s, so a chain that mixes
+lineshape or form-factor types keeps every payload concretely typed and is
+evaluated without dynamic dispatch.
 """
 struct DecayChain{
         Nf,
         Np,
         Nv,
         Nl,
-        P,
-        V,
+        P <: NTuple{Np, Any},
+        V <: NTuple{Nv, Any},
         T <: DecayTopology,
     }
     topology::T
-    propagators::SVector{Np, P}
-    vertices::SVector{Nv, V}
+    propagators::P
+    vertices::V
     propagating_line_inds::SVector{Np, Int}
     line_two_js::SVector{Nl, Int}
 end
 
 function DecayChain(
         topology::DecayTopology,
-        propagators::SVector{Np, P},
-        vertices::SVector{Nv, V},
+        propagators::P,
+        vertices::V,
         propagating_line_inds::SVector{Np, Int},
         line_two_js::SVector{Nl, Int},
-    ) where {Np, Nv, Nl, P, V}
+    ) where {Np, Nv, Nl, P <: NTuple{Np, Any}, V <: NTuple{Nv, Any}}
     Nv == nvertices(topology) ||
         throw(ArgumentError("number of vertices must match topology"))
     Nl == nlines(topology) ||
@@ -88,8 +92,8 @@ function DecayChain(
 
     return DecayChain(
         topology,
-        SVector{length(propagator_tuple)}(propagator_tuple),
-        SVector{length(vertex_tuple)}(vertex_tuple),
+        propagator_tuple,
+        vertex_tuple,
         SVector{length(line_tuple), Int}(line_tuple),
         SVector(line_two_j_values),
     )
