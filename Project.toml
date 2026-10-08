@@ -15,7 +15,7 @@ Tullio = "bc48ee85-29a4-5162-ae0b-a64e1601d4bc"
 
 [compat]
 FourVectors = "0.3.4"
-HadronicLineshapes = "0.4.2"
+HadronicLineshapes = "0.5"
 InstructionalDecayTrees = "0.4.1"
 Literate = "2.21.0"
 PartialWaveFunctions = "0.2"

@@ -7,9 +7,9 @@
 # chain cannot be stored in a concretely typed `SVector`, which is what this
 # benchmark is meant to guard.
 #
-# The timing includes the HadronicLineshapes lineshape calls; `BreitWigner`
-# there is itself type-unstable (~1 μs per call), so it is a sizeable part of
-# the total.
+# The timing includes the HadronicLineshapes lineshape calls. Since
+# HadronicLineshapes 0.5 they are type-stable and allocation-free, so the whole
+# model passes `@inferred`.
 
 using BenchmarkTools
 using CascadeDecays

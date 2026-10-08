@@ -41,5 +41,6 @@ Run:
 julia --project=benchmark benchmark/heterogeneous_chains.jl
 ```
 
-The total includes the HadronicLineshapes lineshape calls, which are not
-type-stable on their own (`BreitWigner` takes ~1 μs per call).
+The total includes the HadronicLineshapes lineshape calls. They are
+type-stable and allocation-free since HadronicLineshapes 0.5 (`BreitWigner`
+went from ~1 μs to ~130 ns per call).
