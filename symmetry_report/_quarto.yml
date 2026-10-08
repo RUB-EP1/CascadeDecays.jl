@@ -1,0 +1,38 @@
+project:
+  type: book
+  output-dir: _report
+
+book:
+  title: "Discrete symmetries in cascade decays"
+  subtitle: "Permutation, C, and CP constraints in the helicity formalism"
+  author: "Mikhail Mikhasenko"
+  date: today
+  chapters:
+    - index.qmd
+    - 01-conventions.qmd
+    - 02-permutations.qmd
+    - 03-charge-conjugation.qmd
+    - 04-cross-checks.qmd
+    - 05-recipes.qmd
+    - part: "Case studies"
+      chapters:
+        - cases/01-three-pions/notes.qmd
+        - cases/02-xib2pKK/notes.qmd
+        - cases/03-jpsi2etappbar/notes.qmd
+        - cases/04-bs2jpsippbar/notes.qmd
+        - cases/05-chic2KKpipi/notes.qmd
+    - 99-ledger.qmd
+  appendices:
+    - appendix-microscopic.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    css: style.css
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    html-math-method: mathjax
+    link-external-newwindow: true

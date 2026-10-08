@@ -1,0 +1,153 @@
+---
+title: "Charge conjugation and CP"
+---
+
+## C is an internal operation
+
+Charge conjugation commutes with the full Poincaré group: it changes neither
+momenta nor angular momenta, and therefore neither helicities nor the parent
+polarization index. On one-particle states
+$$
+C\,|a;\, p,\lambda\rangle = \eta_C^{(a)}\, |\bar a;\, p,\lambda\rangle ,
+$$
+with the *same* $(p,\lambda)$ and a species-dependent phase $\eta_C^{(a)}$.
+For self-conjugate species $\eta_C^{(a)}$ is the measurable C-parity; for
+non-self-conjugate species (kaons, protons, $K_1$'s, pentaquarks) it is a
+convention that must be fixed *once*, consistently across the whole model —
+we fix them via interpolating currents, as worked out in
+`docs/isospin-kaon-conventions.qmd` (vector kaons: $\eta=-1$; $1^{++}$-type
+axials: $+1$; $1^{+-}$-type: $-1$; the physical $K_1(1270)/K_1(1400)$ get
+their signs only after the $K_{1A}/K_{1B}$ mixing rotation).
+
+## Master rule for C-invariant decays
+
+Let the initial state be a C eigenstate, $C|0\rangle=\eta_C^{(0)}|0\rangle$
+(e.g. $J/\psi$: $-$, $\chi_{c0,2}$: $+$), and let the decay dynamics be
+C-invariant (strong/EM). Then the fixed-frame amplitudes of the process and
+its species-conjugated process are equal up to phases:
+$$
+M_{\lambda_0;\{\lambda\}}\big(a_1(p_1)\dots a_n(p_n)\big)
+= \eta_C^{(0)} \prod_i \eta_C^{(a_i)}\;
+M_{\lambda_0;\{\lambda\}}\big(\bar a_1(p_1)\dots \bar a_n(p_n)\big).
+$$ {#eq-c-master}
+
+**Same momenta, same helicities, same parent polarization.** All species are
+conjugated; nothing kinematic moves.
+
+### Self-conjugate final states
+
+When the final state is globally self-conjugate — e.g.
+$K^+K^-\pi^+\pi^-$, or $\eta\, p\bar p$ — the conjugated species list is a
+*permutation* of the original list. Relabeling the slots back to the standard
+order (a pure renaming of function arguments, no statistics sign, since the
+swapped particles are *not* identical to each other) turns @eq-c-master into a
+constraint on one single function. For $\chi_{cJ}\to
+K^+(p_1)K^-(p_2)\pi^+(p_3)\pi^-(p_4)$:
+$$
+M_{\lambda_0}(p_1,p_2,p_3,p_4)
+= \eta_C^{(0)}\,\kappa \;
+M_{\lambda_0}(p_2,p_1,p_4,p_3),
+$$ {#eq-c-selfconj}
+where $\kappa$ collects the meson $\eta_C$ phases
+($\kappa=\eta_C^{(K)}\eta_C^{(\bar K)}\eta_C^{(\pi^+)}\eta_C^{(\pi^-)}$-type
+factors; for ground-state pseudoscalars with the current conventions
+$\kappa=+1$, **to be pinned in the case study**).
+
+::: {.callout-important}
+## Resolution of the $\chi_{c2}$ spin worry
+
+Because C is internal, the parent polarization $\lambda_0$ is untouched in
+@eq-c-selfconj: the C constraint at fixed $\lambda_0$ *is* of the form
+$A(p_1,p_2,p_3,p_4)\pm A(p_2,p_1,p_4,p_3)$, provided $A$ is the
+**fixed-frame** amplitude. The apparent paradox — "under the swap the system
+does not go into itself, so what happens to the $\chi_{c2}$ spin?" — arises
+only in chain-aligned representations, where the momentum swap changes the
+alignment and drags Wigner rotations onto $\lambda_0$. Those rotations are
+computable bookkeeping (same procedure as in the
+[permutation chapter](02-permutations.qmd)), not an obstruction.
+This claim is ledger item [L5](99-ledger.qmd) and must be verified in the
+$\chi_{cJ}$ case study.
+:::
+
+## Chain-level consequences
+
+Applying @eq-c-master to a chain decomposition relates couplings of conjugate
+chains:
+$$
+g\big(0\to R\,c;\; R\to a b\big)
+\;\longleftrightarrow\;
+g\big(0\to \bar R\,\bar c;\; \bar R\to \bar a \bar b\big),
+$$
+with the phase composed of (i) the $\eta_C$ factors of @eq-c-master and
+(ii) alignment phases from mapping the conjugated-chain kinematics onto the
+reference kinematics. Point (ii) is exactly the machinery of the permutation
+chapter; C itself contributes only the constant phases (i).
+
+Examples:
+
+- $J/\psi \to \eta\, p\bar p$: couplings of $N^*\bar p$ chains are fixed
+  relative to $\bar N^* p$ chains — the clean playground, since C and P are
+  both exact here.
+- $\chi_{cJ}\to (K\bar K^*)\pi\,$-type chains: the relative sign between
+  $K\bar X$ and $X\bar K$ channels is $\lambda\,\eta_X$ from the current-level
+  analysis, then propagated through the chain alignment.
+
+## Weak decays: C is not a symmetry, but structure survives
+
+For weak decays @eq-c-master does not hold: the weak Hamiltonian violates C
+(and P) maximally. Two distinct situations occur in our case studies:
+
+1. **Effective symmetry from the production mechanism**
+   ($B_s^0\to J/\psi\, p\bar p$). The weak transition
+   $\bar b \to \bar c c \bar s$ (internal W emission) produces the
+   $c\bar c\,+$ light system; the $p\bar p$ pair is created by gluons, which
+   are C- and P-even. To the extent that this factorizes, the $p\bar p$
+   (+ charmonium) subsystem inherits C-type relations, linking
+   $P_{c\bar c}\,\bar p$ and $\bar P_{c\bar c}\, p$ chains even though the
+   full decay is weak. The precise statement — what exactly is symmetric, at
+   which level of the amplitude, and with which phases — is the goal of the
+   [case study](cases/04-bs2jpsippbar/notes.qmd). Status: cross-checked
+   against tensors previously; to be re-derived here.
+2. **No relation at all** ($\Xi_b^-\to pK^-K^-$): the two $\Lambda^*$ chains
+   are related only by the identical-kaon Bose symmetry, not by C.
+
+## CP and conjugate decay amplitudes
+
+Parity acts on the fixed-frame amplitude by reversing momenta and keeping spin
+directions, hence flipping helicities; in the standard convention
+$$
+P\,|a;\,p,\lambda\rangle
+= \eta_P^{(a)}\, e^{i\varphi(s,\lambda)}\,|a;\,\tilde p,-\lambda\rangle ,
+\qquad \tilde p = (E,-\vec p\,),
+$$
+with a convention-dependent phase $\varphi$ (often quoted as
+$(-1)^{s-\lambda}$ after a rotation by $\pi$ that restores the original
+momentum direction — **exact form to be fixed in our conventions**, ledger
+item [L6](99-ledger.qmd)). At the two-body-vertex level the workhorse is the
+Jacob–Wick parity relation for helicity couplings (conventions chapter),
+which is solid.
+
+CP then relates the amplitude of a weak decay to that of the conjugate decay:
+$$
+M^{\,\overline{0}\to \bar f}_{-\lambda_0;\{-\lambda\}}(\tilde p_1,\dots)
+\;\overset{\text{CP}}{=}\;
+(\text{phases})\times
+M^{\,0\to f}_{\lambda_0;\{\lambda\}}(p_1,\dots)
+\quad\text{(weak phases conjugated)} .
+$$
+This is the foundation for CP-asymmetry observables in
+$\Xi_b^-\to pK^-K^-$-type analyses and for sharing hadronic parameters
+between a decay and its conjugate in a combined fit. The phase bookkeeping is
+the same alignment machinery once more; the case studies fix it explicitly.
+
+## Pitfalls
+
+- **Assigning $\eta_C$ for non-self-conjugate mesons without conventions.** Derive it
+  from the interpolating current; the $1^{+-}$-type axials carry $\eta=-1$
+  and physical $K_1$'s mix both types.
+- **Confusing C phases with isospin Clebsch signs.** They have different
+  origins and both appear in $K\bar K$ systems; see
+  `docs/isospin-kaon-conventions.qmd`.
+- **Applying C constraints to chain amplitudes without re-alignment.** C does
+  not change momenta, but the conjugate chain is typically parameterized in
+  different reference kinematics.

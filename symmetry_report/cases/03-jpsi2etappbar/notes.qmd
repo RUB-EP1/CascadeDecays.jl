@@ -1,0 +1,57 @@
+---
+title: "Case 3: $J/\\psi\\to \\eta\\, p\\bar p$"
+---
+
+**Status:** <span class="badge-open">planned</span> — benchmark for exact C
+and P constraints.
+
+## Why this case matters
+
+Strong (OZI-suppressed but strong/EM) charmonium decay: **C and P are both
+exact**, the initial state is a C and P eigenstate
+($J^{PC}=1^{--}$), and the final state $\eta\,p\bar p$ is globally
+self-conjugate. Unlike $B_s^0\to J/\psi\,p\bar p$ there is no weak-decay
+caveat: every good symmetry is available, so every derived relation can be
+tested in its exact form. Whatever recipe works here transfers to the $B_s$
+case with the "effective C" restriction.
+
+## Setting
+
+$J/\psi(0)\to \eta(1)\, p(2)\, \bar p(3)$. Chains:
+
+- $N^*\to \eta p$ (pair 12, spectator $\bar p$) and conjugate
+  $\bar N^*\to\eta\bar p$ (pair 31, spectator $p$),
+- $X\to p\bar p$ (pair 23, spectator $\eta$), with $X$ self-conjugate
+  mesonic resonances; C-parity of each $X$ constrains which chains couple.
+
+## Constraints to derive
+
+1. **C:** relates $g(N^*\bar p)$ to $g(\bar N^* p)$ chain by chain, at same
+   momenta and helicities (fixed frame), with phases
+   $\eta_C^{(J/\psi)}\eta_C^{(\eta)}\eta_C^{(p\bar p\ \text{pair})}$ — the
+   fermion-pair C phase requires care (fermion–antifermion exchange +
+   $(-1)^{L+S}$-type factors for the $p\bar p$ system in the $X$ chains).
+2. **P:** Jacob–Wick parity relations at each vertex — standard.
+3. **Combined:** for the $X\to p\bar p$ chains, C and P together reproduce
+   the known selection rules ($J^{PC}$ of $p\bar p$ levels:
+   $C=(-1)^{L+S}$, $P=(-1)^{L+1}$) — a built-in sanity check of the phase
+   conventions, since these selection rules are convention-free.
+4. **Baryon-antibaryon helicity conventions:** the $v$-spinor phase enters
+   the tensor bridge here for the first time in the case-study sequence.
+
+## Worked plan
+
+1. Fixed-frame amplitude with all three chain families; impose C via
+   @eq-c-master.
+2. Derive coupling relations incl. alignment phases (the $N^*$ vs $\bar N^*$
+   chains have mirrored kinematics — same machinery as the kaon swap in
+   case 2, but now the *swapped* particles are the fermions).
+3. Check against the convention-free $p\bar p$ selection rules.
+4. Tensor bridge with explicit $u$, $v$ spinors.
+5. Distill: this fixes Recipe C steps 4–5 and ledger item L6 (parity phase).
+
+## Relation to case 4
+
+The result should reduce to the $B_s^0\to J/\psi\, p\bar p$ symmetrization
+when the exact C constraint is restricted to the gluon-produced $p\bar p$
+subsystem. Keep the derivation parallel.

@@ -1,0 +1,273 @@
+---
+title: "From microscopic relations to the permutation theorem"
+---
+
+This appendix assembles the full derivation chain for the permutation
+theorem (@thm-master) and its aligned-representation image, starting from
+component-wise relations on one-particle states and ending with the closure
+identity. The system is $\Xi_b^-(0)\to K^-(1)\,p(2)\,K^-(3)$ — spin
+structure $\tfrac12\to 0+\tfrac12+0$ — which keeps every phase visible while
+containing all the mechanisms. The derivation below first uses the toy
+standard configuration with the proton along $+\hat z$; the final subsection
+maps it to the published proton-along-$-\hat z$ convention of
+@LHCb:2021XiBpKK. Every derived relation is verified to machine precision by
+`cases/02-xib2pKK/toy_alignment_check.jl`; the map between relations and
+tests is tabulated in @sec-app-testmap.
+
+Conventions used throughout (registry rows of the
+[conventions chapter](01-conventions.qmd)):
+$$
+D^{j}_{m'm}(\alpha,\beta,\gamma)=e^{-im'\alpha}d^{j}_{m'm}(\beta)e^{-im\gamma},
+\qquad
+U(R)\,|j,m\rangle=\sum_{m'}D^{j}_{m'm}(R)\,|j,m'\rangle,
+$$
+$$
+|p,\lambda\rangle
+= U\!\big[R_h(\hat p)\big]\,U\!\big[L_z(|\vec p\,|)\big]\,|s,\lambda\rangle,
+\qquad
+R_h(\hat p) = R_z(\phi)R_y(\theta).
+$$
+
+## Microscopic inputs {#sec-app-inputs}
+
+Four independent ingredients; everything else in this appendix is derived.
+
+**(M1) Statistics.** Identical species are excitations of one field;
+creation operators satisfy
+$a^\dagger_K(p)\,a^\dagger_K(p') = +\,a^\dagger_K(p')\,a^\dagger_K(p)$
+(bosons; $-$ for fermions). The multiparticle state used to define the
+fixed-frame amplitude,
+$$
+|f(x;\lambda_2)\rangle
+= a^\dagger_K(p_1)\,a^\dagger_p(p_2,\lambda_2)\,a^\dagger_K(p_3)\,|0\rangle,
+$$
+is the same physical state when the two kaon arguments are interchanged. The
+theorem follows by reading this commutation relation through
+$M_{\lambda_0\lambda_2}(x)=\langle f(x;\lambda_2)|\,T\,|0,\lambda_0\rangle$:
+$$
+M_{\lambda_0\lambda_2}(p_3,p_2,p_1) = +\,M_{\lambda_0\lambda_2}(p_1,p_2,p_3).
+$$ {#eq-app-theorem}
+No frame alignment is involved at this level. The rest of the appendix shows
+how @eq-app-theorem re-emerges in the aligned representation, where the same
+operation is represented by an invariant swap plus compensating rotations.
+
+**(M2) Little-group phase.** For a pure rotation $R$ acting on a helicity
+state,
+$$
+U(R)\,|p,\lambda\rangle
+= e^{-i\lambda\,\phi_W(R,\hat p)}\;|Rp,\lambda\rangle .
+$$ {#eq-app-littlegroup}
+*Derivation.* $U(R)|p,\lambda\rangle
+= U[R\,R_h(\hat p)]\,U[L_z]|s,\lambda\rangle
+= U[R_h(\widehat{Rp})]\,U[W]\,U[L_z]|s,\lambda\rangle$ with the little-group
+element
+$$
+W = R_h(\widehat{Rp})^{-1}\,R\,R_h(\hat p).
+$$
+$W$ maps $\hat z\to\hat p\to\widehat{Rp}\to\hat z$, so $W=R_z(\phi_W)$; it
+commutes with the $z$-boost and acts on the rest state by
+$e^{-i\lambda\phi_W}$. $\square$
+
+The crucial qualitative fact: **helicity does not mix under rotations** —
+rotations contribute phases only; mixing of helicity labels comes exclusively
+from boosts (which is why per-chain helicity conventions generate genuine
+$d^{j}(\zeta)$ crossing rotations, while a common convention leaves pure
+phases).
+
+**(M3) Rotational invariance of the dynamics**: $[\,T,\,U(R)\,]=0$.
+
+**(M4) Kinematics of the standard configuration.** For
+$\sigma_1=(p_2+p_3)^2$, $\sigma_3=(p_1+p_2)^2$ the standard configuration
+$x^*(\sigma_1,\sigma_3)$ has, component-wise,
+$$
+E_i=\frac{M_0^2+m_i^2-\sigma_i}{2M_0}\;(i=1,3),\quad E_2=M_0-E_1-E_3,
+$$
+$$
+p_2^*=(E_2,0,0,|\vec p_2|),\qquad
+p_1^*=(E_1,\,|\vec p_1|s_{\theta},\,0,\,|\vec p_1|c_{\theta}),\qquad
+p_3^* = (E_3,\,-p_{1x}^*,\,0,\,-p_{1z}^*-|\vec p_2|),
+$$
+with $c_\theta = \big(E_1E_2-\tfrac12(\sigma_3-m_1^2-m_2^2)\big)/
+(|\vec p_1||\vec p_2|)$ and $s_\theta>0$.
+
+## Derived, level 1: rotation covariance {#sec-app-covariance}
+
+From (M2) applied to the proton (the kaons, $\lambda=0$, contribute no
+phase), (M3), and the conjugate of the rest-state rotation rule:
+$$
+M_{\lambda_0\lambda_2}(R\,x)
+= e^{-i\phi_W(R,\hat p_2)\,\lambda_2}
+\sum_{\nu} D^{J_0*}_{\lambda_0\nu}(R)\; M_{\nu\lambda_2}(x).
+$$ {#eq-app-covariance}
+*Derivation.* $|f(Rx;\lambda_2)\rangle = e^{+i\phi_W\lambda_2}U(R)|f(x;\lambda_2)\rangle$
+by @eq-app-littlegroup, so
+$\langle f(Rx)| = e^{-i\phi_W\lambda_2}\langle f(x)|U(R)^\dagger$; commuting
+$U^\dagger$ through $T$ and using
+$U^\dagger|0,\lambda_0\rangle = \sum_\nu D^{J_0*}_{\lambda_0\nu}(R)\,|0,\nu\rangle$
+gives the result. $\square$ (Test E; the numerics also fixes the *sign* of
+the $\lambda_2$ phase — the opposite sign fails at $O(10)$.)
+
+Defining the orientation map $R(x)$ by $x = R(x)\,x^*(\sigma_1,\sigma_3)$
+(unique for generic, non-degenerate configurations) and the aligned
+amplitude $A_{\nu\lambda_2}(\sigma_1,\sigma_3) \equiv
+M_{\nu\lambda_2}\big(x^*(\sigma_1,\sigma_3)\big)$, @eq-app-covariance becomes
+the orientation decomposition
+$$
+M_{\lambda_0\lambda_2}(x)
+= e^{-i\phi_W\lambda_2}
+\sum_{\nu} D^{J_0*}_{\lambda_0\nu}\big(R(x)\big)\;
+A_{\nu\lambda_2}\big(\sigma_1(x),\sigma_3(x)\big).
+$$ {#eq-app-decomposition}
+
+## Derived, level 2: geometry of the swap {#sec-app-geometry}
+
+Three component-wise facts, all pure kinematics:
+
+1. **Invariants.** $\sigma_1(\tilde x)=\sigma_3(x)$,
+   $\sigma_3(\tilde x)=\sigma_1(x)$ for $\tilde x = (p_3,p_2,p_1)$.
+2. **Swap of the standard configuration.** Using (M4) and
+   $R_z(\pi)(p_x,p_y,p_z)=(-p_x,-p_y,p_z)$, one checks slot by slot that
+   $$
+   P_{13}\,x^*(\sigma_1,\sigma_3) = R_z(\pi)\,x^*(\sigma_3,\sigma_1):
+   $$ {#eq-app-swapgeom}
+   the swapped kaon has the energy and polar angle of kaon-1 at swapped
+   invariants but sits at $p_x<0$; the $\pi$-rotation about the proton axis
+   restores the standard half-plane while leaving $p_2^*$ untouched.
+   (Test D.)
+3. **Composition of the orientation and the little-group phase.** Slot
+   relabeling acts on tuple positions, rotations act on each entry, so they
+   commute: $P_{13}(Rx) = R\,(P_{13}x)$. Hence
+   $$
+   \tilde x = R(x)\,P_{13}\,x^*(\sigma_1,\sigma_3)
+   = R(x)\,R_z(\pi)\;x^*(\sigma_3,\sigma_1)
+   \;\Longrightarrow\;
+   R(\tilde x) = R(x)\,R_z(\pi),
+   $$ {#eq-app-orientshift}
+   i.e. $(\alpha,\beta,\gamma)\to(\alpha,\beta,\gamma+\pi)$. And since
+   $R_z(\pi)$ fixes $\hat z$ ($=\hat p_2$ of the standard configuration),
+   the little-group element composes,
+   $W\big(R\,R_z(\pi)\big) = W(R)\,R_z(\pi)$:
+   $$
+   \phi_W(\tilde x) = \phi_W(x) + \pi .
+   $$ {#eq-app-phiwshift}
+   (Test F, items ii–iii, extracted from the momenta alone.)
+
+## Derived, level 3: the cross-chain relation and the master formula {#sec-app-crosschain}
+
+Let $T_1$ be a chain amplitude (fixed-frame function) and define the mirror
+chain as its slot-swap image, $T_2 \equiv T_1\circ P_{13}$ — the "same
+coupling" prescription. Evaluate $T_2$ at the standard configuration and
+apply @eq-app-swapgeom, then @eq-app-covariance with $R = R_z(\pi)$, for
+which $D^{J_0*}_{\lambda_0\nu}(R_z(\pi)) = e^{+i\pi\lambda_0}\,
+\delta_{\lambda_0\nu}$ (diagonal!) and $\phi_W = \pi$:
+$$
+T_{2}\big(x^*(\sigma_1,\sigma_3)\big)
+= T_1\big(R_z(\pi)\,x^*(\sigma_3,\sigma_1)\big)
+= e^{+i\pi\lambda_0}\,e^{-i\pi\lambda_2}\;
+T_1\big(x^*(\sigma_3,\sigma_1)\big)
+= (-1)^{\lambda_0-\lambda_2}\,
+T_1\big(x^*(\sigma_3,\sigma_1)\big).
+$$ {#eq-app-crosschain}
+(Test B.) So the cross-chain phase is *not* an independent input: it is
+covariance (level 1) plus geometry (level 2). Summing the two chains gives
+the master formula of the case study,
+$$
+A_{\lambda_0\lambda_2}(\sigma_1,\sigma_3)
+= O^c_{\lambda_0\lambda_2}(\sigma_1,\sigma_3)
++ (-1)^{\lambda_0-\lambda_2}\,
+O^c_{\lambda_0\lambda_2}(\sigma_3,\sigma_1),
+$$
+and with it the invariant-level exchange property
+$A(\sigma_3,\sigma_1) = (-1)^{\lambda_0-\lambda_2} A(\sigma_1,\sigma_3)$
+(test C). The diagonality of the phase is special to the spectator-2
+standard orientation: only there is the compensating rotation about the axis
+that simultaneously diagonalizes the parent $D$-matrix and reduces the
+proton factor to a helicity eigenphase.
+
+## Derived, level 4: closure — the theorem re-emerges {#sec-app-closure}
+
+Insert the level-2 shifts into the decomposition @eq-app-decomposition
+evaluated at $\tilde x$:
+
+| factor | origin | value under $p_1\leftrightarrow p_3$ |
+|--------|--------|--------------------------------------|
+| bracket arguments | invariants swap + @eq-app-crosschain | $(-1)^{\lambda_0'-\lambda_2}$ |
+| $D^{J_0*}_{\lambda_0\lambda_0'}(\alpha,\beta,\gamma+\pi)$ | orientation shift @eq-app-orientshift | $e^{+i\pi\lambda_0'}$ |
+| $e^{-i\phi_W(\tilde x)\lambda_2}$ | little-group shift @eq-app-phiwshift | $e^{-i\pi\lambda_2}$ |
+
+The last two combine to $e^{i\pi(\lambda_0'-\lambda_2)} =
+(-1)^{\lambda_0'-\lambda_2}$ (an exact identity, the exponent being an
+integer), so
+$$
+M_{\lambda_0\lambda_2}(\tilde x)
+= \big[(-1)^{\lambda_0'-\lambda_2}\big]^{2}\,
+M_{\lambda_0\lambda_2}(x)
+= +\,M_{\lambda_0\lambda_2}(x),
+$$ {#eq-app-closure}
+recovering @eq-app-theorem — the statistics input (M1) — from the aligned
+representation. (Test F, reconstruction.) The symmetrization phase appears
+**twice**, once from the geometry and once from the bracket, and squares to
+one; neither factor is meaningful in isolation.
+
+Two corollaries:
+
+- **The closure derives the phase.** Given the transformation laws
+  @eq-app-orientshift and @eq-app-phiwshift in the $+\hat z$ spectator
+  convention, *demanding* @eq-app-theorem forces the bracket phase
+  $(-1)^{\lambda_0'-\lambda_2}$. Inserting
+  $(-1)^{\lambda_0'+\lambda_2}$ without changing the aligned-frame convention
+  yields $M(\tilde x) = -M(x)$ — the fermionic sign for the kaons. Thus the
+  exponent is falsifiable only after the orientation and helicity conventions
+  are specified.
+- **Branch insensitivity.** For half-integer spins the SU(2) representative
+  of $R(x)$ is double-valued; both $\phi_W$ (mod $4\pi$) and $D^{J_0*}$ flip
+  sign together under a change of representative, so
+  @eq-app-decomposition and the closure are branch-independent as long as
+  the two are extracted from the *same* representative.
+
+## Map to the published convention
+
+The derivation above is for the $+\hat z$ spectator convention used by the toy
+check. In the proton-along-$-\hat z$ convention used in @LHCb:2021XiBpKK, the
+aligned standard configuration is obtained by a fixed $R_x(\pi)$ rotation.
+Test G verifies directly that the cross-chain ratio then becomes
+$$
+\varepsilon_{\lambda_0\lambda_2}=(-1)^{\lambda_0+\lambda_2},
+$$
+the pattern shown in Eq. (6) of that analysis. Operationally, reversing the
+aligned proton direction changes the sign of the proton little-group
+contribution in the closure; Bose symmetry is unchanged.
+
+## Generalization
+
+The derivation used the specific spin content only in the last step. For a
+parent of spin $J_0$ and a spectator of spin $s_2$ with two identical
+spin-$s$ particles in slots 1, 3, the same chain gives:
+statistics sign $\eta=(-1)^{2s}$ from (M1); shifts
+$(\gamma,\phi_W)\to(\gamma+\pi,\phi_W+\pi)$ from level 2 in the $+\hat z$
+spectator convention; bracket phase $\varepsilon_{\lambda_0'\lambda_2} =
+\eta\,e^{i\pi(\lambda_0'-\lambda_2)}$ forced by closure. Reversing the
+spectator quantization axis changes the sign of the spectator-helicity term,
+as in the $\Xi_b^-\to pK^-K^-$ map above. Identical particles
+*with* spin additionally carry their own little-group phases under the
+compensating rotation. For standard orientations **not** symmetric under the
+swap (e.g. chain-1 alignment), $r_\pi$ is no longer about the quantization
+axis: $D^{J_0}(r_\pi)$ becomes non-diagonal and the neat phase is replaced by
+genuine helicity mixing — the situation that four-body systems
+([case 5](cases/05-chic2KKpipi/notes.qmd)) present generically.
+
+## Relation–test map {#sec-app-testmap}
+
+All in `cases/02-xib2pKK/toy_alignment_check.jl` (model: manifestly
+Bose-symmetric covariant amplitude with explicit helicity spinors —
+independent of any chain machinery).
+
+| Relation | Equation | Test | Precision |
+|----------|----------|------|-----------|
+| Theorem from statistics | @eq-app-theorem | A | $<10^{-15}$ |
+| Cross-chain phase | @eq-app-crosschain | B | exact pattern |
+| Invariant-level exchange | (level 3) | C | exact pattern |
+| Swap geometry | @eq-app-swapgeom | D | $<10^{-15}$ |
+| Rotation covariance, sign of $\lambda_2$ phase | @eq-app-covariance | E | $<10^{-14}$ / wrong sign $O(10)$ |
+| Orientation & $\phi_W$ shifts, closure | @eq-app-orientshift, @eq-app-phiwshift, @eq-app-closure | F | $<10^{-14}$ |
+| Map to published $p\parallel-\hat z$ convention | fixed $R_x(\pi)$ rotation of the aligned standard configuration | G | exact sign pattern $(-1)^{\lambda_0+\lambda_2}$ |
