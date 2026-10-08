@@ -29,7 +29,6 @@ using CascadeDecays: has_canonical_line_order
 using FourVectors
 using HadronicLineshapes
 using JSON
-using StaticArrays
 using ThreeBodyDecays: RecouplingLS
 
 format_instruction(inst) =

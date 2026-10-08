@@ -17,7 +17,6 @@ using FourVectors
 using HadronicLineshapes
 using Random
 using RamboOnDiet
-using StaticArrays
 using ThreeBodyDecays:
     DecayChainLS,
     ThreeBodyMasses,
