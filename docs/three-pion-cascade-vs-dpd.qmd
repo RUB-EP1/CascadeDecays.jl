@@ -188,49 +188,14 @@ The cyclic-chain convention follows the
 fixed independently by the Cartesian rotation identities above and checked
 against the installed `ThreeBodyDecays` implementation.
 
-## Reproducible numerical validation
+## Executable cross-checks
 
-The script generates 100 random physical events at $\sqrt{s}=1.4$ GeV,
-$m_\pi=0.13957039$ GeV, with seed 20261021. It draws two spatial momenta,
-sets the third to minus their sum, and rescales to the chosen total energy.
-This is a kinematic stress test, not a uniform phase-space sample.
-
-Angles come from `CascadeDecays.helicity_angle_programs` with `CurrentFrame()`.
-They are checked independently using Cartesian axes and a Lorentz boost.
-The test compares DPD's invariant zeta with the signed Cartesian rotation,
-then checks both exact identities for every $J=0,\ldots,4$, $S=0,\ldots,3$,
-every $M$, and every allowed $\lambda$. Collinear endpoints are excluded
-because their decay-plane azimuths are undefined.
-
-Run from the repository root:
+The [COMPASS notebook](compass-basis.md) executes the checks alongside its
+derivation. It generates the physical events, prints the first event and
+all three sets of angles, compares the Cartesian and invariant zeta,
+and tests the pair-ordering identities and reflectivity factorization.
+Regenerate those results locally with:
 
 ```sh
-julia --project=. docs/validate-three-pion-dpd.jl
+quarto render docs/compass-basis.qmd --to gfm
 ```
-
-```{julia}
-include(joinpath(@__DIR__, "validate-three-pion-dpd.jl"))
-nothing
-```
-
-The validated run, including the reflectivity extension, passed all 511 assertions. Maximum absolute residuals were
-$3.75\times10^{-14}$ for either pulled-out identity and
-$2.31\times10^{-14}$ rad for zeta. Omitting the phase gives a maximum
-residual of 1.365; mixing chain-12 TY angles into chain 13 gives 1.973.
-
-The first event is $(E,p_x,p_y,p_z)$ in GeV:
-
-| Particle | $E$ | $p_x$ | $p_y$ | $p_z$ |
-|---|---:|---:|---:|---:|
-| 1 | 0.511082386798 | 0.113961653220 | 0.455775068512 | -0.144938403634 |
-| 2 | 0.374615321371 | -0.126905897469 | 0.005677076243 | 0.323603784332 |
-| 3 | 0.514302291831 | 0.012944244249 | -0.461452144755 | -0.178665380698 |
-
-| Chain | $\phi_{\rm GJ}$ | $\theta_{\rm GJ}$ | $\phi_{\rm TY}$ | $\theta_{\rm TY}$ |
-|---|---:|---:|---:|---:|
-| (12)3 | 1.598840081439 | 1.201522051165 | -0.401452404728 | 1.268141169636 |
-| (13)2 | -0.044704729637 | 2.767519388212 | 1.644623660411 | 1.580472501202 |
-| (31)2 | -0.044704729637 | 2.767519388212 | -1.496968993179 | 1.561120152388 |
-
-All angles are in radians, and $\zeta=1.939865882161$ rad
-$=111.146127869224^\circ$.

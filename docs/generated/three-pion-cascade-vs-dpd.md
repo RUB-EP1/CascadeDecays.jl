@@ -187,77 +187,14 @@ framework](https://arxiv.org/abs/1910.04566). Here the precise sign is
 fixed independently by the Cartesian rotation identities above and
 checked against the installed `ThreeBodyDecays` implementation.
 
-## Reproducible numerical validation
+## Executable cross-checks
 
-The script generates 100 random physical events at $\sqrt{s}=1.4$ GeV,
-$m_\pi=0.13957039$ GeV, with seed 20261021. It draws two spatial
-momenta, sets the third to minus their sum, and rescales to the chosen
-total energy. This is a kinematic stress test, not a uniform phase-space
-sample.
-
-Angles come from `CascadeDecays.helicity_angle_programs` with
-`CurrentFrame()`. They are checked independently using Cartesian axes
-and a Lorentz boost. The test compares DPD’s invariant zeta with the
-signed Cartesian rotation, then checks both exact identities for every
-$J=0,\ldots,4$, $S=0,\ldots,3$, every $M$, and every allowed $\lambda$.
-Collinear endpoints are excluded because their decay-plane azimuths are
-undefined.
-
-Run from the repository root:
+The [COMPASS notebook](compass-basis.md) executes the checks alongside
+its derivation. It generates the physical events, prints the first event
+and all three sets of angles, compares the Cartesian and invariant zeta,
+and tests the pair-ordering identities and reflectivity factorization.
+Regenerate those results locally with:
 
 ``` sh
-julia --project=. docs/validate-three-pion-dpd.jl
+quarto render docs/compass-basis.qmd --to gfm
 ```
-
-``` julia
-include(joinpath(@__DIR__, "validate-three-pion-dpd.jl"))
-```
-
-    Test Summary:                    | Pass  Total  Time
-    Three-pion angular factorization |  511    511  1.2s
-    Seed = 20261021; events = 100; J = 0:4; S = 0:3
-    First event four-vectors (E, px, py, pz), GeV:
-    p1 = ( 0.511082386798,  0.113961653220,  0.455775068512, -0.144938403634)
-    p2 = ( 0.374615321371, -0.126905897469,  0.005677076243,  0.323603784332)
-    p3 = ( 0.514302291831,  0.012944244249, -0.461452144755, -0.178665380698)
-    chain     phi_GJ         theta_GJ       phi_TY         theta_TY (radians)
-    (12)3   1.598840081439  1.201522051165 -0.401452404728  1.268141169636
-    (13)2  -0.044704729637  2.767519388212  1.644623660411  1.580472501202
-    (31)2  -0.044704729637  2.767519388212 -1.496968993179  1.561120152388
-    zeta = 1.939865882161 rad = 111.146127869224 deg
-    max angles          7.105427e-15
-    max missing_phase   1.365251e+00
-    max mixed_TY        1.973362e+00
-    max pull13          3.740991e-14
-    max pull31          3.740991e-14
-    max reflectivity    2.140804e-14
-    max reflectivity_M0 9.711508e-15
-    max reversal        9.756085e-15
-    max rotation13      3.249403e-14
-    max rotation31      3.339097e-14
-    max zeta            2.309264e-14
-
-    (first_event = (ps = ([0.11396165322047952, 0.45577506851214106, -0.14493840363433785, 0.5110823867976806], [-0.12690589746907208, 0.00567707624299945, 0.323603784332115, 0.3746153213710266], [0.012944244248592555, -0.4614521447551405, -0.17866538069777715, 0.5143022918312926]), a = ((phi = 1.598840081439314, theta = 1.2015220511651594), (phi = -0.4014524047283381, theta = 1.2681411696361962)), b = ((phi = -0.044704729637404114, theta = 2.7675193882118228), (phi = 1.6446236604112485, theta = 1.5804725012020748)), c = ((phi = -0.044704729637404114, theta = 2.7675193882118228), (phi = -1.4969689931785448, theta = 1.5611201523877176)), zeta = 1.9398658821605894, q = [-0.3607477965838428 2.7755575615628914e-16 0.9326634051252909; 5.204170427930421e-18 1.0000000000000002 -4.440892098500626e-16; -0.9326634051252909 -1.6653345369377348e-16 -0.3607477965838428]), errors = Dict(:reflectivity => 2.1408039610327508e-14, :pull31 => 3.74099060171673e-14, :zeta => 2.3092638912203256e-14, :reflectivity_M0 => 9.711508340058e-15, :mixed_TY => 1.97336153911434, :reversal => 9.756084828893563e-15, :rotation13 => 3.249402964114936e-14, :rotation31 => 3.3390972979997585e-14, :pull13 => 3.74099060171673e-14, :missing_phase => 1.3652508509331431…))
-
-The validated run, including the reflectivity extension, passed all 511
-assertions. Maximum absolute residuals were $3.75\times10^{-14}$ for
-either pulled-out identity and $2.31\times10^{-14}$ rad for zeta.
-Omitting the phase gives a maximum residual of 1.365; mixing chain-12 TY
-angles into chain 13 gives 1.973.
-
-The first event is $(E,p_x,p_y,p_z)$ in GeV:
-
-| Particle |            $E$ |           $p_x$ |           $p_y$ |           $p_z$ |
-|----------|---------------:|----------------:|----------------:|----------------:|
-| 1        | 0.511082386798 |  0.113961653220 |  0.455775068512 | -0.144938403634 |
-| 2        | 0.374615321371 | -0.126905897469 |  0.005677076243 |  0.323603784332 |
-| 3        | 0.514302291831 |  0.012944244249 | -0.461452144755 | -0.178665380698 |
-
-| Chain | $\phi_{\rm GJ}$ | $\theta_{\rm GJ}$ | $\phi_{\rm TY}$ | $\theta_{\rm TY}$ |
-|-------|----------------:|------------------:|----------------:|------------------:|
-| (12)3 |  1.598840081439 |    1.201522051165 | -0.401452404728 |    1.268141169636 |
-| (13)2 | -0.044704729637 |    2.767519388212 |  1.644623660411 |    1.580472501202 |
-| (31)2 | -0.044704729637 |    2.767519388212 | -1.496968993179 |    1.561120152388 |
-
-All angles are in radians, and $\zeta=1.939865882161$ rad
-$=111.146127869224^\circ$.
