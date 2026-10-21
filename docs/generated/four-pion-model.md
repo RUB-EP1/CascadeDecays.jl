@@ -30,7 +30,7 @@ editing this notebook, run
 quarto render docs/four-pion-model.qmd --to gfm
 ```
 
-and commit the updated `docs/four-pion-model.md` file.
+and commit the updated `docs/generated/four-pion-model.md` file.
 
 ## Setup
 

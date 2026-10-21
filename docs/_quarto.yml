@@ -2,6 +2,7 @@ engines: ["julia"]
 
 project:
   type: default
+  output-dir: generated
   render:
     - kinematic-task.qmd
     - integration_4body_b2ddKpi.qmd

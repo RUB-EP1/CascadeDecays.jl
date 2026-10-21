@@ -28,7 +28,7 @@ Pkg.instantiate()
 ## Development
 
 - Run tests with `julia --project=. test/runtests.jl`.
-- Render any documentation notebook locally with `quarto render docs/<name>.qmd --to gfm` (requires [Quarto](https://quarto.org/)). Commit the `.qmd`, sibling `.md`, and any `<name>_files/` figures together. See [docs/README.md](docs/README.md).
+- Render any documentation notebook locally with `quarto render docs/<name>.qmd --to gfm` (requires [Quarto](https://quarto.org/)). Commit the `.qmd` source together with its rendered Markdown and figures in `docs/generated/`. See [docs/README.md](docs/README.md).
 - Build the docs with `julia --project=docs -e 'using Pkg; Pkg.instantiate()'` followed by `julia --project=docs docs/make.jl`. Documenter consumes committed Markdown and resolves `@ref` links; it does not run Quarto or notebook computations, locally or in CI.
 - When editing a tutorial, check its `execute.output` setting. For notebooks with `output: false`, add `#| output: true` to cells that should print tables or show return values; end other cells with `nothing` to avoid leaking the last expression.
 - Handwritten pages live in `docs/src/`. Rendered notebooks are adapted for Documenter only in the ignored `docs/.documenter-src/` directory; do not edit those temporary copies.

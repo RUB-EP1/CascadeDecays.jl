@@ -31,7 +31,7 @@ notebook, run
 quarto render docs/isospin-kaon-conventions.qmd --to gfm
 ```
 
-and commit the updated `docs/isospin-kaon-conventions.md` file.
+and commit the updated `docs/generated/isospin-kaon-conventions.md` file.
 
 ## Isospin doublets
 

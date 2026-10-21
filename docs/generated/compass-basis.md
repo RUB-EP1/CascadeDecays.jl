@@ -318,7 +318,7 @@ since decay-plane azimuths are undefined at collinear endpoints.
 The following output is generated when this note is rendered locally:
 
     Test Summary:                    | Pass  Total  Time
-    Three-pion angular factorization |  511    511  1.5s
+    Three-pion angular factorization |  511    511  2.1s
     Seed = 20261021; events = 100; J = 0:4; S = 0:3
     First event four-vectors (E, px, py, pz), GeV:
     p1 = ( 0.511082386798,  0.113961653220,  0.455775068512, -0.144938403634)

@@ -83,7 +83,7 @@ end
 
 function copy_rendered_page!(spec, docs, destination_root)
     qmd = normpath(joinpath(docs, spec.qmd))
-    gfm = replace(qmd, r"\.qmd$" => ".md")
+    gfm = joinpath(dirname(qmd), "generated", replace(basename(qmd), r"\.qmd$" => ".md"))
     command_path = replace(relpath(qmd, dirname(docs)), '\\' => '/')
     hint = "Run locally: quarto render $command_path --to gfm; commit the Markdown and figures."
     isfile(gfm) || error("Missing rendered Markdown: $gfm. $hint")
