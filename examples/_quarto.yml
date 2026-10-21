@@ -1,0 +1,8 @@
+project:
+  type: default
+  output-dir: generated
+  render:
+    - pp2ppKK-model.qmd
+
+format:
+  gfm: default

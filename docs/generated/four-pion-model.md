@@ -1,9 +1,4 @@
-```@meta
-CurrentModule = CascadeDecays
-EditURL = "../four-pion-model.qmd"
-```
-
-# [Four-pion model-building catalogue](@id four_pion_model)
+# Four-pion model-building catalogue
 
 
 This note builds a readable catalogue for
@@ -32,7 +27,7 @@ generated artifacts and is not rendered by `docs/make.jl` in CI. After
 editing this notebook, run
 
 ``` sh
-julia --project=docs docs/render-generated-docs.jl
+quarto render docs/four-pion-model.qmd --to gfm
 ```
 
 and commit the updated `docs/generated/four-pion-model.md` file.
@@ -199,11 +194,21 @@ local sanity check: how much time is spent turning four-vectors into
 topology-local kinematics, and how much time is spent evaluating the toy
 coherent amplitude.
 
+The first generated event illustrates the topology-local coordinates
+stored in a `KinematicPoint` before the amplitude is evaluated.
+
+| field | value |
+|----|----|
+| reference topology | `(((1, 2), 3), 4)` |
+| stored topologies | 8 |
+| line masses2 | 0.0195, 0.0195, 0.0195, 0.0195, 1.4106, 3.8842, 12.6466 |
+| vertex angles | (cosθ=0.754, ϕ=0.3538), (cosθ=-0.2195, ϕ=2.3847), (cosθ=0.7117, ϕ=-0.2778) |
+
 | step                        | events | total_ms | ms_per_event |
 |-----------------------------|--------|----------|--------------|
-| KinematicPoint construction | 100    | 1228.34  | 12.2834      |
-| coherent amplitude          | 100    | 1598.03  | 15.9803      |
-| sum(abs2, amplitude)        | 100    | 29.2105  | 0.292105     |
+| KinematicPoint construction | 100    | 1248.91  | 12.4891      |
+| coherent amplitude          | 100    | 1814.04  | 18.1404      |
+| sum(abs2, amplitude)        | 100    | 54.5369  | 0.545369     |
 
 The benchmark model is intentionally not the full physics model. It
 exercises the same kinematic routing and amplitude machinery on a

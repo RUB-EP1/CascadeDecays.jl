@@ -1,9 +1,12 @@
-# [Routing four-vectors](@id kinematic_tasks)
-
-```@meta
-CurrentModule = CascadeDecays
-EditURL = "../src/kinematic-task.md"
-```
+---
+title: "Routing four-vectors"
+engine: julia
+format:
+  gfm: default
+execute:
+  echo: true
+  output: true
+---
 
 [`KinematicTask`](@ref) is a reusable specification for turning one event,
 represented by final-state four-vectors, into topology-local
@@ -20,7 +23,7 @@ particle-2 frame and warnings about cross products formed in different frames, s
 This page uses a three-body example with physical masses only to get realistic
 four-vectors.
 
-```@example kin_task
+```{julia}
 using FourVectors
 using InstructionalDecayTrees
 using ThreeBodyDecays:
@@ -42,7 +45,7 @@ ms = ThreeBodyMasses(0.93827208816, 0.493677, 0.13957039; m0 = 2.28646)
 A task can be generated directly from topologies. The first topology is used as
 the reference unless `reference_topology` is supplied explicitly.
 
-```@example kin_task
+```{julia}
 topologies = (
     DecayTopology(((1, 2), 3)),
     DecayTopology(((3, 1), 2)),
@@ -78,7 +81,7 @@ There are three kinematic objects in this workflow:
 The generated programs are ordinary `InstructionalDecayTrees.jl` instruction
 tuples. They are stored per topology and per vertex.
 
-```@example kin_task
+```{julia}
 task.programs[1].vertex_programs
 ```
 
@@ -87,7 +90,7 @@ Internally that particle is a topology line, but the API takes the particle
 index. Comparing these paths is exactly how the relative Wigner alignment angles
 are obtained.
 
-```@example kin_task
+```{julia}
 particle_index = 1
 (
     reference = helicity_frame_path(topologies[1], particle_index; initial_frame = CurrentFrame()),
@@ -101,7 +104,7 @@ Use [`CurrentFrame`](@ref) when the event is already expressed in the desired
 mother-system axes. In this example the aligned event is rotated as
 `Rz |> Ry |> Rz`, and the root vertex angles recover the last two rotations.
 
-```@example kin_task
+```{julia}
 aligned = Tuple(fourvector(p) for p in aligned_four_vectors(σs, ms; k = 3))
 current_event = Tuple(p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4) for p in aligned)
 
@@ -121,7 +124,7 @@ relative Wigner alignment angles per topology. [`kinematics_at`](@ref) is only a
 retrieval convenience: it selects the `DecayChainKinematics` entry associated with
 the requested topology.
 
-```@example kin_task
+```{julia}
 x31_2 = kinematics_at(point, topologies[2])
 (
     topology = bracket_notation(topologies[2]),
@@ -136,7 +139,7 @@ Use [`HelicityRootFrame`](@ref) for fully general four-vectors. The event is
 first rotated in the mother rest frame and then boosted and reoriented as
 `Rz |> Ry |> Rz |> Bz |> Ry |> Rz`.
 
-```@example kin_task
+```{julia}
 helicity_event = Tuple(
     p |> Rz(0.5) |> Ry(0.3) |> Rz(0.4) |> Bz(1.2) |> Ry(0.1) |> Rz(0.2)
     for p in aligned
@@ -157,7 +160,7 @@ orientation.
 
 Relative Wigner angles can be inspected directly for a chosen external line.
 
-```@example kin_task
+```{julia}
 relative_wigner_angles(
     topologies[1],
     topologies[2],
@@ -171,6 +174,6 @@ Here `wigner_finals = (1, 3)` requested spin-frame alignments for final
 particles 1 and 3. The result is indexed by final-particle order; unrequested
 final particles carry the identity rotation.
 
-```@example kin_task
+```{julia}
 alignment_angles_at(point, topologies[2])
 ```

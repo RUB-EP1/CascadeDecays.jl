@@ -2,10 +2,17 @@ engines: ["julia"]
 
 project:
   type: default
+  output-dir: generated
   render:
+    - kinematic-task.qmd
     - integration_4body_b2ddKpi.qmd
     - lb2lc3pi-model.qmd
     - cascade-vs-dpd.qmd
+    - particle-two-phase.qmd
+    - four-pion-model.qmd
+    - isospin-kaon-conventions.qmd
+    - compass-basis.qmd
+    - three-pion-cascade-vs-dpd.qmd
 
 format:
   gfm: default

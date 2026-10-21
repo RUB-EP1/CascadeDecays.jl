@@ -31,7 +31,7 @@ Regeneration note: this tutorial is checked in as generated artifacts and is
 not rendered by `docs/make.jl` in CI. After editing this notebook, run
 
 ```sh
-julia --project=docs docs/render-generated-docs.jl
+quarto render docs/isospin-kaon-conventions.qmd --to gfm
 ```
 
 and commit the updated `docs/generated/isospin-kaon-conventions.md` file.

@@ -1,0 +1,559 @@
+# COMPASS: three-pion meson amplitudes
+
+
+This comparison with `ThreeBodyDecays.jl` specializes the [general
+relations and signs](cascade-vs-dpd.md) to a meson decaying into three
+spin-zero pions. It derives the common orientation, the cyclic-pair
+phase, and the COMPASS reflectivity basis. Executable Julia cells check
+each step as the material is presented; rendering this notebook reruns
+them. The [angular derivation](three-pion-cascade-vs-dpd.md) gives
+further details.
+
+For $1=\pi^+$, $2=\pi^-$, and $3=\pi^-$, the two-chain amplitude in the
+COMPASS reflectivity basis has the factorized form
+
+``` math
+\boxed{
+{}^\epsilon\mathcal A_M
+=\sum_{\nu=-J}^{J}{}^\epsilon D^{J*}_{M\nu}
+(\phi_{\rm GJ}^{12},\theta_{\rm GJ}^{12},\phi_{\rm TY}^{12})
+\mathcal O^\nu.
+}
+```
+
+The reflectivity transformation acts on the parent spin projection $M$.
+It leaves the internal amplitude $\mathcal O^\nu$ unchanged. The first
+and third Euler angles are distinct: they are the GJ azimuth and TY
+azimuth, respectively. This note fixes the ordering and phase
+conventions needed to obtain that result from cascade amplitudes.
+
+## Angles, spins, and ordering
+
+The input momenta are in their common rest frame, with the GJ axes fixed
+by production. The pair momentum defines the outer helicity axis. The
+first particle of the ordered pair defines the inner TY angles in the
+pair rest frame. Thus $(12)3$ and $(13)2$ both use the positive pion
+first; DPD’s cyclic second chain is $(31)2$.
+
+We use the convention implemented by `PartialWaveFunctions`:
+
+``` math
+D^{j*}_{mn}(\alpha,\beta,\gamma)
+=e^{im\alpha}d^j_{mn}(\beta)e^{in\gamma},\qquad
+d^j_{mn}(\beta)=\langle jm|e^{-iJ_y\beta}|jn\rangle.
+```
+
+Here $J$ is the parent spin, $S$ is the isobar spin, and the pions have
+spin zero. Write $\theta_{ij}=\theta_{\rm TY}^{ij}$ and
+$\Omega_{ij}=(\phi_{\rm GJ}^{ij},\theta_{\rm GJ}^{ij},\phi_{\rm TY}^{ij})$.
+Let $H^{ij}_\lambda$ be the parent helicity coupling and
+$h^{ij}=H^{ij\to\pi\pi}_{00}$ the isobar decay coupling. A scalar
+lineshape may multiply each chain throughout the following equations.
+
+### Physical events and independent angles
+
+We generate 100 reproducible physical rest-frame events at
+$m_{3\pi}=1.4$ GeV and $m_\pi=0.13957039$ GeV, using seed 20261021. Two
+random spatial momenta determine the third by momentum conservation; a
+common scale fixes the total energy. This is a kinematic stress test,
+not uniform phase-space sampling. Noncollinear events have well-defined
+decay-plane azimuths.
+
+The helpers below compute the cascade angles and independently
+reconstruct them with a Cartesian Lorentz boost.
+
+``` julia
+using CascadeDecays, FourVectors, InstructionalDecayTrees, PartialWaveFunctions
+using LinearAlgebra, Random, Printf, Test
+import ThreeBodyDecays as TBD
+
+const PION_MASS = 0.13957039
+const PARENT_MASS = 1.4
+const MASSES_3PI = TBD.ThreeBodyMasses(PION_MASS, PION_MASS, PION_MASS; m0 = PARENT_MASS)
+
+# Random physical events at fixed parent mass, not a uniform phase-space sampler.
+function random_three_pions(rng)
+    v1, v2 = randn(rng, 3), randn(rng, 3)
+    vs = (v1, v2, -v1 - v2)
+    energy(a) = sum(sqrt(PION_MASS^2 + a^2 * dot(v, v)) for v in vs)
+    lo, hi = 0.0, 1.0
+    while energy(hi) < PARENT_MASS
+        hi *= 2
+    end
+    for _ in 1:100
+        a = (lo + hi) / 2
+        energy(a) > PARENT_MASS ? (hi = a) : (lo = a)
+    end
+    return Tuple(FourVector((lo * v)...; E = sqrt(PION_MASS^2 + lo^2 * dot(v, v))) for v in vs)
+end
+
+function chain_angles(tree, ps)
+    programs = CascadeDecays.helicity_angle_programs(DecayTopology(tree); initial_frame = CurrentFrame())
+    return map(programs) do program
+        _, result = apply_decay_instruction(program, ps)
+        a = only(values(result))
+        (phi = a.ϕ, theta = acos(clamp(a.cosθ, -1, 1)))
+    end
+end
+
+rz3(x) = [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1]
+ry3(x) = [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)]
+orientation(a) = rz3(a[1].phi) * ry3(a[1].theta) * rz3(a[2].phi)
+spatial(p) = [p.px, p.py, p.pz]
+parity(n) = iseven(n) ? 1.0 : -1.0
+d(j, m, n, theta) = wignerd(j, m, n, cos(theta))
+Dc(j, m, n, phi, theta, psi = 0.0) = conj(wignerD(j, m, n, phi, cos(theta), psi))
+
+# Independent Cartesian boost, followed by projection onto the helicity axes.
+function cartesian_angles(ps, i, j)
+    pair = ps[i] + ps[j]
+    q, v = spatial(pair), spatial(ps[i])
+    z = normalize(q)
+    phi, theta = atan(z[2], z[1]), acos(z[3])
+    axes = rz3(phi) * ry3(theta)
+    beta = q / pair.E
+    gamma = pair.E / mass(pair)
+    vstar = v + ((gamma - 1) * dot(beta, v) / dot(beta, beta) - gamma * ps[i].E) * beta
+    local_v = transpose(axes) * vstar
+    return (
+        (phi = phi, theta = theta),
+        (phi = atan(local_v[2], local_v[1]), theta = acos(local_v[3] / norm(local_v))),
+    )
+end
+
+rng = MersenneTwister(20261021)
+events = [random_three_pions(rng) for _ in 1:100]
+errors = Dict{Symbol, Float64}()
+record!(key, value) = (errors[key] = max(get(errors, key, 0.0), abs(value)))
+function check_errors(keys)
+    for key in keys
+        @test errors[key] < 1.0e-10
+        @printf("max %-15s %.6e\n", key, errors[key])
+    end
+end
+nothing
+```
+
+The on-shell and conservation checks run before comparing both angle
+constructions.
+
+``` julia
+@testset "Physical events and helicity angles" begin
+    for ps in events
+        a = chain_angles(((1, 2), 3), ps)
+        b = chain_angles(((1, 3), 2), ps)
+        c = chain_angles(((3, 1), 2), ps)
+        @test norm(spatial(sum(ps))) < 1.0e-14
+        @test sum(p.E for p in ps) ≈ PARENT_MASS
+        @test all(p -> isapprox(mass(p), PION_MASS; atol = 1.0e-14), ps)
+        for (angles, ij) in ((a, (1, 2)), (b, (1, 3)), (c, (3, 1)))
+            independent = cartesian_angles(ps, ij...)
+            for v in 1:2
+                record!(:angles, angles[v].theta - independent[v].theta)
+                record!(:angles, angle(cis(angles[v].phi - independent[v].phi)))
+            end
+        end
+    end
+    check_errors((:angles,))
+end
+ps = first(events)
+println("First event four-vectors (E, px, py, pz), GeV:")
+for (i, p) in enumerate(ps)
+    @printf("p%d = (% .12f, % .12f, % .12f, % .12f)\n", i, p.E, p.px, p.py, p.pz)
+end
+println("chain     phi_GJ         theta_GJ       phi_TY         theta_TY (radians)")
+for (name, tree) in (("(12)3", ((1, 2), 3)), ("(13)2", ((1, 3), 2)), ("(31)2", ((3, 1), 2)))
+    a = chain_angles(tree, ps)
+    @printf("%s  % .12f % .12f % .12f % .12f\n", name, a[1].phi, a[1].theta, a[2].phi, a[2].theta)
+end
+nothing
+```
+
+    max angles          7.105427e-15
+    Test Summary:                       | Pass  Total  Time
+    Physical events and helicity angles |  301    301  1.1s
+    First event four-vectors (E, px, py, pz), GeV:
+    p1 = ( 0.511082386798,  0.113961653220,  0.455775068512, -0.144938403634)
+    p2 = ( 0.374615321371, -0.126905897469,  0.005677076243,  0.323603784332)
+    p3 = ( 0.514302291831,  0.012944244249, -0.461452144755, -0.178665380698)
+    chain     phi_GJ         theta_GJ       phi_TY         theta_TY (radians)
+    (12)3   1.598840081439  1.201522051165 -0.401452404728  1.268141169636
+    (13)2  -0.044704729637  2.767519388212  1.644623660411  1.580472501202
+    (31)2  -0.044704729637  2.767519388212 -1.496968993179  1.561120152388
+
+## Pulling out the common (12) orientation
+
+The Bose-symmetrized angular amplitude starts with a plus between the
+positive-pion-first chains:
+
+``` math
+\begin{aligned}
+\mathcal A_M={}&\sum_\lambda
+D^{J*}_{M\lambda}(\phi_{\rm GJ}^{12},\theta_{\rm GJ}^{12},0)
+H^{12}_\lambda
+D^{S*}_{\lambda0}(\phi_{\rm TY}^{12},\theta_{12},0)h^{12}\\
+&+\sum_\lambda
+D^{J*}_{M\lambda}(\phi_{\rm GJ}^{13},\theta_{\rm GJ}^{13},0)
+H^{13}_\lambda
+D^{S*}_{\lambda0}(\phi_{\rm TY}^{13},\theta_{13},0)h^{13}.
+\end{aligned}
+```
+
+An overall Bose normalization is conventional. Physical identical-pion
+chains use the same coupling functions at the respective pair
+invariants. Absorb the inner azimuth into the parent matrix using
+
+``` math
+D^{J*}_{M\lambda}(\phi,\theta,0)
+D^{S*}_{\lambda0}(\varphi,\vartheta,0)
+=D^{J*}_{M\lambda}(\phi,\theta,\varphi)d^S_{\lambda0}(\vartheta).
+```
+
+For
+$O_{ij}=R_z(\phi_{\rm GJ}^{ij})R_y(\theta_{\rm GJ}^{ij})R_z(\phi_{\rm TY}^{ij})$,
+the Cartesian rotations obey
+
+``` math
+O_{12}^{-1}O_{31}=R_y(\zeta),\qquad
+O_{12}^{-1}O_{13}=R_y(\zeta)R_z(\pi).
+```
+
+Consequently,
+
+``` math
+D^{J*}_{M\lambda}(\Omega_{13})
+=\sum_\nu D^{J*}_{M\nu}(\Omega_{12})
+d^J_{\nu\lambda}(\zeta)(-1)^\lambda.
+```
+
+The angle is the parent rotation `ThreeBodyDecays.wr(2,3,0)`, with
+reference spectator 3 and target spectator 2:
+
+``` math
+\zeta=\arccos\frac{\boldsymbol p_2\cdot\boldsymbol p_3}
+{|\boldsymbol p_2||\boldsymbol p_3|}\in(0,\pi).
+```
+
+We compare the signed rotation extracted from the Cartesian frames with
+`ThreeBodyDecays` at the same invariants, and check its cyclic helicity
+angle.
+
+``` julia
+@testset "DPD rotation and pair reversal" begin
+    global configurations = map(events) do ps
+        a = chain_angles(((1, 2), 3), ps)
+        b = chain_angles(((1, 3), 2), ps)
+        c = chain_angles(((3, 1), 2), ps)
+        sig = (mass(ps[2] + ps[3])^2, mass(ps[1] + ps[3])^2, mass(ps[1] + ps[2])^2)
+        w = TBD.wr(2, 3, 0)
+        zeta = (TBD.ispositive(w) ? 1 : -1) * acos(clamp(TBD.cosζ(w, sig, MASSES_3PI^2), -1, 1))
+        q = transpose(orientation(a)) * orientation(c)
+        record!(:zeta, zeta - atan(q[1, 3], q[3, 3]))
+        record!(:rotation13, norm(transpose(orientation(a)) * orientation(b) - ry3(zeta) * rz3(pi)))
+        record!(:rotation31, norm(q - ry3(zeta)))
+        @test cos(c[2].theta) ≈ TBD.cosθij(sig, MASSES_3PI^2; k = 2) atol = 1.0e-12
+        @test b[2].theta + c[2].theta ≈ pi
+        (; a, b, c, zeta)
+    end
+    check_errors((:zeta, :rotation13, :rotation31))
+end
+@printf("First-event zeta = %.12f rad\n", first(configurations).zeta)
+```
+
+    max zeta            2.309264e-14
+    max rotation13      3.249403e-14
+    max rotation31      3.339097e-14
+    Test Summary:                  | Pass  Total  Time
+    DPD rotation and pair reversal |  203    203  0.2s
+    First-event zeta = 1.939865882161 rad
+
+The ordered pair swap gives $\theta_{31}=\pi-\theta_{13}$ and
+$\phi_{\rm TY}^{31}=\phi_{\rm TY}^{13}+\pi\pmod{2\pi}$. The small-$d$
+substitution, explicitly, is
+
+``` math
+\begin{aligned}
+(-1)^\lambda d^S_{\lambda0}(\theta_{13})
+&=(-1)^\lambda d^S_{\lambda0}(\pi-\theta_{31})\\
+&=(-1)^\lambda(-1)^{S+\lambda}d^S_{\lambda0}(\theta_{31})\\
+&=(-1)^S d^S_{\lambda0}(\theta_{31}),
+\end{aligned}
+```
+
+since $\lambda$ is integer. Therefore
+
+``` math
+\mathcal A_M=\sum_\nu D^{J*}_{M\nu}(\Omega_{12})\mathcal O^\nu,
+```
+
+``` math
+\boxed{
+\mathcal O^\nu=
+H^{12}_\nu d^S_{\nu0}(\theta_{12})h^{12}
++(-1)^S\sum_\lambda d^J_{\nu\lambda}(\zeta)
+H^{13}_\lambda d^S_{\lambda0}(\theta_{31})h^{13}.
+}
+```
+
+The sum over $\nu$ runs from $-J$ to $J$; the first term vanishes for
+$|\nu|>S$. The internal sum has $|\lambda|\leq\min(J,S)$. The couplings
+retain their original (13) ordering: the explicit $(-1)^S$ already
+accounts for the angular conversion to (31). The bracket depends on
+internal kinematics and couplings, not the orientation of the GJ axes.
+
+We check both forms of the identity for $J=0,\ldots,4$, $S=0,\ldots,3$,
+and every allowed projection. Negative controls deliberately omit the
+phase or mix TY angles between chains; both must produce a sizable
+mismatch.
+
+``` julia
+@testset "Ordered-chain factorization" begin
+    for (; a, b, c, zeta) in configurations
+        for J in 0:4, S in 0:3, M in -J:J, lam in -min(J, S):min(J, S)
+            direct13 = Dc(J, M, lam, b[1].phi, b[1].theta) * Dc(S, lam, 0, b[2].phi, b[2].theta)
+            direct31 = Dc(J, M, lam, c[1].phi, c[1].theta) * Dc(S, lam, 0, c[2].phi, c[2].theta)
+            pulled = sum(Dc(J, M, lp, a[1].phi, a[1].theta, a[2].phi) * d(J, lp, lam, zeta) for lp in -J:J)
+            record!(:pull13, direct13 - pulled * parity(lam) * d(S, lam, 0, b[2].theta))
+            record!(:pull31, direct13 - parity(S) * pulled * d(S, lam, 0, c[2].theta))
+            record!(:reversal, direct13 - parity(S) * direct31)
+            # Negative controls: omit the phase, or mix chain-12 TY with chain-13 GJ.
+            record!(:missing_phase, direct13 - pulled * d(S, lam, 0, b[2].theta))
+            mixed = Dc(J, M, lam, b[1].phi, b[1].theta) * Dc(S, lam, 0, a[2].phi, a[2].theta)
+            record!(:mixed_TY, mixed - pulled * parity(lam) * d(S, lam, 0, b[2].theta))
+        end
+    end
+    check_errors((:pull13, :pull31, :reversal))
+    @test errors[:missing_phase] > 0.1
+    @test errors[:mixed_TY] > 0.1
+    @printf("Omitting the phase: %.6f; mixing TY angles: %.6f\n",
+        errors[:missing_phase], errors[:mixed_TY])
+end
+nothing
+```
+
+    max pull13          3.740991e-14
+    max pull31          3.740991e-14
+    max reversal        9.756085e-15
+    Omitting the phase: 1.365251; mixing TY angles: 1.973362
+    Test Summary:               | Pass  Total  Time
+    Ordered-chain factorization |    5      5  0.6s
+
+## Reflectivity convention
+
+For parent parity $P=\pm1$, use the COMPASS convention in [Mikhasenko,
+*Three-pion dynamics at COMPASS*, Eqs.
+(3.10)–(3.11)](https://wwwcompass.cern.ch/compass/publications/theses/2019_phd_mikhasenko.pdf):
+
+``` math
+{}^\epsilon D^J_{M\nu}(\Omega)
+=N_M\left[D^J_{M\nu}(\Omega)
+-\epsilon P(-1)^{J-M}D^J_{-M,\nu}(\Omega)\right],
+\qquad \epsilon=\pm1,
+```
+
+``` math
+N_M=\begin{cases}
+1/\sqrt2,&M>0,\\
+1/2,&M=0,\\
+0,&M<0.
+\end{cases}
+```
+
+The coefficients are real, so conjugation gives the same combination of
+$D^{J*}$. In explicit Euler angles,
+
+``` math
+{}^\epsilon D^{J*}_{M\nu}(\phi,\theta,\psi)
+=N_M e^{i\nu\psi}
+\left[e^{iM\phi}d^J_{M\nu}(\theta)
+-\epsilon P(-1)^{J-M}e^{-iM\phi}d^J_{-M,\nu}(\theta)\right].
+```
+
+Thus the transformation combines $M$ and $-M$, including their small-$d$
+rows, while retaining the same $\nu$ and third-angle phase. It is a
+row-basis transformation, not just replacement of the first-angle
+exponential by a sine or cosine for general $\nu$.
+
+At $M=0$ the definition reduces to
+
+``` math
+{}^\epsilon D^{J*}_{0\nu}
+=\frac{1-\epsilon P(-1)^J}{2}D^{J*}_{0\nu}.
+```
+
+Only $\epsilon=-P(-1)^J$ survives in this sign convention; the other
+combination vanishes. For example, $J^P=1^+$ permits $M^\epsilon=0^+$.
+
+## Reflectivity acts outside the internal amplitude
+
+Apply the same linear combination to the complete amplitude:
+
+``` math
+\begin{aligned}
+{}^\epsilon\mathcal A_M
+&=N_M\left[\mathcal A_M-\epsilon P(-1)^{J-M}\mathcal A_{-M}\right]\\
+&=\sum_\nu N_M\left[D^{J*}_{M\nu}(\Omega_{12})
+-\epsilon P(-1)^{J-M}D^{J*}_{-M,\nu}(\Omega_{12})\right]\mathcal O^\nu\\
+&=\boxed{\sum_\nu{}^\epsilon D^{J*}_{M\nu}(\Omega_{12})\mathcal O^\nu}.
+\end{aligned}
+```
+
+In matrix notation, if $U_\epsilon$ denotes the row transformation,
+
+``` math
+U_\epsilon[D^{J*}(\Omega_{12})\mathcal O]
+=[U_\epsilon D^{J*}(\Omega_{12})]\mathcal O.
+```
+
+There is no additional reflectivity factor in $d^J(\zeta)$ or
+$\mathcal O$. The pair-ordering factor $(-1)^S$ remains exactly where it
+was. This argument applies to each fixed $J,P$ wave; any physical parity
+constraints on the helicity couplings are separate from the linear
+change of basis.
+
+The next cell compares the original coherent two-chain amplitude with
+the factorized reflectivity amplitude for both parities and
+reflectivities. Arbitrary complex couplings test the linear algebra
+independently of dynamical parity constraints. It also checks the
+surviving and vanishing $M=0$ sectors explicitly.
+
+``` julia
+@testset "Reflectivity factorization" begin
+    for (; a, b, c, zeta) in configurations
+        for J in 0:4, S in 0:3
+            helicities = -min(J, S):min(J, S)
+            H12(lam) = complex(0.7 + 0.1 * lam, 0.2 - 0.03 * lam)
+            H13(lam) = complex(-0.4 + 0.07 * lam, 0.5 + 0.04 * lam)
+            h12, h13 = 0.8 - 0.3im, -0.2 + 0.6im
+            original(M) = sum(
+                Dc(J, M, lam, a[1].phi, a[1].theta) * H12(lam) * Dc(S, lam, 0, a[2].phi, a[2].theta) * h12 +
+                    Dc(J, M, lam, b[1].phi, b[1].theta) * H13(lam) * Dc(S, lam, 0, b[2].phi, b[2].theta) * h13
+                    for lam in helicities
+            )
+            O = [
+                (abs(lp) <= S ? H12(lp) * d(S, lp, 0, a[2].theta) * h12 : 0im) +
+                    parity(S) * sum(d(J, lp, lam, zeta) * H13(lam) * d(S, lam, 0, c[2].theta) * h13 for lam in helicities)
+                    for lp in -J:J
+            ]
+            for P in (-1, 1), eps in (-1, 1), M in 0:J
+                normM = M == 0 ? 0.5 : inv(sqrt(2.0))
+                coefficient = eps * P * parity(J - M)
+                direct = normM * (original(M) - coefficient * original(-M))
+                pulled = sum(
+                    normM * (
+                        Dc(J, M, lp, a[1].phi, a[1].theta, a[2].phi) -
+                            coefficient * Dc(J, -M, lp, a[1].phi, a[1].theta, a[2].phi)
+                    ) * O[lp + J + 1] for lp in -J:J
+                )
+                record!(:reflectivity, direct - pulled)
+                if M == 0
+                    expected = eps == -P * parity(J) ? original(0) : 0im
+                    record!(:reflectivity_M0, pulled - expected)
+                end
+            end
+        end
+    end
+    check_errors((:reflectivity, :reflectivity_M0))
+end
+nothing
+```
+
+    max reflectivity    2.140804e-14
+    max reflectivity_M0 9.711508e-15
+    Test Summary:              | Pass  Total  Time
+    Reflectivity factorization |    2      2  0.2s
+
+## Integrating out the orientation
+
+Hold the internal invariants fixed and use the normalized Haar measure
+
+``` math
+d\mu(\Omega_{12})=
+\frac{d\Omega_{\rm GJ}^{12}\,d\phi_{\rm TY}^{12}}{8\pi^2}
+=\frac{d\phi_{\rm GJ}^{12}\,d(\cos\theta_{\rm GJ}^{12})\,
+d\phi_{\rm TY}^{12}}{8\pi^2}.
+```
+
+Both azimuths cover a full $2\pi$ interval and $\cos\theta$ runs from
+$-1$ to $1$. This integral removes the orientation only; the internal TY
+polar angles and $\zeta$ remain in $\mathcal O$ as functions of the
+Dalitz invariants. There is no acceptance weighting.
+
+Wigner orthogonality gives
+
+``` math
+\int d\mu(\Omega)\,D^{J*}_{m\lambda}(\Omega)
+D^{J'}_{m'\lambda'}(\Omega)
+=\frac{\delta_{JJ'}\delta_{mm'}\delta_{\lambda\lambda'}}{2J+1}.
+```
+
+At a fixed parent parity $P$, the allowed reflectivity rows form an
+orthonormal change of basis. For $M>0$, their row norm is
+$N_M^2(1+1)=1$. For $M=0$, the allowed sector has coefficient
+$N_0[1-\epsilon P(-1)^J]=(1/2)\times2=1$; the forbidden sector is the
+zero vector and is excluded from the basis. Consequently,
+
+``` math
+\int d\mu(\Omega)\,
+{}^\epsilon D^{J*}_{M\lambda}(\Omega)
+{}^{\epsilon'}D^{J'}_{M'\lambda'}(\Omega)
+=\frac{\delta_{JJ'}\delta_{MM'}\delta_{\epsilon\epsilon'}
+\delta_{\lambda\lambda'}}{2J+1}.
+```
+
+Let $a,b$ label two internal waves or models, with
+
+``` math
+\Psi^a_{JM\epsilon}
+=\sum_\lambda{}^\epsilon D^{J*}_{M\lambda}(\Omega_{12})
+\mathcal O_{J,a}^{\lambda}.
+```
+
+Their orientation-integrated overlap is therefore
+
+``` math
+\begin{aligned}
+\int d\mu\,\Psi^a_{JM\epsilon}
+\bigl(\Psi^b_{J'M'\epsilon'}\bigr)^*
+&=\sum_{\lambda,\lambda'}\mathcal O_{J,a}^{\lambda}
+\bigl(\mathcal O_{J',b}^{\lambda'}\bigr)^*
+\int d\mu\,{}^\epsilon D^{J*}_{M\lambda}
+{}^{\epsilon'}D^{J'}_{M'\lambda'}\\
+&=\boxed{\frac{\delta_{JJ'}\delta_{MM'}\delta_{\epsilon\epsilon'}}{2J+1}
+\sum_{\lambda=-J}^{J}\mathcal O_{J,a}^{\lambda}
+\bigl(\mathcal O_{J,b}^{\lambda}\bigr)^*}.
+\end{aligned}
+```
+
+For equal reflectivity, simply drop $\delta_{\epsilon\epsilon'}$. For a
+single wave this becomes
+
+``` math
+\int d\mu\,|\Psi_{JM\epsilon}|^2
+=\frac{1}{2J+1}\sum_{\lambda=-J}^{J}|\mathcal O_J^\lambda|^2.
+```
+
+Thus the reflectivity basis **preserves** the usual Wigner-$D$
+normalization. If the wave definition includes $\sqrt{2J+1}$, namely
+$\widehat\Psi=\sqrt{2J+1}\,\Psi$, its overlap instead equals the same
+Kronecker deltas times $\sum_\lambda\mathcal O_a^\lambda
+\mathcal O_b^{\lambda *}$, without the denominator. Any such factor
+already included in the couplings must be counted only once.
+
+These expressions assume the two waves use the same parent parity. If
+their parities are $P$ and $P'$, the row-overlap factor is
+$\delta_{\epsilon P,\epsilon'P'}$ instead of
+$\delta_{\epsilon\epsilon'}$, for allowed rows. An orientation integral
+alone does not imply an additional $\delta_{PP'}$.
+
+## Regenerating the checks
+
+Run from the repository root:
+
+``` sh
+quarto render docs/compass-basis.qmd --to gfm
+```
+
+All numerical results above are produced by the adjacent Julia cells;
+failed assertions stop the render. The orientation integral is derived
+analytically here, rather than checked by numerical quadrature.

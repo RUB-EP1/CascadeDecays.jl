@@ -1,9 +1,4 @@
-```@meta
-CurrentModule = CascadeDecays
-EditURL = "../particle-two-phase.qmd"
-```
-
-# [Why do we need the particle-2 phase?](@id particle_two_phase)
+# Why do we need the particle-2 phase?
 
 
 The Jacob–Wick particle-2 phase

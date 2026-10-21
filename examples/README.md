@@ -1,7 +1,7 @@
 # CascadeDecays examples
 
-This directory keeps executable Quarto notebooks together with their committed,
-pre-rendered Markdown and plot assets. Documenter publishes the rendered files;
+This directory keeps executable Quarto sources and stores their committed
+Markdown and plot assets in `generated/`. Documenter publishes the rendered files;
 it does not execute these notebooks or regenerate their Monte Carlo samples in
 CI.
 
@@ -10,8 +10,8 @@ CI.
 Each example consists of:
 
 - `name.qmd`: the executable source notebook;
-- `name.md`: the committed GitHub-flavored Markdown render;
-- `name_files/`: committed figures and other render assets.
+- `generated/name.md`: the committed GitHub-flavored Markdown render;
+- `generated/name_files/`: committed figures and other render assets.
 
 Keep all three in sync when changing an example.
 
@@ -33,8 +33,8 @@ quarto render examples/pp2ppKK-model.qmd --to gfm
 Review and commit the source, rendered Markdown, and generated asset directory:
 
 ```sh
-git diff -- examples/pp2ppKK-model.qmd examples/pp2ppKK-model.md
-git status --short examples/pp2ppKK-model_files
+git diff -- examples/pp2ppKK-model.qmd examples/generated/pp2ppKK-model.md
+git status --short examples/generated/pp2ppKK-model_files
 ```
 
 To verify that Documenter can consume the static render without re-running the

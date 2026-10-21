@@ -1,9 +1,4 @@
-```@meta
-CurrentModule = CascadeDecays
-EditURL = "../isospin-kaon-conventions.qmd"
-```
-
-# [Isospin and kaon charge-conjugation conventions](@id isospin_kaon_conventions)
+# Isospin and kaon charge-conjugation conventions
 
 
 ## Goal
@@ -33,11 +28,10 @@ and is not rendered by `docs/make.jl` in CI. After editing this
 notebook, run
 
 ``` sh
-julia --project=docs docs/render-generated-docs.jl
+quarto render docs/isospin-kaon-conventions.qmd --to gfm
 ```
 
-and commit the updated `docs/generated/isospin-kaon-conventions.md`
-file.
+and commit the updated `docs/generated/isospin-kaon-conventions.md` file.
 
 ## Isospin doublets
 
