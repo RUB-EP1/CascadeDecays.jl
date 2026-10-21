@@ -317,7 +317,7 @@ function compare_toy_amplitudes(spin_particle)
         A_cd = amplitude(cd_chain, point)
         c = classify(A_tbd, A_cd)
         push!(rows, @sprintf(
-            "%-8d %-14s %-18.2e %-18.2e",
+            "%-8d %-14s %-18.2e %.2e",
             k,
             c.sign,
             c.diff_plus,

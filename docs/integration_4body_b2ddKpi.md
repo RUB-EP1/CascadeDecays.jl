@@ -1,0 +1,275 @@
+# Using a decay chain
+
+
+This tutorial demonstrates how `CascadeDecays.jl` routes kinematic
+variables through a flat cascade topology and evaluates a
+[`DecayChain`](@ref) amplitude end to end. The worked example is B⁺ →
+D⁰D⁻π⁺K⁺ via ψ(4040).
+
+The input four-vectors and reference invariants come from a fixed
+cross-check event vendored under `docs/fixtures/b2ddpiK/`. The
+final-state label ordering and helicity-angle convention match the
+B2DxDK `all_angles` reference notebook (D⁰, π⁺, D⁻, K⁺ as labels `1…4`).
+
+We use helicity convention only. The goal here is not yet a production
+physics model, but a clean integration point: static graph and model
+payloads live in `CascadeDecays.jl`, while event-dependent masses and
+angles are computed from four-vectors and routed into local vertex and
+propagator calls.
+
+``` julia
+using CascadeDecays
+using CascadeDecays: has_canonical_line_order
+using FourVectors
+using HadronicLineshapes
+using JSON
+using ThreeBodyDecays: RecouplingLS
+
+format_instruction(inst) =
+    string(nameof(typeof(inst)), "(", join((repr(getfield(inst, i)) for i in 1:fieldcount(typeof(inst))), ", "), ")")
+```
+
+## 1. Event four-vectors
+
+The final-state particle labels match the vendored B2DxDK cross-check
+fixture (`docs/fixtures/b2ddpiK/`):
+
+``` text
+1: D⁰
+2: π⁺
+3: D⁻
+4: K⁺
+```
+
+``` julia
+const CROSSCHECK_EVENT = joinpath(@__DIR__, "fixtures", "b2ddpiK", "crosscheck_event.json")
+event = JSON.parsefile(CROSSCHECK_EVENT)
+kinematics = event["dpd_kinematics"]
+fourvector(p) = FourVector(p["px"], p["py"], p["pz"]; E = p["E"])
+v = event["four_vectors"]
+
+pD0 = fourvector(v["D0"])
+piplus = fourvector(v["pi"])
+pDminus = fourvector(v["D"])
+pKplus = fourvector(v["K"])
+
+objs = (pD0, piplus, pDminus, pKplus)
+
+P_Dx = pD0 + piplus
+P_psi = P_Dx + pDminus
+P_B = P_psi + pKplus
+
+reference_mψ2 = kinematics["msq_DxD"]
+reference_cosθ_D_in_Dx = kinematics["cos_theta_D_in_Dx"]
+reference_ϕ_D_in_Dx = kinematics["phi_D_in_Dx"]
+
+@assert isapprox(mass(P_psi)^2, reference_mψ2; atol=5e-5)
+```
+
+## 2. Topology from bracket notation
+
+The bracket notation `(((1,2),3),4)` defines the full binary cascade:
+
+``` text
+(((D⁰,π⁺),D⁻),K⁺)
+```
+
+`DecayTopology` converts this notation into the flat line-vertex
+incidence matrix. The generated convention is final-state lines first,
+internal lines next, and root last.
+
+``` julia
+topology = DecayTopology((((1, 2), 3), 4))
+
+@assert has_canonical_line_order(topology)
+@assert bracket_notation(topology) == "(((1,2),3),4)"
+```
+
+## 3. Static quantum-number information
+
+The static quantum-number input stores only external/root spins. All
+line invariant masses, including final and root masses, are supplied by
+the event kinematics.
+
+We use pseudoscalar external particles and a pseudoscalar `B⁺`. Spins
+are represented as doubled integers.
+
+``` julia
+quantum = SystemSpins(
+    0, # D⁰
+    0, # π⁺
+    0, # D⁻
+    0, # K⁺
+    two_h0=0, # B⁺
+)
+```
+
+## 4. Runtime kinematic input from the topology
+
+`DecayChainKinematics` is the completed input point from which the
+package can route local invariants and angles by topology address.
+
+The angle programs are generated directly from the topology. It is
+useful to look at them explicitly: each entry is the sequence of frame
+changes and one final `MeasureCosThetaPhi(...)` instruction for one
+binary decay in the cascade.
+
+In helicity convention:
+
+- `ToHelicityFrame((...))` boosts to the rest frame of the addressed
+  subsystem
+- the final `MeasureCosThetaPhi(...)` returns the local helicity angles
+  `(cosθ, ϕ)` for the first child of that binary decay
+
+The initial configuration of four-vectors is assumed to be already
+aligned so that the subsequent helicity-angle measurements are performed
+in the desired convention.
+
+After that, `DecayChainKinematics(...)` evaluates the generated programs
+on the event four-vectors and assembles the full kinematic input object.
+
+Here we inspect the local decay `(1,2)`, which corresponds to
+`Dₓ⁺ → D⁰π⁺` and matches the cross-check angle in the input event.
+
+``` julia
+programs = CascadeDecays.helicity_angle_programs(topology)
+
+for (label, program) in (
+    ("(((1,2),3),4)", programs[1]),
+    ("((1,2),3)", programs[2]),
+    ("(1,2)", programs[3]),
+)
+    println("program for ", label)
+    foreach(step -> println("  ", format_instruction(step)), program)
+end
+
+x = DecayChainKinematics(topology, objs)
+
+root_angles = vertex_angles(topology, x, (((1, 2), 3), 4))
+psi_angles = vertex_angles(topology, x, ((1, 2), 3))
+Dx_angles = vertex_angles(topology, x, (1, 2))
+
+println("angles for (((1,2),3),4): cosθ = ", root_angles.cosθ, ", ϕ = ", root_angles.ϕ)
+println("angles for ((1,2),3): cosθ = ", psi_angles.cosθ, ", ϕ = ", psi_angles.ϕ)
+println("angles for (1,2): cosθ = ", Dx_angles.cosθ, ", ϕ = ", Dx_angles.ϕ)
+
+@assert isapprox(Dx_angles.cosθ, reference_cosθ_D_in_Dx; atol=2e-10)
+@assert isapprox(Dx_angles.ϕ, reference_ϕ_D_in_Dx; atol=2e-10)
+
+@assert line_invariant(topology, x, (1, 2)) ≈ mass(P_Dx)^2
+@assert line_invariant(topology, x, ((1, 2), 3)) ≈ mass(P_psi)^2
+@assert vertex_masses2(topology, x, (((1, 2), 3), 4)) == (mass(P_B)^2, mass(P_psi)^2, mass(pKplus)^2)
+nothing
+```
+
+    program for (((1,2),3),4)
+      ToHelicityFrame((1, 2, 3, 4))
+      MeasureCosThetaPhi(:v1, (1, 2, 3))
+    program for ((1,2),3)
+      ToHelicityFrame((1, 2, 3, 4))
+      ToHelicityFrame((1, 2, 3))
+      MeasureCosThetaPhi(:v2, (1, 2))
+    program for (1,2)
+      ToHelicityFrame((1, 2, 3, 4))
+      ToHelicityFrame((1, 2, 3))
+      ToHelicityFrame((1, 2))
+      MeasureCosThetaPhi(:v3, (1,))
+    angles for (((1,2),3),4): cosθ = -0.04377817152173917, ϕ = 2.5569510595758183
+    angles for ((1,2),3): cosθ = -0.551937811945214, ϕ = 1.2182839270106544e-7
+    angles for (1,2): cosθ = 0.8746538492596709, ϕ = -2.849013640395373
+
+## 5. Static payloads: vertices and propagators
+
+`HadronicLineshapes.BreitWigner` is a callable propagator object. The
+requested model parameters are:
+
+``` json
+"Psi(4040)_mass": 4.039,
+"Psi(4040)_width": 0.08
+```
+
+The left side of each pair is a bracket address, so no user-facing model
+input depends on internal line or vertex numbering. The constructor
+resolves these addresses once and stores the propagator and vertex
+payloads as a concretely typed `Tuple`, so a chain that mixes lineshape
+or form-factor types is still evaluated without dynamic dispatch.
+
+For curiosity, the topology is internally compiled into a flat
+connectivity matrix: rows are particle/state lines, columns are binary
+decay vertices, `-1` marks the incoming parent line, and `+1` marks the
+two outgoing child lines. This is the canonical graph representation
+from which routing and evaluation order are derived.
+
+``` julia
+connectivity = Matrix(relation(topology))
+
+vertices = (
+    (((1, 2), 3), 4) => Vertex(RecouplingLS((2, 2))), # B⁺ -> ψ K
+    ((1, 2), 3) => Vertex(RecouplingLS((0, 2))),      # ψ -> Dₓ D
+    (1, 2) => Vertex(RecouplingLS((2, 0))),           # Dₓ -> D⁰ π
+)
+
+propagators = (
+    (1, 2) => Propagator(2, ConstantLineshape(1.0 + 0.0im)),
+    ((1, 2), 3) => Propagator(2, BreitWigner(4.039, 0.08)),
+)
+
+chain = DecayChain(topology, quantum; propagators, vertices)
+nothing
+```
+
+Vertices are [`Vertex`](@ref) objects. In this minimal example we choose
+LS recouplings compatible with the spin assignments below.
+
+## 6. General amplitude evaluation
+
+The package-level `amplitude` method now performs the internal-helicity
+sum, so the user only provides external helicities in the order
+`(1,2,3,4,0)`.
+
+In formula form,
+
+``` math
+\mathcal{A}(\lambda_1,\lambda_2,\lambda_3,\lambda_4,\lambda_0)
+= \sum_{\lambda_{12},\lambda_{123}}
+\prod_v D_v^*\,V_v \prod_r P_r.
+```
+
+The routing contract is:
+
+- topology chooses the local parent/children at each binary decay
+- `DecayChainKinematics` supplies three local masses squared
+- `external_two_λs` is a `SystemHelicities` value aligned with `quantum`
+  (positional finals, root via `two_h0=...`)
+- `DecayChain` supplies local external/internal spins
+- Julia dispatch selects vertex and propagator computations
+
+``` julia
+external_two_λs = SystemHelicities(
+    quantum,
+    0, # D⁰
+    0, # π⁺
+    0, # D⁻
+    0, # K⁺
+    two_h0=0, # B⁺
+)
+A = amplitude(chain, x, external_two_λs)
+nothing
+```
+
+## 7. Numerical result
+
+``` julia
+@assert isfinite(real(A))
+@assert isfinite(imag(A))
+
+println("m²(1,2) = ", line_invariant(topology, x, (1, 2)))
+println("m²((1,2),3) = ", line_invariant(topology, x, ((1, 2), 3)))
+println("angles at (1,2) = ", vertex_angles(topology, x, (1, 2)))
+println("summed amplitude = ", A)
+```
+
+    m²(1,2) = 4.04114526493613
+    m²((1,2),3) = 17.382477652475433
+    angles at (1,2) = (cosθ = 0.8746538492596709, ϕ = -2.849013640395373)
+    summed amplitude = -0.14209500862949076 + 0.0429519186601593im

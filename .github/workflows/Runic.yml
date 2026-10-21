@@ -13,7 +13,7 @@ on:
       - "test/**"
       - "benchmark/**"
       - "compat/**"
-      - "docs/make.jl"
+      - "docs/*.jl"
       - ".github/workflows/Runic.yml"
   workflow_dispatch:
 

@@ -34,10 +34,10 @@ artifacts and is not rendered by `docs/make.jl` in CI. After editing this
 notebook, run
 
 ```sh
-julia --project=docs docs/render-generated-docs.jl
+quarto render docs/four-pion-model.qmd --to gfm
 ```
 
-and commit the updated `docs/generated/four-pion-model.md` file.
+and commit the updated `docs/four-pion-model.md` file.
 
 ## Setup
 
