@@ -25,7 +25,6 @@ makedocs(;
         "Amplitude computation" => "amplitude-computation.md",
         "Why do we need the particle-2 phase?" => "particle-two-phase.md",
         "Convention matching" => "convention-matching.md",
-        "COMPASS reflectivity basis" => "compass-basis.md",
         "Routing four-vectors" => "kinematic-task.md",
         "Using a decay chain" => "tutorial.md",
         "Building a full model for a decay" => "lb2lc3pi-model.md",
@@ -34,8 +33,11 @@ makedocs(;
             "Four-pion model-building catalogue" => "four-pion-model.md",
             "Isospin and kaon charge-conjugation conventions" => "isospin-kaon-conventions.md",
         ],
-        "Cross-checking with ThreeBodyDecays" => "cascade-vs-dpd.md",
-        "Three-pion angular cross-check" => "three-pion-cascade-vs-dpd.md",
+        "Cross-checking with ThreeBodyDecays" => [
+            "General relations and signs" => "cascade-vs-dpd.md",
+            "COMPASS: three-pion meson amplitudes" => "compass-basis.md",
+        ],
+        hide("three-pion-cascade-vs-dpd.md"),
         "API reference" => "api-reference.md",
     ],
 )

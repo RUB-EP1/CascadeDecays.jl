@@ -465,5 +465,5 @@ conversion.
 - [Routing four-vectors](@ref kinematic_tasks) documents `KinematicTask`, frame
   programs, and external Wigner alignments.
 - [Topology and numbering](@ref notation) documents the ordered-child convention.
-- [Cross-checking with ThreeBodyDecays](@ref cascade_vs_dpd) gives a numerical
+- [General relations and signs](@ref cascade_vs_dpd) gives a numerical
   three-body comparison in a fixed reference topology.

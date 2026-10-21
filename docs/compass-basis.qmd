@@ -1,5 +1,5 @@
 ---
-title: "The COMPASS basis for three-pion amplitudes"
+title: "COMPASS: three-pion meson amplitudes"
 engine: julia
 format:
   gfm: default
@@ -7,6 +7,13 @@ execute:
   echo: false
   output: true
 ---
+
+This comparison with `ThreeBodyDecays.jl` specializes the
+[general relations and signs](cascade-vs-dpd.md) to a meson decaying into
+three spin-zero pions. It derives the common orientation, the cyclic-pair
+phase, and the COMPASS reflectivity basis. The
+[detailed angular cross-check](three-pion-cascade-vs-dpd.md) supplies an
+explicit four-vector configuration and the angles of both topologies.
 
 For $1=\pi^+$, $2=\pi^-$, and $3=\pi^-$, the two-chain amplitude in
 the COMPASS reflectivity basis has the factorized form

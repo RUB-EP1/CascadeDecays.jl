@@ -1,5 +1,5 @@
 ---
-title: "Cross-checking with ThreeBodyDecays"
+title: "General relations and signs"
 engine: julia
 format:
   gfm: default
@@ -10,6 +10,9 @@ execute:
 
 This note compares the `CascadeDecays.jl` helicity-frame construction with the
 Dalitz-plot decomposition implemented in `ThreeBodyDecays.jl` (TBD).
+It establishes the general relation, including spinful final states,
+reference-angle phases, and residual signs. For the simpler meson case with
+spin-zero pions, see [COMPASS: three-pion meson amplitudes](compass-basis.md).
 
 The important point is that the comparison must keep the reference topology
 fixed. In the examples below the reference is always

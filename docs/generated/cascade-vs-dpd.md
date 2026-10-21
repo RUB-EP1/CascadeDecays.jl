@@ -1,9 +1,12 @@
-# Cross-checking with ThreeBodyDecays
+# General relations and signs
 
 
 This note compares the `CascadeDecays.jl` helicity-frame construction
 with the Dalitz-plot decomposition implemented in `ThreeBodyDecays.jl`
-(TBD).
+(TBD). It establishes the general relation, including spinful final
+states, reference-angle phases, and residual signs. For the simpler
+meson case with spin-zero pions, see [COMPASS: three-pion meson
+amplitudes](compass-basis.md).
 
 The important point is that the comparison must keep the reference
 topology fixed. In the examples below the reference is always
@@ -317,7 +320,7 @@ function compare_toy_amplitudes(spin_particle)
         A_cd = amplitude(cd_chain, point)
         c = classify(A_tbd, A_cd)
         push!(rows, @sprintf(
-            "%-8d %-14s %-18.2e %-18.2e",
+            "%-8d %-14s %-18.2e %.2e",
             k,
             c.sign,
             c.diff_plus,

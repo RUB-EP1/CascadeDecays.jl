@@ -15,7 +15,7 @@ const RENDERED_PAGES = [
     ),
     (
         qmd = "cascade-vs-dpd.qmd", page = "cascade-vs-dpd.md",
-        title = "Cross-checking with ThreeBodyDecays", id = "cascade_vs_dpd",
+        title = "General relations and signs", id = "cascade_vs_dpd",
     ),
     (
         qmd = "particle-two-phase.qmd", page = "particle-two-phase.md",
@@ -31,7 +31,7 @@ const RENDERED_PAGES = [
     ),
     (
         qmd = "compass-basis.qmd", page = "compass-basis.md",
-        title = "The COMPASS basis for three-pion amplitudes", id = "compass_basis",
+        title = "COMPASS: three-pion meson amplitudes", id = "compass_basis",
     ),
     (
         qmd = "three-pion-cascade-vs-dpd.qmd", page = "three-pion-cascade-vs-dpd.md",
