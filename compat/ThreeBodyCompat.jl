@@ -3,7 +3,7 @@ Three-body resonance–spectator conventions for **tests, benchmarks, and docs**
 cross-checking [`ThreeBodyDecays.jl`](https://github.com/mmikhasenko/ThreeBodyDecays.jl).
 
 This module is not loaded by `CascadeDecays` itself. Use it from `test/`,
-`benchmark/`, and `docs/` when comparing against `amplitude(dc, po, σs; refζs)`.
+`benchmark/`, and `docs/` when comparing against `amplitude(dc, po, σs; reference_k)`.
 """
 module ThreeBodyCompat
 
@@ -29,7 +29,6 @@ export three_body_topology,
     three_body_spectator,
     three_body_isobar_pair,
     three_body_root_vertex,
-    three_body_refζs,
     three_body_σs,
     reference_plane_orientation
 
@@ -48,12 +47,6 @@ three_body_spectator(k::Integer) = k
 three_body_isobar_pair(k::Integer) = k == 1 ? (2, 3) : k == 2 ? (3, 1) : (1, 2)
 three_body_root_vertex(k::Integer) = three_body_topology(k) |> t -> vertex_address(t, 1)
 
-function three_body_refζs(k::Integer)
-    k in (1, 2, 3) || throw(ArgumentError("three_body_refζs requires k in (1, 2, 3)"))
-    return k == 1 ? ntuple(_ -> 1, 4) : ntuple(_ -> k, 4)
-end
-
-three_body_refζs(topology::DecayTopology) = three_body_refζs(three_body_k(topology))
 _three_body_tree(k::Integer) = (three_body_isobar_pair(k), three_body_spectator(k))
 
 function three_body_k(topology::DecayTopology)

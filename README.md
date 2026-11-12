@@ -8,7 +8,8 @@
 
 ## Installation
 
-With the checked-in `Manifest.toml` and Julia `1.11.5`, instantiate the project directly:
+Instantiate the project environment from the repository root. Dependency
+compatibility is specified in `Project.toml`:
 
 ```julia
 using Pkg
@@ -16,13 +17,12 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-If you work with a different Julia version than the one used for this manifest, resolve the environment explicitly:
+To refresh an existing environment within the project’s compatibility constraints:
 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.resolve()
-Pkg.instantiate()
+Pkg.update()
 ```
 
 ## Development

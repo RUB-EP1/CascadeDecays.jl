@@ -16,14 +16,14 @@ abstract type AbstractVertex end
 """
     Vertex{R,F}
 
-Local two-body decay vertex payload (alias of `ThreeBodyDecays.VertexFunction`).
+Local two-body decay vertex payload (alias of `ThreeBodyDecays.Vertex`).
 
 Wraps a recoupling scheme `h::R` and optional form factor `ff::F`. Used in
 [`DecayChain`](@ref) vertex slots.
 
 See also [`AbstractVertex`](@ref).
 """
-const Vertex = ThreeBodyDecays.VertexFunction
+const Vertex = ThreeBodyDecays.Vertex
 
 """
     ConstantLineshape(value)

@@ -22,6 +22,14 @@ the source, Markdown, and referenced figures together. Edit the `.qmd`, not its 
 Markdown. The COMPASS notebook presents executable cross-checks alongside the
 derivation, so its numerical results and assertions rerun with this command.
 
+The general CD–TBD comparison keeps its validation in hidden executable cells
+in `docs/cascade-vs-dpd.qmd`. Render it locally to rerun the assertions and
+refresh the concise test results in the committed Markdown:
+
+```sh
+quarto render docs/cascade-vs-dpd.qmd --to gfm
+```
+
 To render all documentation notebooks locally, use `quarto render docs --to gfm`.
 The list is in `docs/_quarto.yml`. Examples use the same command pattern with
 `examples/<name>.qmd` and their own Julia environment; see
