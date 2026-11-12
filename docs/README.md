@@ -22,6 +22,22 @@ the source, Markdown, and referenced figures together. Edit the `.qmd`, not its 
 Markdown. The COMPASS notebook presents executable cross-checks alongside the
 derivation, so its numerical results and assertions rerun with this command.
 
+The general CD–TBD comparison keeps its numerical machinery in
+`docs/checks/cascade-dpd.jl`. Rendering `cascade-vs-dpd.qmd` executes it and
+records the measured residual. This check requires ThreeBodyDecays 0.16 for
+its higher-spin tensor-domain fix and explicit `reference_k` API. Upgrade the
+local docs environment before rendering this notebook:
+
+```sh
+julia --project=docs -e 'using Pkg; Pkg.add(PackageSpec(name="ThreeBodyDecays", version="0.16"))'
+```
+
+To run the same assertions without Quarto:
+
+```sh
+julia --project=docs docs/checks/cascade-dpd.jl
+```
+
 To render all documentation notebooks locally, use `quarto render docs --to gfm`.
 The list is in `docs/_quarto.yml`. Examples use the same command pattern with
 `examples/<name>.qmd` and their own Julia environment; see

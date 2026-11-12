@@ -1,367 +1,289 @@
-# General relations and signs
+# Connecting cascade amplitudes to Dalitz-plot decomposition
 
 
-This note compares the `CascadeDecays.jl` helicity-frame construction
-with the Dalitz-plot decomposition implemented in `ThreeBodyDecays.jl`
-(TBD). It establishes the general relation, including spinful final
-states, reference-angle phases, and residual signs. For the simpler
-meson case with spin-zero pions, see [COMPASS: three-pion meson
-amplitudes](compass-basis.md).
+CascadeDecays (CD) follows helicity frames through each decay vertex.
+ThreeBodyDecays (TBD) factors out the orientation of a planar three-body
+event and aligns its spins with real Wigner small-$d$ matrices. They
+describe the same amplitude once the external spin bases, a continuous
+phase, and a discrete chain sign are matched.
 
-The important point is that the comparison must keep the reference
-topology fixed. In the examples below the reference is always
+This page gives the conversion first, explains where its angles and
+signs come from, then checks it component by component on sampled
+four-vectors. It follows [Quantization reference frames in
+ThreeBodyDecays](https://github.com/mmikhasenko/ThreeBodyDecays.jl/blob/main/docs/src/11-quantization-reference.md).
+For spin-zero daughters, see also [the COMPASS
+example](compass-basis.md).
 
-``` math
-((1,2),3), \qquad \mathrm{refk}=3.
-```
+## The relation to use
 
-TBD writes the three-body amplitude using the reference production-plane
-orientation and Wigner small-$d$ rotations. CascadeDecays follows the
-full helicity-frame paths and therefore naturally produces full Wigner
-$D(\alpha,\beta,\gamma)$ rotations. For the fixed reference topology the
-ordinary reference-angle phase that must be attached to the TBD
-amplitude is
+Write $k$ for the chain topology and $r=\mathtt{reference\_k}$ for the
+common quantization reference. Keep the cyclic daughter order:
 
-``` math
-\exp\!\left(i\lambda_3\phi_{12}\right),
-```
+| Index | Topology | Isobar daughters | Spectator |
+|:-----:|:--------:|:----------------:|:---------:|
+|   1   | $(23)1$  |     $(2,3)$      |     1     |
+|   2   | $(31)2$  |     $(3,1)$      |     2     |
+|   3   | $(12)3$  |     $(1,2)$      |     3     |
 
-where $\phi_{12}$ is the inner azimuth of the reference isobar $(12)$.
-This is a fixed-reference phase. It is not a target-topology spectator
-phase.
+For matched vertex conventions, LS couplings, particle-2 phases,
+normalization, and line shapes, the full complex tensors obey
 
-The identity behind the phase is
+$$
+\boxed{
+A_{\mathrm{CD},\boldsymbol\lambda,m_0}^{k;r}
+=S(k,r)\,e^{i\lambda_r\gamma_r}
+ A_{\mathrm{TBD},\boldsymbol\lambda,m_0}^{k;r}}
+$$
 
-``` math
-D^{j*}_{\nu,\lambda_R-\lambda_3}(\phi,\theta,0)
-D^{j_R*}_{\lambda_R,\lambda_1-\lambda_2}(\phi_{12},\theta_{12},0)
-=
-D^{j*}_{\nu,\lambda_R-\lambda_3}(\phi,\theta,\phi_{12})
-\exp(i\lambda_3\phi_{12})
-d^{j_R}_{\lambda_R,\lambda_1-\lambda_2}(\theta_{12}).
-```
+Here $\boldsymbol\lambda=(\lambda_1,\lambda_2,\lambda_3)$ are helicities
+in the **reference** frames, $m_0$ is the parent projection in the
+external frame, and $\gamma_r$ is the inner azimuth of the **reference**
+chain. Physical helicities appear in the exponential; Julia’s `two_js`
+and `two_λ` values must be divided by two. Both tensors use axes
+`(λ1, λ2, λ3, m0)`.
 
-The last step comes from the rightmost Euler angle of the first $D$
-matrix,
+The sign is particularly simple:
 
-``` math
-D^{j*}_{\nu,\mu}(\phi,\theta,\phi_{12})
-=
-D^{j*}_{\nu,\mu}(\phi,\theta,0)\,\exp(i\mu\phi_{12}),
-\qquad \mu=\lambda_R-\lambda_3,
-```
+$$
+S(k,r)=\begin{cases}
+1,& k=r,\\
+(-1)^{2j_\ell},&\ell=6-k-r\quad(k\ne r).
+\end{cases}
+$$
 
-and from the inner isobar factor
+Thus only the spin of the particle **absent from the pair $(k,r)$**
+matters. An integer spin gives $+1$; a half-integer spin gives $-1$.
 
-``` math
-D^{j_R*}_{\lambda_R,\lambda_1-\lambda_2}(\phi_{12},\theta_{12},0)
-=
-\exp(-i\lambda_R\phi_{12})
-d^{j_R}_{\lambda_R,\lambda_1-\lambda_2}(\theta_{12}).
-```
+| Chain $k$ / reference $r$ |       1       |       2       |       3       |
+|:-------------------------:|:-------------:|:-------------:|:-------------:|
+|             1             |      $1$      | $(-1)^{2j_3}$ | $(-1)^{2j_2}$ |
+|             2             | $(-1)^{2j_3}$ |      $1$      | $(-1)^{2j_1}$ |
+|             3             | $(-1)^{2j_2}$ | $(-1)^{2j_1}$ |      $1$      |
 
-Multiplying the two phases leaves $\exp(i\lambda_3\phi_{12})$.
+For example, comparing chain $(12)3$ with reference $(23)1$ means
+$k=3,r=1$:
+$A_{\rm CD}^{3;1}=(-1)^{2j_2}e^{i\lambda_1\gamma_1}A_{\rm TBD}^{3;1}$.
+The sign is set by particle 2, while the continuous phase uses
+particle 1. Neither is determined by the parent spin alone.
 
-The rest of this page keeps one clean kinematic point: an aligned
-`(12)3` event with physical $\Lambda_c^+ \to p K^- \pi^+$ masses,
-followed by a small but visible rotation
+## Which angles are we comparing?
 
-``` julia
-p |> Rz(0.1) |> Ry(0.2) |> Rz(0.3)
-```
+Work in the parent rest frame, with massive daughters and a
+nondegenerate event. Momentum conservation puts the three momenta in one
+plane. The canonical reference event has the isobar along $+z$,
+spectator $r$ along $-z$, and the cyclic first daughter in the
+positive-$x$ half-plane. Its normal is $+y$.
 
-The larger angles make endpoint-$Z$ phases visible in the printed
-tables.
+The three orientation angles rotate this canonical event into the
+supplied four-vectors:
 
-## Setup
+$$
+R(\Omega_r)=R_z(\alpha_r)R_y(\beta_r)R_z(\gamma_r).
+$$
 
-``` julia
-using LinearAlgebra
-using Printf
-using FourVectors
-using InstructionalDecayTrees
-using ThreeBodyDecays:
-    ThreeBodyMasses,
-    ThreeBodyParities,
-    ThreeBodySpins,
-    ThreeBodySystem,
-    aligned_four_vectors,
-    Invariants,
-    x2σs,
-    wr,
-    cosζ,
-    ispositive,
-    @jp_str
-import ThreeBodyDecays: DecayChainLS, amplitude as tbd_amplitude
+To obtain them, follow the reference chain: $(\alpha_r,\beta_r)$ orient
+its isobar in the parent frame; after going into that isobar’s helicity
+frame, the first daughter’s azimuth is $\gamma_r$. In the compatibility
+helper this is
+`reference_plane_orientation(three_body_topology(r), objs)` and the
+result is `(α, cosβ, γ)`. Use the same $r$ for this operation and for
+TBD evaluation. The overall orientation rotates the parent index with
+$D^{j_0*}(\Omega_r)$.
 
-using CascadeDecays
+There are three different kinds of angles here:
 
-include(joinpath(pkgdir(CascadeDecays), "compat", "ThreeBodyCompat.jl"))
-using .ThreeBodyCompat
+| Angles | Purpose |
+|:---|:---|
+| $\Omega_r=(\alpha_r,\beta_r,\gamma_r)$ | Orient the reference event relative to external axes. |
+| $\theta_{ij}$ | Describe the inner two-body decay in chain $k$. |
+| $\zeta^a_{k(r)}$ | Align leg $a$ of chain $k$ with reference $r$ in the canonical plane. |
 
-const LC_MASSES = (m0 = 2.28646, p = 0.93827208816, K = 0.493677, π = 0.13957039)
-const UNIT_LINESHAPE = ConstantLineshape(1.0 + 0.0im)
-unit_X(σ) = UNIT_LINESHAPE(σ)
+TBD’s internal alignments are pure $y$ rotations. Obtain their
+**signed** angles from `cosζ(wr(k,r,a), σs, ms^2)` and
+`ispositive(wr(k,r,a))`, not from `acos` alone. CD instead follows a
+rotation and boost at each vertex, so comparisons between its local
+frames generally produce full Euler triples. Those extra Euler angles
+describe the local axes and their rotation paths; they are not
+additional independent kinematic variables or a nonplanar decay.
 
-fourvector(p) = FourVector(Float64(p[1]), Float64(p[2]), Float64(p[3]); E = Float64(p[4]))
+## Why the spectator phase remains
 
-ms = ThreeBodyMasses(LC_MASSES.p, LC_MASSES.K, LC_MASSES.π; m0 = LC_MASSES.m0)
-σs_nt = x2σs([0.42, 0.31], ms; k = 3)
-σs = Invariants(σs_nt.σ1, σs_nt.σ2, σs_nt.σ3)
+Fix the Wigner convention
 
-finals_cm = fourvector.(aligned_four_vectors(σs_nt, ms; k = 3))
-event_transform(p) = p |> Rz(0.1) |> Ry(0.2) |> Rz(0.3)
-objs = Tuple(event_transform(p) for p in finals_cm)
+$$
+D^j_{mn}(\alpha,\beta,\gamma)
+=e^{-im\alpha}d^j_{mn}(\beta)e^{-in\gamma}.
+$$
 
-const REF_K = 3
-const REF_TOPOLOGY = three_body_topology(REF_K)
-nothing
-```
+The reference cascade $0\to R+r$, $R\to i+j$ contains
 
-## A reference-phase TBD amplitude
+$$
+D^{j_0*}_{m_0,\lambda_R-\lambda_r}(\alpha_r,\beta_r,0)
+D^{j_R*}_{\lambda_R,\lambda_i-\lambda_j}(\gamma_r,\theta_{ij},0).
+$$
 
-The next function is deliberately written in one place. It shows the
-three operations needed to obtain the TBD amplitude in the convention we
-compare to CascadeDecays:
+The second factor contributes $e^{+i\lambda_R\gamma_r}$: the plus sign
+follows from complex conjugation. Moving the inner azimuth into the
+third Euler angle of the parent factor contributes
+$e^{+i(\lambda_R-\lambda_r)\gamma_r}$. Their ratio is therefore
+$e^{+i\lambda_r\gamma_r}$, giving
 
-1.  Compute the production-plane orientation from the fixed reference
-    topology.
-2.  Evaluate the TBD amplitude using `refζs` from that same reference.
-3.  Multiply by the fixed reference phase
-    $\exp(i\lambda_{\mathrm{ref}}\phi_{\mathrm{ref,inner}})$.
+$$
+\begin{aligned}
+&D^{j_0*}_{m_0,\lambda_R-\lambda_r}(\alpha_r,\beta_r,0)
+D^{j_R*}_{\lambda_R,\lambda_i-\lambda_j}(\gamma_r,\theta_{ij},0)\\
+&\quad=D^{j_0*}_{m_0,\lambda_R-\lambda_r}(\Omega_r)
+e^{i\lambda_r\gamma_r}
+ d^{j_R}_{\lambda_R,\lambda_i-\lambda_j}(\theta_{ij}).
+\end{aligned}
+$$
 
-``` julia
-function multiply_helicity_phase(A, axis::Integer, two_j::Integer, ϕ::Real)
-    two_j == 0 && return A
-    B = copy(A)
-    two_λs = collect((-two_j):2:two_j)
-    for I in CartesianIndices(A)
-        λ = two_λs[I[axis]] / 2
-        B[I] *= cis(λ * ϕ)
-    end
-    return B
-end
+TBD includes the overall $D^*$ but does not include this remaining
+spectator phase. At fixed reference and external helicities, the phase
+is common to all chains. Do not substitute the spectator or inner
+azimuth of each target chain.
 
-function tbd_reference_amplitude(objs, tbs, chain, refk; initial_frame = CurrentFrame())
-    reference_topology = three_body_topology(refk)
+## Where the minus signs come from
 
-    # A. The reference production-plane orientation.
-    po = reference_plane_orientation(reference_topology, objs; initial_frame)
+A spatial rotation does not uniquely specify its action on a spinor: a
+full turn leaves spatial axes unchanged but multiplies spin $j$ by
+$(-1)^{2j}$. Two distinctions prevent most sign mistakes.
 
-    # B. TBD amplitude in the fixed reference convention.
-    σ = three_body_σs(objs)
-    σ_tbd = Invariants(σ.σ1, σ.σ2, σ.σ3)
-    A = tbd_amplitude(chain, po, σ_tbd; refζs = three_body_refζs(refk))
+First, a negative planar angle may be written using positive middle
+Euler angle:
 
-    # C. The fixed-reference inner phase exp(i λ_ref ϕ_ref_inner).
-    ϕ_ref_inner = po.γ
-    two_j_ref = tbs.two_js[refk]
-    A_phase = multiply_helicity_phase(A, refk, two_j_ref, ϕ_ref_inner)
+$$
+R_y(-\theta)=R_z(\pi)R_y(\theta)R_z(-\pi).
+$$
 
-    return (; amplitude = A_phase, raw_amplitude = A, po, ϕ_ref_inner)
-end
-nothing
-```
+This identity is exact for spinors and adds **no** sign. Replacing the
+last $-\pi$ by $+\pi$, however, adds a full turn:
 
-For this event the reference orientation is:
+$$
+D^j(\pi,\theta,\pi)=(-1)^{2j}d^j(-\theta).
+$$
 
-``` julia
-po_ref = reference_plane_orientation(REF_TOPOLOGY, objs; initial_frame = CurrentFrame())
-(α = po_ref.α, cosβ = po_ref.cosβ, γ = po_ref.γ)
-```
+Second, TBD uses direct principal signed angles in $[-\pi,\pi]$. The
+positive cyclic parent angles sum to $2\pi$, so composing two pairwise
+alignments can differ from the direct third alignment by a full turn.
+CD’s vertex paths can also reverse and restore local plane normals
+through azimuthal $\pi$ rotations. Compare the spin matrices, not just
+their spatial axes or Euler angles modulo $2\pi$.
 
-    (α = 0.3000000000000002, cosβ = 0.9800665778412415, γ = 0.0999999999999998)
+A way to **compute**, rather than guess, the residual signs is to
+compare the frame maps in the spin-$1/2$ representation. Define the
+diagonal spectator phase
+$P_a(q)_{mm'}=\delta_{mm'}e^{im\gamma_q\delta_{aq}}$, and let
+$C_a(k\leftarrow r)$ be CD’s conjugated final-leg Wigner matrix, with
+rows in the chain frame and columns in the reference frame. With the
+same index order for TBD’s $d_a(k,r)$, compare the two sides of
 
-The last angle is the phase angle $\phi_{12}$.
+$$
+\begin{aligned}
+D^{j_0*}(\Omega_k)&=\epsilon_0^{2j_0}D^{j_0*}(\Omega_r)d_0(k,r),\\
+P_a(k)C_a(k\leftarrow r)&=\epsilon_a^{2j_a}d_a(k,r)P_a(r).
+\end{aligned}
+$$
 
-## External-rotation table
+At spin $1/2$, form $L R^\dagger$ from each pair of matrices before
+inserting $\epsilon_a$. It must be $+I$ or $-I$, which gives
+$\epsilon_a$ directly. A noncentral residual is a mismatch of
+conventions or kinematics, not a sign that can be repaired by choosing
+$\pm1$.
 
-Before comparing full amplitudes, it is useful to compare the rotations
-alone. The table below uses IDT path comparisons for every target
-topology and every possible spin-1/2 final particle. It prints the IDT
-full Wigner $D$ branch and the TBD signed small-$d$ branch as rotation
-parameters only.
+The full amplitude sign is $\epsilon_0^{2j_0}\prod_a\epsilon_a^{2j_a}$.
+Allowed angular-momentum couplings obey $2j_0=2j_1+2j_2+2j_3\pmod 2$, so
+introduce $q_a=\epsilon_0\epsilon_a$:
 
-``` julia
-idt_relative_zyz(ref_path, target_path) =
-    wigner_zyz(compare_instruction_paths(ref_path, target_path, objs).relative; atol = 1e-9)
-```
+$$
+S(k,r)=\prod_{a=1}^3q_a^{2j_a}.
+$$
 
-The TBD side has only the signed Wigner angle $\zeta$. A positive TBD
-rotation is represented as $(0,\zeta,0)$. A negative one is represented
-as $(\pi,\zeta,-\pi)$; this keeps the same small-$d$ rotation but
-exposes the spinor branch.
+The cyclic paths give $q_a=-1$ only for the particle absent from
+$(k,r)$; for $k=r$ all are $+1$. This gives the sign table above, for
+any allowed spin magnitudes and LS couplings. Individual $\epsilon_a$
+assignments can change with Euler branches; the reduced rule keeps the
+complete chain sign.
 
-``` julia
-function tbd_relative_zyz(k, particle, σs, ms2)
-    w = wr(k, REF_K, particle)
-    ζ = acos(cosζ(w, σs, ms2))
-    return ispositive(w) ? (ϕ = 0.0, θ = ζ, ψ = 0.0) : (ϕ = π, θ = ζ, ψ = -π)
-end
-nothing
-```
+## Brute-force check on four-vectors
 
-``` julia
-function path_label(path)
-    join(map(path) do instr
-        s = sprint(show, instr)
-        kind = occursin("ToHelicityFrameParticle2", s) ? "H2" : "H1"
-        m = match(r"\(\(([^)]*)\)\)", s)
-        m === nothing && (m = match(r"\(([^()]*)\)", s))
-        args = m === nothing ? "?" : replace(m.captures[1], ", " => "")
-        "$kind($args)"
-    end, " -> ")
-end
+A comparison of intensities alone would miss both a common phase and an
+overall chain sign. The executable check below compares **every complex
+tensor component** against the predicted relation, without fitting a
+phase or choosing the better of $+A$ and $-A$.
 
-function fmt_zyz(z)
-    @sprintf("(% .3f, % .6f, % .3f)", z.ϕ, z.θ, z.ψ)
-end
+The [validation
+script](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/checks/cascade-dpd.jl)
+keeps the implementation out of the derivation. It:
 
-function rotation_rows()
-    rows = String[]
-    for k in (1, 2), particle in (1, 2, 3)
-        target_topology = three_body_topology(k)
-        ref_path = helicity_frame_path(REF_TOPOLOGY, particle; initial_frame = CurrentFrame())
-        target_path = helicity_frame_path(target_topology, particle; initial_frame = CurrentFrame())
-        idt = idt_relative_zyz(ref_path, target_path)
-        tbd = tbd_relative_zyz(k, particle, σs, ms^2)
+- samples interior Dalitz points and independently rotates their
+  four-vectors;
+- exercises all three chains and all three reference choices;
+- includes scalar, integer-spin and half-integer-spin cases, including
+  two and three fermions and spin $3/2$;
+- enumerates every allowed LS pair for two isobar-spin choices per case,
+  passing identical couplings to both libraries;
+- asserts the predicted relation with absolute and relative tolerances,
+  and verifies that omitting either the phase or sign produces a
+  detectable error.
 
-        push!(rows, @sprintf(
-            "%-8s %-13d %-20s %-20s %-25s %-25s",
-            k == 1 ? "(23)1" : "(31)2",
-            particle,
-            path_label(ref_path),
-            path_label(target_path),
-            fmt_zyz(idt),
-            fmt_zyz(tbd),
-        ))
-    end
-    return rows
-end
-
-println("target   spin_particle ref_path             target_path          IDT relative ZYZ          TBD relative ZYZ")
-foreach(println, rotation_rows())
-nothing
-```
-
-    target   spin_particle ref_path             target_path          IDT relative ZYZ          TBD relative ZYZ
-    (23)1    1             H1(12) -> H1(1)      H2(1)                (-3.122,  0.481443, -0.000) ( 0.000,  0.481443,  0.000)
-    (23)1    2             H1(12) -> H2(2)      H1(23) -> H1(2)      ( 3.142,  0.527521,  3.142) ( 3.142,  0.527521, -3.142)
-    (23)1    3             H2(3)                H1(23) -> H2(3)      (-0.000,  0.125041,  0.100) ( 0.000,  0.125041,  0.000)
-    (31)2    1             H1(12) -> H1(1)      H1(31) -> H2(1)      ( 0.000,  1.442399,  6.283) ( 0.000,  1.442399,  0.000)
-    (31)2    2             H1(12) -> H2(2)      H2(2)                ( 3.111,  0.193292, -3.142) ( 3.142,  0.193292, -3.142)
-    (31)2    3             H2(3)                H1(31) -> H1(3)      (-3.142,  0.129644,  3.242) ( 3.142,  0.129644, -3.142)
-
-This table deliberately prints only the two rotation parameterizations.
-It does not compare their spin matrices. A sign comparison belongs to
-the full amplitude check below, where the fixed-reference phase
-$\exp(i\lambda_3\phi_{12})$ is included.
-
-## Full toy amplitude checks
-
-Now we repeat the exercise with simple toy amplitudes:
-
-``` math
-1/2^+ \to f^+ + P^- + P^-,
-```
-
-where only one final particle is a spin-1/2 fermion at a time. The
-reference is still fixed to `refk = 3`, and each target chain is
-compared to the reference-phase-corrected TBD amplitude.
-
-The isobar quantum numbers are chosen so that a chain whose spectator is
-the fermion uses a vector `1-` isobar of the two pseudoscalars, while
-the other chains use a fermionic `1/2-` isobar.
+The masses are those of $\Lambda_c\to pK\pi$, but the spin assignments
+are toy systems. Unit line shapes isolate the angular convention. The
+finite sample is an executable stress test of the general relation, not
+a proof for all spins. Exact Euler poles and degenerate phase-space
+boundaries require a shared limiting-frame prescription and are excluded
+here.
 
 ``` julia
-function classify(A, B; atol = 1e-10)
-    diff_plus = maximum(abs, A .- B)
-    diff_minus = maximum(abs, A .+ B)
-    sign =
-        diff_plus < atol ? "+1" :
-        diff_minus < atol ? "-1" :
-        "not sign-only"
-    return (; sign, diff_plus, diff_minus)
-end
-
-function toy_quantum(spin_particle)
-    two_js = ntuple(i -> i == spin_particle ? 1 : 0, 3)
-    tbs = ThreeBodySystem(ms, ThreeBodySpins(two_js...; two_h0 = 1))
-    labels = ntuple(i -> i == spin_particle ? "1/2+" : "0-", 3)
-    quantum = SystemSpinParities(labels...; jp0 = "1/2+")
-    parities = ntuple(i -> i == spin_particle ? '+' : '-', 3)
-    Ps = ThreeBodyParities(parities...; P0 = '+')
-    return (; two_js, tbs, quantum, Ps)
-end
-
-isobar_jp_for(spin_particle, k) = k == spin_particle ? jp"1-" : jp"1/2-"
-
-function compare_toy_amplitudes(spin_particle)
-    (; tbs, quantum, Ps) = toy_quantum(spin_particle)
-    rows = String[]
-    for k in (1, 2, 3)
-        topology = three_body_topology(k)
-        jp = isobar_jp_for(spin_particle, k)
-        tbd_chain = DecayChainLS(; k, Xlineshape = unit_X, jp, Ps, tbs)
-        cd_chain = minimal_ls_decay_chain(
-            topology,
-            quantum,
-            ((three_body_isobar_pair(k) => Propagator(jp, UNIT_LINESHAPE)),),
-        )
-        task = KinematicTask(
-            (topology,);
-            reference_topology = REF_TOPOLOGY,
-            wigner_finals = (1, 2, 3),
-            initial_frame = CurrentFrame(),
-        )
-        point = KinematicPoint(task, objs)
-
-        A_tbd = tbd_reference_amplitude(objs, tbs, tbd_chain, REF_K).amplitude
-        A_cd = amplitude(cd_chain, point)
-        c = classify(A_tbd, A_cd)
-        push!(rows, @sprintf(
-            "%-8d %-14s %-18.2e %.2e",
-            k,
-            c.sign,
-            c.diff_plus,
-            c.diff_minus,
-        ))
-    end
-    return rows
-end
-
-for spin_particle in (1, 2, 3)
-    println()
-    println("spin_particle = ", spin_particle)
-    println("k        sign           max |TBD-CD|       max |TBD+CD|")
-    foreach(println, compare_toy_amplitudes(spin_particle))
-end
-nothing
+include(joinpath(@__DIR__, "checks", "cascade-dpd.jl"))
+result = validate_conversion()
+print_validation(result)
 ```
 
+    4224 tensor comparisons; 11 spin assignments; 8 sampled events; all 9 (k,r) pairs
+    Maximum absolute component error: 3.315e-14
+    Omitting either the phase or sign is detected. Seed: 20261112
 
-    spin_particle = 1
-    k        sign           max |TBD-CD|       max |TBD+CD|
-    1        +1             3.72e-16           1.37e+00
-    2        -1             1.20e+00           5.84e-16
-    3        +1             6.21e-16           1.25e+00
+Run more samples independently with:
 
-    spin_particle = 2
-    k        sign           max |TBD-CD|       max |TBD+CD|
-    1        -1             1.32e+00           1.59e-15
-    2        +1             7.27e-16           1.40e+00
-    3        +1             6.21e-16           1.25e+00
+``` julia
+include("docs/checks/cascade-dpd.jl")
+print_validation(validate_conversion(nsamples = 100, seed = 42))
+```
 
-    spin_particle = 3
-    k        sign           max |TBD-CD|       max |TBD+CD|
-    1        +1             1.71e-15           1.41e+00
-    2        +1             1.28e-15           1.38e+00
-    3        +1             1.12e-15           1.35e+00
+The `cases` keyword accepts `(final doubled spins, parent doubled spin)`
+pairs, for example `((3,1,0),2)`. For each case the isobar doubled spins
+are `two_js[i] + two_js[j]` and that value plus two; forbidden vertex
+assignments are skipped. The default run checks all nine topology pairs
+and requires nontrivial phase and sign witnesses. A failed comparison
+reports the seed, event, spins, chain, reference, LS couplings and
+residual.
 
-These amplitude checks are a useful warning. The fixed reference phase
-$\exp(i\lambda_3\phi_{12})$ is necessary and it fixes the particle-3
-endpoint phase in the non-reference chains. With physical LS choices the
-remaining differences are global signs. The two clean central signs are:
+The current TBD API is `amplitude(chain, po, σs; reference_k=r)`. This
+broad validation requires **TBD 0.16 or later**, including its fix for
+omitted higher-spin helicity components. TBD 0.14’s `refζs = (r,r,r,r)`
+denotes the same reference, but that version fails the spin-1 spectator
+/ scalar-isobar case because its aligned tensor drops valid components.
+This is a tensor-domain bug, not an additional phase or sign. The script
+rejects that older version rather than silently excluding the failing
+cases. See the environment setup in [the documentation
+README](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/README.md).
 
-- `(23)1` with particle 2 spin gives `-1`;
-- `(31)2` with particle 1 spin gives `-1`.
+## Using the relation in a coherent model
+
+At fixed reference, convert each CD coefficient using
+$c_{\mathrm{TBD},n}^{(r)}=S(k_n,r)c_{\mathrm{CD},n}$. The spectator
+phase is common to all terms at fixed external helicities and cancels
+from unpolarized intensities. Keep it when comparing amplitudes or
+spin-density information.
+
+Changing a TBD model’s reference from $r$ to $s$ also requires
+
+$$
+c_{\mathrm{TBD},n}^{(s)}
+=S(k_n,s)S(k_n,r)c_{\mathrm{TBD},n}^{(r)}.
+$$
+
+Transform the external spin bases as well when comparing tensors.
+Changing only `reference_k` while keeping numerical coefficients can
+change interference. Store the reference with the fitted couplings.

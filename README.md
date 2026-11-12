@@ -8,7 +8,9 @@
 
 ## Installation
 
-With the checked-in `Manifest.toml` and Julia `1.11.5`, instantiate the project directly:
+CascadeDecays requires Julia 1.11 or later and ThreeBodyDecays 0.16.
+The latter supplies the explicit `reference_k` API and fixes omitted helicity
+components for higher spins. Instantiate the project directly:
 
 ```julia
 using Pkg
@@ -16,13 +18,12 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-If you work with a different Julia version than the one used for this manifest, resolve the environment explicitly:
+If an existing local manifest still pins ThreeBodyDecays 0.14, upgrade it explicitly:
 
 ```julia
 using Pkg
 Pkg.activate(".")
-Pkg.resolve()
-Pkg.instantiate()
+Pkg.add(PackageSpec(name="ThreeBodyDecays", version="0.16"))
 ```
 
 ## Development
