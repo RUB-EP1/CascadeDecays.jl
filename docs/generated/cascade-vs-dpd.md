@@ -207,64 +207,30 @@ complete chain sign.
 
 ## Brute-force check on four-vectors
 
-A comparison of intensities alone would miss both a common phase and an
-overall chain sign. The executable check below compares **every complex
-tensor component** against the predicted relation, without fitting a
-phase or choosing the better of $+A$ and $-A$.
+This notebook checks **every complex helicity component** against the
+predicted relation, without fitting a phase or choosing the better of
+$+A$ and $-A$. It samples interior Dalitz points with independent
+overall rotations, covers all nine chain/reference pairs and eleven spin
+assignments (including integer spins, several fermions, and spin $3/2$),
+and enumerates matched allowed LS couplings for two isobar-spin choices
+per case. Unit line shapes isolate the angular convention; the masses
+are those of $\Lambda_c\to pK\pi$, with toy spin assignments.
 
-The [validation
-script](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/checks/cascade-dpd.jl)
-keeps the implementation out of the derivation. It:
+The implementation lives in hidden executable cells below. Rendering
+this notebook reruns the assertions and records the results; no separate
+test script is needed. The check also requires detectable errors when
+either the continuous phase or the discrete sign is omitted.
 
-- samples interior Dalitz points and independently rotates their
-  four-vectors;
-- exercises all three chains and all three reference choices;
-- includes scalar, integer-spin and half-integer-spin cases, including
-  two and three fermions and spin $3/2$;
-- enumerates every allowed LS pair for two isobar-spin choices per case,
-  passing identical couplings to both libraries;
-- asserts the predicted relation with absolute and relative tolerances,
-  and verifies that omitting either the phase or sign produces a
-  detectable error.
+    52800 tensor comparisons; 11 spin assignments; 100 sampled events; all 9 (k,r) pairs
+    Maximum absolute component error: 4.041e-14
+    Omitting either the phase or sign is detected. Seed: 42
 
-The masses are those of $\Lambda_c\to pK\pi$, but the spin assignments
-are toy systems. Unit line shapes isolate the angular convention. The
-finite sample is an executable stress test of the general relation, not
-a proof for all spins. Exact Euler poles and degenerate phase-space
-boundaries require a shared limiting-frame prescription and are excluded
-here.
-
-``` julia
-include(joinpath(@__DIR__, "checks", "cascade-dpd.jl"))
-result = validate_conversion()
-print_validation(result)
-```
-
-    4224 tensor comparisons; 11 spin assignments; 8 sampled events; all 9 (k,r) pairs
-    Maximum absolute component error: 3.315e-14
-    Omitting either the phase or sign is detected. Seed: 20261112
-
-Run more samples independently with:
-
-``` julia
-include("docs/checks/cascade-dpd.jl")
-print_validation(validate_conversion(nsamples = 100, seed = 42))
-```
-
-The `cases` keyword accepts `(final doubled spins, parent doubled spin)`
-pairs, for example `((3,1,0),2)`. For each case the isobar doubled spins
-are `two_js[i] + two_js[j]` and that value plus two; forbidden vertex
-assignments are skipped. The default run checks all nine topology pairs
-and requires nontrivial phase and sign witnesses. A failed comparison
-reports the seed, event, spins, chain, reference, LS couplings and
-residual.
-
-Evaluate TBD with `amplitude(chain, po, σs; reference_k=r)` using the
-[documentation
-environment](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/README.md).
-The component-wise check includes the spin-1 spectator / scalar-isobar
-case, so it also detects omitted helicity components rather than
-mistaking them for an additional phase or sign.
+The residual is the largest absolute difference across all compared
+components. Each comparison must satisfy `error ≤ atol + rtol * scale`,
+with both tolerances set to `2e-10`. This finite numerical stress test
+supports the general relation; it is not a proof for unbounded spins.
+Exact Euler poles and degenerate phase-space boundaries are excluded and
+require a shared limiting-frame prescription.
 
 ## Using the relation in a coherent model
 
