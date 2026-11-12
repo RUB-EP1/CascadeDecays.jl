@@ -5,11 +5,6 @@ import ThreeBodyDecays as TBD
 include(joinpath(@__DIR__, "..", "..", "compat", "ThreeBodyCompat.jl"))
 using .ThreeBodyCompat
 
-# The broad spin sweep needs the full-helicity padding fix in TBD 0.16.
-pkgversion(TBD) >= v"0.16" || error(
-    "This validation requires ThreeBodyDecays 0.16 or later; " *
-        "0.14 omits valid higher-spin components. Update the docs environment first."
-)
 oriented_tbd(chain, po, invariants, r) = TBD.amplitude(chain, po, invariants; reference_k = r)
 tbd_vertex(ls) = TBD.Vertex(TBD.RecouplingLS(ls))
 

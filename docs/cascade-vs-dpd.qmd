@@ -245,14 +245,11 @@ are skipped. The default run checks all nine topology pairs and requires
 nontrivial phase and sign witnesses. A failed comparison reports the seed,
 event, spins, chain, reference, LS couplings and residual.
 
-The current TBD API is `amplitude(chain, po, σs; reference_k=r)`.
-This broad validation requires **TBD 0.16 or later**, including its fix for
-omitted higher-spin helicity components. TBD 0.14's `refζs = (r,r,r,r)` denotes
-the same reference, but that version fails the spin-1 spectator / scalar-isobar
-case because its aligned tensor drops valid components. This is a tensor-domain
-bug, not an additional phase or sign. The script rejects that older version
-rather than silently excluding the failing cases. See the environment setup in
-[the documentation README](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/README.md).
+Evaluate TBD with `amplitude(chain, po, σs; reference_k=r)` using the
+[documentation environment](https://github.com/RUB-EP1/CascadeDecays.jl/blob/main/docs/README.md).
+The component-wise check includes the spin-1 spectator / scalar-isobar case,
+so it also detects omitted helicity components rather than mistaking them for
+an additional phase or sign.
 
 ## Using the relation in a coherent model
 

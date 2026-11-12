@@ -24,13 +24,7 @@ derivation, so its numerical results and assertions rerun with this command.
 
 The general CD–TBD comparison keeps its numerical machinery in
 `docs/checks/cascade-dpd.jl`. Rendering `cascade-vs-dpd.qmd` executes it and
-records the measured residual. This check requires ThreeBodyDecays 0.16 for
-its higher-spin tensor-domain fix and explicit `reference_k` API. Upgrade the
-local docs environment before rendering this notebook:
-
-```sh
-julia --project=docs -e 'using Pkg; Pkg.add(PackageSpec(name="ThreeBodyDecays", version="0.16"))'
-```
+records the measured residual. Use the documentation environment prepared above.
 
 To run the same assertions without Quarto:
 
