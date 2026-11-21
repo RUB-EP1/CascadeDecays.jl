@@ -47,16 +47,3 @@ julia --project=docs docs/make.jl
 The documentation build checks that the committed Markdown and asset directory
 exist, copies them into Documenter's temporary source tree, and fails with a
 regeneration hint if either is missing.
-
-## Standalone checks
-
-Some numerical checks are plain scripts, without a notebook or generated
-assets. Each documents its setup and reference results in its header.
-
-- `validate-fourbody-mass-window.jl` samples four-body phase space for
-  `pi- p -> p pi- pi+ pi-` restricted to `m3pi` in `[1.02,1.7]` GeV, and
-  checks the weighted spectrum against quadrature. It writes no files.
-
-  ```sh
-  julia -O1 --project=examples examples/validate-fourbody-mass-window.jl
-  ```
