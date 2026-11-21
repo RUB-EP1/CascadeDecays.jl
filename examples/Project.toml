@@ -10,7 +10,7 @@ ThreeBodyDecays = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
 
 [sources]
 CascadeDecays = {path = ".."}
-RamboOnDiet = {url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
+RamboOnDiet = {rev = "v0.5.0", url = "https://github.com/mmikhasenko/RamboOnDiet.jl"}
 
 [compat]
 julia = "1.11"

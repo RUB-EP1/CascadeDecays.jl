@@ -10,7 +10,7 @@ docs/integration_4body_b2ddKpi.html
 docs/src/lb2lc3pi-model_files/
 docs/**/_freeze/
 docs/test_ls.jl
-docs/.DS_Store
+.DS_Store
 docs/.documenter-src/
 docs/.documenter-build/
 docs/*_files/libs/
