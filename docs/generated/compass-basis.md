@@ -1,16 +1,44 @@
 # COMPASS: three-pion meson amplitudes
 
 
-This comparison with `ThreeBodyDecays.jl` specializes the [general
-relations and signs](cascade-vs-dpd.md) to a meson decaying into three
-spin-zero pions. It derives the common orientation, the cyclic-pair
-phase, and the COMPASS reflectivity basis. Executable Julia cells check
-each step as the material is presented; rendering this notebook reruns
-them. The [angular derivation](three-pion-cascade-vs-dpd.md) gives
-further details.
+This note writes the COMPASS amplitude for a meson decaying into
+$\pi^-\pi^+\pi^-$ with `CascadeDecays.jl`. It brings in
+`ThreeBodyDecays.jl` for a single ingredient: the Wigner rotation that
+relates the two decay chains. It specializes the [general cascade–DPD
+relations](cascade-vs-dpd.md) to three spin-zero pions. Executable Julia
+cells check each step as it is presented, and rendering the notebook
+reruns them. The [angular derivation](three-pion-cascade-vs-dpd.md)
+gives further details.
 
-For $1=\pi^-$, $2=\pi^+$, and $3=\pi^-$, the two-chain amplitude in the
-COMPASS reflectivity basis has the factorized form
+**Why `ThreeBodyDecays` appears.** The two $\pi^+\pi^-$ pairs give two
+decay chains. `CascadeDecays` evaluates each chain in its own helicity
+frames: the $(12)3$ chain uses the angles $\Omega_{12}$ and the $(32)1$
+chain uses $\Omega_{32}$. The reflectivity basis and the integral over
+the production orientation need both chains written with *one*
+orientation, $\Omega_{12}$. The rotation that connects the two chain
+frames is the DPD parent Wigner angle $\zeta$. `ThreeBodyDecays`
+computes it as `wr(1,3,0)`, and this note checks it against the
+`CascadeDecays` angles.
+
+**Why the labels are $1=\pi^-$, $2=\pi^+$, $3=\pi^-$.** COMPASS defines
+the isobar decay (TY) angles by the negative pion. In an ordered cascade
+chain, the first particle of the pair defines those angles. With this
+labeling, both physical chains, $(12)3$ and $(32)1$, put a negative pion
+first, so the `CascadeDecays` chains match the COMPASS angles directly.
+DPD uses only the cyclic orderings $(12)3$, $(23)1$ and $(31)2$. Its
+second chain is therefore $(23)1$: the same pair, in reversed order.
+Converting the $(32)$ angles to $(23)$ costs a factor $(-1)^S$. This
+conversion is the only place where DPD notation enters.
+
+| Symbol | Source | Meaning |
+|:---|:---|:---|
+| $(12)3$, $(32)1$ | `CascadeDecays` | physical ordered chains, negative pion first |
+| $\Omega_{ij}$, $\theta_{ij}$ | `CascadeDecays` | GJ and TY angles of chain $(ij)$ |
+| $(23)1$ | DPD / `ThreeBodyDecays` | cyclic chain: same pair as $(32)1$, reversed order |
+| $\zeta$ = `wr(1,3,0)` | DPD / `ThreeBodyDecays` | parent rotation between the $(12)$ and $(23)$ frames |
+
+With these conventions, the two-chain amplitude in the COMPASS
+reflectivity basis has the factorized form
 
 ``` math
 \boxed{
@@ -33,7 +61,7 @@ The input momenta are in their common rest frame, with the GJ axes fixed
 by production. The pair momentum defines the outer helicity axis. The
 first particle of the ordered pair defines the inner TY angles in the
 pair rest frame. Thus $(12)3$ and $(32)1$ both use the negative pion
-first; DPD’s cyclic second chain is $(23)1$.
+first.
 
 We use the convention implemented by `PartialWaveFunctions`:
 
@@ -171,7 +199,7 @@ nothing
 
     max angles          3.552714e-15
     Test Summary:                       | Pass  Total  Time
-    Physical events and helicity angles |  301    301  1.3s
+    Physical events and helicity angles |  301    301  2.8s
     First event four-vectors (E, px, py, pz), GeV:
     p1 = ( 0.511082386798,  0.113961653220,  0.455775068512, -0.144938403634)
     p2 = ( 0.374615321371, -0.126905897469,  0.005677076243,  0.323603784332)
@@ -264,7 +292,7 @@ end
     max rotation32      2.756530e-14
     max rotation23      2.746006e-14
     Test Summary:                  | Pass  Total  Time
-    DPD rotation and pair reversal |  203    203  0.2s
+    DPD rotation and pair reversal |  203    203  0.5s
     First-event zeta = -2.421470515035 rad
 
 The ordered pair swap gives $\theta_{23}=\pi-\theta_{32}$ and
@@ -336,7 +364,7 @@ nothing
     max reversal        9.089951e-15
     Omitting the phase: 1.343970; mixing TY angles: 1.931800
     Test Summary:               | Pass  Total  Time
-    Ordered-chain factorization |    5      5  0.6s
+    Ordered-chain factorization |    5      5  0.9s
 
 ## Reflectivity convention
 
@@ -461,7 +489,7 @@ nothing
     max reflectivity    1.431897e-14
     max reflectivity_M0 1.188681e-14
     Test Summary:              | Pass  Total  Time
-    Reflectivity factorization |    2      2  0.2s
+    Reflectivity factorization |    2      2  0.3s
 
 ## Integrating out the orientation
 

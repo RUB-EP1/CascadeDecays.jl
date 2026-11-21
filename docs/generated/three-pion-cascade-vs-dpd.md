@@ -1,14 +1,23 @@
 # Three pions: pulling out the (12)3 orientation
 
 
+This page derives the angular identity used in [the COMPASS basis
+note](compass-basis.md). That note also covers reflectivity and the
+executable checks. The amplitudes are `CascadeDecays` cascade
+amplitudes: each decay chain is written in its own helicity frames. The
+goal is to rewrite the second chain in the orientation of the first. The
+rotation needed for this is the DPD parent Wigner angle, so DPD notation
+from `ThreeBodyDecays` enters at exactly that step.
+
 Label the particles $1=\pi^-$, $2=\pi^+$, $3=\pi^-$, and take the input
-four-vectors in their common rest frame (the GJ frame). The ordered
-chains are $\tau_{12}=((1,2),3)$ and $\tau_{32}=((3,2),1)$: the negative
-pion defines the inner angles in both. DPD uses $\tau_{23}=((2,3),1)$
-instead. The completed derivation, including reflectivity, is collected
-in [the COMPASS basis note](compass-basis.md). All statements below
-concern angular factors, before isobar couplings, lineshapes, or Bose
-symmetrization.
+four-vectors in their common rest frame (the GJ frame). The physical,
+ordered `CascadeDecays` chains are $\tau_{12}=((1,2),3)$ and
+$\tau_{32}=((3,2),1)$. The negative pion comes first in both, as in the
+COMPASS definition of the isobar decay angles. DPD admits only cyclic
+orderings, so its chain for the same pair is $\tau_{23}=((2,3),1)$.
+Relating $\tau_{32}$ to $\tau_{23}$ produces the sign $(-1)^S$ derived
+below. All statements concern angular factors, before isobar couplings,
+lineshapes, or Bose symmetrization.
 
 The convention used by `PartialWaveFunctions`, and conjugated by
 `CascadeDecays`, is
@@ -45,9 +54,9 @@ d^S_{\lambda0}(\theta_{\rm TY}^{23}).
 \end{aligned}
 $$
 
-There are three corrections to the proposed expression: the inner angles
-on the left must be those of **32**, the remaining small-$d$ has spin
-**$S$**, and using the negative-pion-first angle on the right requires
+Three details are easy to get wrong. The inner angles on the left are
+those of **32**. The remaining small-$d$ has spin **$S$**. Keeping the
+negative-pion-first angle $\theta^{32}$ on the right requires
 **$(-1)^\lambda$**. The sum over $\lambda'$ is essential. In a full
 amplitude, sum these fixed-$\lambda$ identities with the appropriate
 helicity couplings.
