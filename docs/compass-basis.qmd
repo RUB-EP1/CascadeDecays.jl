@@ -15,7 +15,7 @@ phase, and the COMPASS reflectivity basis. Executable Julia cells check
 each step as the material is presented; rendering this notebook reruns them.
 The [angular derivation](three-pion-cascade-vs-dpd.md) gives further details.
 
-For $1=\pi^+$, $2=\pi^-$, and $3=\pi^-$, the two-chain amplitude in
+For $1=\pi^-$, $2=\pi^+$, and $3=\pi^-$, the two-chain amplitude in
 the COMPASS reflectivity basis has the factorized form
 
 ```math
@@ -38,8 +38,8 @@ obtain that result from cascade amplitudes.
 The input momenta are in their common rest frame, with the GJ axes fixed by
 production. The pair momentum defines the outer helicity axis. The first
 particle of the ordered pair defines the inner TY angles in the pair rest
-frame. Thus $(12)3$ and $(13)2$ both use the positive pion first; DPD's
-cyclic second chain is $(31)2$.
+frame. Thus $(12)3$ and $(32)1$ both use the negative pion first; DPD's
+cyclic second chain is $(23)1$.
 
 We use the convention implemented by `PartialWaveFunctions`:
 
@@ -107,7 +107,7 @@ ry3(x) = [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)]
 orientation(a) = rz3(a[1].phi) * ry3(a[1].theta) * rz3(a[2].phi)
 spatial(p) = [p.px, p.py, p.pz]
 parity(n) = iseven(n) ? 1.0 : -1.0
-d(j, m, n, theta) = wignerd(j, m, n, cos(theta))
+d(j, m, n, theta) = (sin(theta) < 0 ? parity(m-n) : 1) * wignerd(j, m, n, cos(theta))
 Dc(j, m, n, phi, theta, psi = 0.0) = conj(wignerD(j, m, n, phi, cos(theta), psi))
 
 # Independent Cartesian boost, followed by projection onto the helicity axes.
@@ -147,12 +147,12 @@ The on-shell and conservation checks run before comparing both angle constructio
 @testset "Physical events and helicity angles" begin
     for ps in events
         a = chain_angles(((1, 2), 3), ps)
-        b = chain_angles(((1, 3), 2), ps)
-        c = chain_angles(((3, 1), 2), ps)
+        b = chain_angles(((3, 2), 1), ps)
+        c = chain_angles(((2, 3), 1), ps)
         @test norm(spatial(sum(ps))) < 1.0e-14
         @test sum(p.E for p in ps) ≈ PARENT_MASS
         @test all(p -> isapprox(mass(p), PION_MASS; atol = 1.0e-14), ps)
-        for (angles, ij) in ((a, (1, 2)), (b, (1, 3)), (c, (3, 1)))
+        for (angles, ij) in ((a, (1, 2)), (b, (3, 2)), (c, (2, 3)))
             independent = cartesian_angles(ps, ij...)
             for v in 1:2
                 record!(:angles, angles[v].theta - independent[v].theta)
@@ -168,7 +168,7 @@ for (i, p) in enumerate(ps)
     @printf("p%d = (% .12f, % .12f, % .12f, % .12f)\n", i, p.E, p.px, p.py, p.pz)
 end
 println("chain     phi_GJ         theta_GJ       phi_TY         theta_TY (radians)")
-for (name, tree) in (("(12)3", ((1, 2), 3)), ("(13)2", ((1, 3), 2)), ("(31)2", ((3, 1), 2)))
+for (name, tree) in (("(12)3", ((1, 2), 3)), ("(32)1", ((3, 2), 1)), ("(23)1", ((2, 3), 1)))
     a = chain_angles(tree, ps)
     @printf("%s  % .12f % .12f % .12f % .12f\n", name, a[1].phi, a[1].theta, a[2].phi, a[2].theta)
 end
@@ -178,7 +178,7 @@ nothing
 ## Pulling out the common (12) orientation
 
 The Bose-symmetrized angular amplitude starts with a plus between the
-positive-pion-first chains:
+negative-pion-first chains:
 
 ```math
 \begin{aligned}
@@ -187,9 +187,9 @@ D^{J*}_{M\lambda}(\phi_{\rm GJ}^{12},\theta_{\rm GJ}^{12},0)
 H^{12}_\lambda
 D^{S*}_{\lambda0}(\phi_{\rm TY}^{12},\theta_{12},0)h^{12}\\
 &+\sum_\lambda
-D^{J*}_{M\lambda}(\phi_{\rm GJ}^{13},\theta_{\rm GJ}^{13},0)
-H^{13}_\lambda
-D^{S*}_{\lambda0}(\phi_{\rm TY}^{13},\theta_{13},0)h^{13}.
+D^{J*}_{M\lambda}(\phi_{\rm GJ}^{32},\theta_{\rm GJ}^{32},0)
+H^{32}_\lambda
+D^{S*}_{\lambda0}(\phi_{\rm TY}^{32},\theta_{32},0)h^{32}.
 \end{aligned}
 ```
 
@@ -207,24 +207,24 @@ For $O_{ij}=R_z(\phi_{\rm GJ}^{ij})R_y(\theta_{\rm GJ}^{ij})R_z(\phi_{\rm TY}^{i
 the Cartesian rotations obey
 
 ```math
-O_{12}^{-1}O_{31}=R_y(\zeta),\qquad
-O_{12}^{-1}O_{13}=R_y(\zeta)R_z(\pi).
+O_{12}^{-1}O_{23}=R_y(\zeta),\qquad
+O_{12}^{-1}O_{32}=R_y(\zeta)R_z(\pi).
 ```
 
 Consequently,
 
 ```math
-D^{J*}_{M\lambda}(\Omega_{13})
+D^{J*}_{M\lambda}(\Omega_{32})
 =\sum_\nu D^{J*}_{M\nu}(\Omega_{12})
 d^J_{\nu\lambda}(\zeta)(-1)^\lambda.
 ```
 
-The angle is the parent rotation `ThreeBodyDecays.wr(2,3,0)`, with
-reference spectator 3 and target spectator 2:
+The angle is the parent rotation `ThreeBodyDecays.wr(1,3,0)`, with
+reference spectator 3 and target spectator 1:
 
 ```math
-\zeta=\arccos\frac{\boldsymbol p_2\cdot\boldsymbol p_3}
-{|\boldsymbol p_2||\boldsymbol p_3|}\in(0,\pi).
+\zeta=-\arccos\frac{\boldsymbol p_1\cdot\boldsymbol p_3}
+{|\boldsymbol p_1||\boldsymbol p_3|}\in(-\pi,0).
 ```
 
 We compare the signed rotation extracted from the Cartesian frames with
@@ -235,34 +235,34 @@ We compare the signed rotation extracted from the Cartesian frames with
 @testset "DPD rotation and pair reversal" begin
     global configurations = map(events) do ps
         a = chain_angles(((1, 2), 3), ps)
-        b = chain_angles(((1, 3), 2), ps)
-        c = chain_angles(((3, 1), 2), ps)
+        b = chain_angles(((3, 2), 1), ps)
+        c = chain_angles(((2, 3), 1), ps)
         sig = (mass(ps[2] + ps[3])^2, mass(ps[1] + ps[3])^2, mass(ps[1] + ps[2])^2)
-        w = TBD.wr(2, 3, 0)
+        w = TBD.wr(1, 3, 0)
         zeta = (TBD.ispositive(w) ? 1 : -1) * acos(clamp(TBD.cosζ(w, sig, MASSES_3PI^2), -1, 1))
         q = transpose(orientation(a)) * orientation(c)
         record!(:zeta, zeta - atan(q[1, 3], q[3, 3]))
-        record!(:rotation13, norm(transpose(orientation(a)) * orientation(b) - ry3(zeta) * rz3(pi)))
-        record!(:rotation31, norm(q - ry3(zeta)))
-        @test cos(c[2].theta) ≈ TBD.cosθij(sig, MASSES_3PI^2; k = 2) atol = 1.0e-12
+        record!(:rotation32, norm(transpose(orientation(a)) * orientation(b) - ry3(zeta) * rz3(pi)))
+        record!(:rotation23, norm(q - ry3(zeta)))
+        @test cos(c[2].theta) ≈ TBD.cosθij(sig, MASSES_3PI^2; k = 1) atol = 1.0e-12
         @test b[2].theta + c[2].theta ≈ pi
         (; a, b, c, zeta)
     end
-    check_errors((:zeta, :rotation13, :rotation31))
+    check_errors((:zeta, :rotation32, :rotation23))
 end
 @printf("First-event zeta = %.12f rad\n", first(configurations).zeta)
 ```
 
-The ordered pair swap gives $\theta_{31}=\pi-\theta_{13}$ and
-$\phi_{\rm TY}^{31}=\phi_{\rm TY}^{13}+\pi\pmod{2\pi}$.
+The ordered pair swap gives $\theta_{23}=\pi-\theta_{32}$ and
+$\phi_{\rm TY}^{23}=\phi_{\rm TY}^{32}+\pi\pmod{2\pi}$.
 The small-$d$ substitution, explicitly, is
 
 ```math
 \begin{aligned}
-(-1)^\lambda d^S_{\lambda0}(\theta_{13})
-&=(-1)^\lambda d^S_{\lambda0}(\pi-\theta_{31})\\
-&=(-1)^\lambda(-1)^{S+\lambda}d^S_{\lambda0}(\theta_{31})\\
-&=(-1)^S d^S_{\lambda0}(\theta_{31}),
+(-1)^\lambda d^S_{\lambda0}(\theta_{32})
+&=(-1)^\lambda d^S_{\lambda0}(\pi-\theta_{23})\\
+&=(-1)^\lambda(-1)^{S+\lambda}d^S_{\lambda0}(\theta_{23})\\
+&=(-1)^S d^S_{\lambda0}(\theta_{23}),
 \end{aligned}
 ```
 
@@ -277,14 +277,14 @@ since $\lambda$ is integer. Therefore
 \mathcal O^\nu=
 H^{12}_\nu d^S_{\nu0}(\theta_{12})h^{12}
 +(-1)^S\sum_\lambda d^J_{\nu\lambda}(\zeta)
-H^{13}_\lambda d^S_{\lambda0}(\theta_{31})h^{13}.
+H^{32}_\lambda d^S_{\lambda0}(\theta_{23})h^{32}.
 }
 ```
 
 The sum over $\nu$ runs from $-J$ to $J$; the first term vanishes
 for $|\nu|>S$. The internal sum has $|\lambda|\leq\min(J,S)$.
-The couplings retain their original (13) ordering: the explicit $(-1)^S$
-already accounts for the angular conversion to (31). The bracket depends
+The couplings retain their original (32) ordering: the explicit $(-1)^S$
+already accounts for the angular conversion to (23). The bracket depends
 on internal kinematics and couplings, not the orientation of the GJ axes.
 
 We check both forms of the identity for $J=0,\ldots,4$, $S=0,\ldots,3$,
@@ -296,19 +296,19 @@ or mix TY angles between chains; both must produce a sizable mismatch.
 @testset "Ordered-chain factorization" begin
     for (; a, b, c, zeta) in configurations
         for J in 0:4, S in 0:3, M in -J:J, lam in -min(J, S):min(J, S)
-            direct13 = Dc(J, M, lam, b[1].phi, b[1].theta) * Dc(S, lam, 0, b[2].phi, b[2].theta)
-            direct31 = Dc(J, M, lam, c[1].phi, c[1].theta) * Dc(S, lam, 0, c[2].phi, c[2].theta)
+            direct32 = Dc(J, M, lam, b[1].phi, b[1].theta) * Dc(S, lam, 0, b[2].phi, b[2].theta)
+            direct23 = Dc(J, M, lam, c[1].phi, c[1].theta) * Dc(S, lam, 0, c[2].phi, c[2].theta)
             pulled = sum(Dc(J, M, lp, a[1].phi, a[1].theta, a[2].phi) * d(J, lp, lam, zeta) for lp in -J:J)
-            record!(:pull13, direct13 - pulled * parity(lam) * d(S, lam, 0, b[2].theta))
-            record!(:pull31, direct13 - parity(S) * pulled * d(S, lam, 0, c[2].theta))
-            record!(:reversal, direct13 - parity(S) * direct31)
-            # Negative controls: omit the phase, or mix chain-12 TY with chain-13 GJ.
-            record!(:missing_phase, direct13 - pulled * d(S, lam, 0, b[2].theta))
+            record!(:pull32, direct32 - pulled * parity(lam) * d(S, lam, 0, b[2].theta))
+            record!(:pull23, direct32 - parity(S) * pulled * d(S, lam, 0, c[2].theta))
+            record!(:reversal, direct32 - parity(S) * direct23)
+            # Negative controls: omit the phase, or mix chain-12 TY with chain-32 GJ.
+            record!(:missing_phase, direct32 - pulled * d(S, lam, 0, b[2].theta))
             mixed = Dc(J, M, lam, b[1].phi, b[1].theta) * Dc(S, lam, 0, a[2].phi, a[2].theta)
             record!(:mixed_TY, mixed - pulled * parity(lam) * d(S, lam, 0, b[2].theta))
         end
     end
-    check_errors((:pull13, :pull31, :reversal))
+    check_errors((:pull32, :pull23, :reversal))
     @test errors[:missing_phase] > 0.1
     @test errors[:mixed_TY] > 0.1
     @printf("Omitting the phase: %.6f; mixing TY angles: %.6f\n",
@@ -402,16 +402,16 @@ $M=0$ sectors explicitly.
         for J in 0:4, S in 0:3
             helicities = -min(J, S):min(J, S)
             H12(lam) = complex(0.7 + 0.1 * lam, 0.2 - 0.03 * lam)
-            H13(lam) = complex(-0.4 + 0.07 * lam, 0.5 + 0.04 * lam)
-            h12, h13 = 0.8 - 0.3im, -0.2 + 0.6im
+            H32(lam) = complex(-0.4 + 0.07 * lam, 0.5 + 0.04 * lam)
+            h12, h32 = 0.8 - 0.3im, -0.2 + 0.6im
             original(M) = sum(
                 Dc(J, M, lam, a[1].phi, a[1].theta) * H12(lam) * Dc(S, lam, 0, a[2].phi, a[2].theta) * h12 +
-                    Dc(J, M, lam, b[1].phi, b[1].theta) * H13(lam) * Dc(S, lam, 0, b[2].phi, b[2].theta) * h13
+                    Dc(J, M, lam, b[1].phi, b[1].theta) * H32(lam) * Dc(S, lam, 0, b[2].phi, b[2].theta) * h32
                     for lam in helicities
             )
             O = [
                 (abs(lp) <= S ? H12(lp) * d(S, lp, 0, a[2].theta) * h12 : 0im) +
-                    parity(S) * sum(d(J, lp, lam, zeta) * H13(lam) * d(S, lam, 0, c[2].theta) * h13 for lam in helicities)
+                    parity(S) * sum(d(J, lp, lam, zeta) * H32(lam) * d(S, lam, 0, c[2].theta) * h32 for lam in helicities)
                     for lp in -J:J
             ]
             for P in (-1, 1), eps in (-1, 1), M in 0:J
