@@ -402,8 +402,8 @@ show_table(interference_matrix)
      Row │ component          phi_percent  lambda1520_pair_percent
          │ String             Float64      Float64
     ─────┼─────────────────────────────────────────────────────────
-       1 │ phi                     31.753                    0.004
-       2 │ Lambda(1520) pair        0.004                   68.24
+       1 │ phi                     32.588                    0.05
+       2 │ Lambda(1520) pair        0.05                    67.312
 
 The diagonal entries are fit fractions. Each off-diagonal entry is half
 of the pair interference fraction; consequently all four entries sum to
@@ -436,9 +436,9 @@ show_table(overlap_summary)
      Row │ contribution                           percent
          │ String                                 Float64
     ─────┼──────────────────────────────────────────────────
-       1 │ fit fraction: phi                      31.7526
-       2 │ fit fraction: Lambda(1520) pair        68.2398
-       3 │ interference: phi x Lambda(1520) pair   0.007675
+       1 │ fit fraction: phi                      32.5877
+       2 │ fit fraction: Lambda(1520) pair        67.3121
+       3 │ interference: phi x Lambda(1520) pair   0.100217
 
 ## 7. The two resonance projections
 

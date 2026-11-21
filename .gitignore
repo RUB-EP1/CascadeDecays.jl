@@ -17,3 +17,4 @@ docs/*_files/libs/
 
 .quarto/
 examples/**/_freeze/
+examples/data/compass-mass-sample.jls
