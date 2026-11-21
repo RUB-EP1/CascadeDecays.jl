@@ -1,9 +1,27 @@
-# Run from the repository root with the examples environment (RamboOnDiet v0.5.0,
-# which contains the corrected massive weights):
-# julia -O1 --project=examples examples/validate-fourbody-mass-window.jl
-# -O1 avoids an LLVM optimizer crash observed with Julia 1.11.5 on Apple Silicon.
-# Optional first argument: event count (default 100_000).
-using RamboOnDiet, FourVectors, Random, LinearAlgebra, Printf, Test, Serialization
+# Four-body phase-space sampling restricted to a three-pion mass window.
+#
+# Run from the repository root with the examples environment:
+#   julia -O1 --project=examples examples/validate-fourbody-mass-window.jl [N]
+# N is the event count (default 100_000, minimum 10_000). -O1 avoids an LLVM
+# optimizer crash observed with Julia 1.11.5 on Apple Silicon.
+#
+# Setup: 190 GeV/c pi- beam on a proton at rest, outputs [recoil, pi-, pi+, pi-].
+# Restricting the first RamboOnDiet cube coordinate keeps m3pi in [1.02, 1.7] GeV;
+# event weights include the width of that coordinate interval. The weighted
+# events estimate the restricted four-body measure delta^4(P-sum p) prod d^3p/(2E),
+# without 2pi factors. They are weighted events, not an unweighted sample.
+# RamboOnDiet >= v0.5.0 is required: earlier versions get the shape right but
+# the absolute normalization of massive weights wrong, which this script tests.
+#
+# Checks: window endpoints, momentum conservation, mass shells, the raw sampling
+# distribution, and the weighted m3pi spectrum against an independent two-body
+# factorization integrated by Gauss-Legendre quadrature at two orders.
+# Reference result (seed 20261021, N = 100_000): all assertions pass; volume
+# 5.1253743 +/- 0.00422 vs quadrature 5.1311734 (1.37 sigma); effective sample size 93.65%; largest of ten mass-bin
+# pulls 1.57; maximum angle discrepancy vs Cartesian boosts 6.36e-11 rad.
+# Nothing is written to disk.
+
+using RamboOnDiet, FourVectors, Random, LinearAlgebra, Printf, Test
 
 # This is the generator's convention, without factors of 2π:
 # dΦ_n = δ⁴(P-Σp) ∏ d³p/(2E). Independent, angle-integrated two-body volume.
@@ -55,8 +73,7 @@ function cartesian_angles(p1,p2,p3)
         -vector_angle(rest_spatial(p1,total),rest_spatial(p3,total))
 end
 
-function validate_window(; n=100_000, seed=20261021,
-    output=joinpath(@__DIR__,"data","compass-mass-sample.jls"))
+function validate_window(; n=100_000, seed=20261021)
     n >= 10_000 || error("Use at least 10_000 events for the histogram checks")
     mpi, mp, beam_p = 0.13957039, 0.93827208816, 190.0
     W = sqrt(mp^2 + mpi^2 + 2mp*sqrt(beam_p^2+mpi^2))
@@ -74,11 +91,9 @@ function validate_window(; n=100_000, seed=20261021,
     counts, sums, sums2 = zeros(Int,10), zeros(10), zeros(10)
     minmass, maxmass = Inf, -Inf
     shell_error = conservation_error = map_error = 0.0
-    positive_weights = true
+    positive_weights = finite_angles = true
     angle_error = 0.0
-    columns = (; (key=>Vector{Float64}(undef,n) for key in
-        (:m3pi,:m12,:m23,:theta12,:theta23,:zeta0_13,:weight))...)
-    for event_index in 1:n
+    for _ in 1:n
         u = rand(rng,8)
         u[1] = ua+width*u[1]
         # Mass coordinates must be in the open unit interval.
@@ -93,9 +108,7 @@ function validate_window(; n=100_000, seed=20261021,
         angles = internal_angles(m,m12,m23,mpi)
         independent = cartesian_angles(ps[2],ps[3],ps[4])
         angle_error = max(angle_error,maximum(abs.(angles .- independent)))
-        for (column,value) in zip(values(columns),(m,m12,m23,angles...,weight))
-            column[event_index] = value
-        end
+        finite_angles &= all(isfinite,angles)
         positive_weights &= isfinite(weight) && weight>0
         minmass, maxmass = min(minmass,m), max(maxmass,m)
         map_error = max(map_error,abs(coordinate(m)-u[1]))
@@ -121,8 +134,8 @@ function validate_window(; n=100_000, seed=20261021,
     @testset "Restricted four-body mass window" begin
         @test ma <= minmass <= maxmass <= mb
         @test positive_weights
+        @test finite_angles
         @test angle_error < 2e-8
-        @test all(v->all(isfinite,v),values(columns))
         @test conservation_error < 1e-9
         @test shell_error < 1e-9
         @test map_error < 1e-11
@@ -137,19 +150,6 @@ function validate_window(; n=100_000, seed=20261021,
             @test mass(ps[2]+ps[3]+ps[4]) ≈ m atol=1e-9
         end
     end
-    metadata = (;seed,n,mass_window=(ma,mb),pion_mass=mpi,proton_mass=mp,
-        beam_momentum=beam_p,total_cm_energy=W,mass_unit="GeV",angle_unit="rad",
-        labels="1=pi-, 2=pi+, 3=pi-; recoil omitted",
-        zeta_convention="negative parent rotation wr(1,3,0), (12)3 reference to cyclic (23)1",
-        measure="delta4(P-sum(p)) product(d3p/(2E)); restricted four-body phase space",
-        estimator="mean(weight .* f); weight includes restricted cube width, not 1/N",
-        source=pkgdir(RamboOnDiet),schema_version=2)
-    mkpath(dirname(abspath(output)))
-    serialize(output,(;metadata,columns))
-    restored = deserialize(output)
-    @test restored.metadata == metadata
-    @test restored.columns == columns
-    println("Saved mass-only sample: ",abspath(output))
     @printf("Max invariant vs Cartesian angle error: %.3g rad\n",angle_error)
     println("RamboOnDiet source: ",pkgdir(RamboOnDiet))
     @printf("seed=%d, N=%d, W=%.12f GeV\n",seed,n,W)
@@ -163,7 +163,7 @@ function validate_window(; n=100_000, seed=20261021,
     for b in 1:10
         @printf("%.3f--%.3f  %7d       %.6f           %.6f       % .3f\n",edges[b],edges[b+1],counts[b],estimates[b]/total_mc,exact[b]/total_ref,pulls[b])
     end
-    return (;total_mc,total_ref,total_se,neff,pulls,output,angle_error)
+    return (;total_mc,total_ref,total_se,neff,pulls,angle_error)
 end
 
 validate_window(; n=isempty(ARGS) ? 100_000 : parse(Int,ARGS[1]));
